@@ -4,12 +4,13 @@ import { test, expect } from '@playwright/test'
 // Campaign discovery + management e2e
 //
 // Public/anon flows are fully self-contained. Authenticated flows (founder
-// create+submit, admin verify) use env credentials (E2E_EMAIL / E2E_PASSWORD)
-// and skip gracefully when not provided.
+// create+submit, admin verify) use env credentials (E2E_EMAIL / E2E_PASSWORD),
+// defaulting to the accounts seeded by supabase/seed.sql so the full path
+// runs against a freshly `supabase db reset`'d database.
 // ---------------------------------------------------------------------------
 
-const email = process.env.E2E_EMAIL
-const password = process.env.E2E_PASSWORD
+const email = process.env.E2E_EMAIL ?? 'test@example.com'
+const password = process.env.E2E_PASSWORD ?? 'Password123!'
 
 async function loginIfPossible(page: import('@playwright/test').Page) {
   if (!email || !password) return false

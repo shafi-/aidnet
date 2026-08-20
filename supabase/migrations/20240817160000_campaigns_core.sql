@@ -112,7 +112,7 @@ CREATE POLICY "deny_all_campaign_tag_map" ON campaign_tag_map FOR ALL USING (fal
 CREATE POLICY "Anon can view live campaigns" ON campaigns FOR SELECT TO anon USING (
   status = 'live'
   AND is_active = true
-  AND organization_id IN (
+  AND org_id IN (
     SELECT o.id FROM organizations o
     WHERE EXISTS (
       SELECT 1 FROM organization_members om
@@ -559,7 +559,7 @@ INSERT INTO role_permissions (role, permission) VALUES
   ('admin', 'campaigns:read'), ('admin', 'campaigns:create'),
   ('admin', 'campaigns:update'), ('admin', 'campaigns:delete'),
   ('member', 'campaigns:read'), ('member', 'campaigns:create'),
-  ('member', 'campaigns:update'),
+  ('member', 'campaigns:update'), ('member', 'campaigns:delete'),
   ('viewer', 'campaigns:read')
 ON CONFLICT (role, permission) DO NOTHING;
 

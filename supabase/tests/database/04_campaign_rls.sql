@@ -8,7 +8,11 @@
 -- ====================================================================
 
 BEGIN;
-SELECT plan(12);
+SELECT plan(13);
+
+-- Start from a clean slate: seed.sql may have populated live campaigns.
+DELETE FROM campaigns;
+DELETE FROM campaign_tag_map;
 
 -- ====================================================================
 -- SETUP
@@ -28,7 +32,7 @@ INSERT INTO profiles (id, email, is_system_admin) VALUES
   ('55555555-5555-5555-5555-555555555555', 'outsider@test.com', false),
   ('66666666-6666-6666-6666-666666666666', 'sysadmin@test.com', true),
   ('77777777-7777-7777-7777-777777777777', 'other@test.com', false)
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET is_system_admin = EXCLUDED.is_system_admin, email = EXCLUDED.email;
 
 INSERT INTO organizations (id, name, slug) VALUES
   ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Campaign Org', 'campaign-org'),
@@ -44,9 +48,9 @@ ON CONFLICT (organization_id, user_id) DO UPDATE SET role = EXCLUDED.role, statu
 -- Seed campaigns directly (superuser context)
 INSERT INTO campaigns (id, org_id, title, slug, status, is_zakat_eligible, is_active) VALUES
   ('d1111111-1111-1111-1111-111111111111', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Draft Camp', 'draft-1', 'draft', false, true),
-  ('p2222222-2222-2222-2222-222222222222', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Pending Camp', 'pending-1', 'pending_review', false, true),
-  ('l3333333-3333-3333-3333-333333333333', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Live Camp', 'live-1', 'live', false, true),
-  ('z4444444-4444-4444-4444-444444444444', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Zakat Camp', 'live-zakat', 'live', true, true)
+  ('22222222-2222-2222-2222-222222222222', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Pending Camp', 'pending-1', 'pending_review', false, true),
+  ('33333333-3333-3333-3333-333333333333', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Live Camp', 'live-1', 'live', false, true),
+  ('44444444-4444-4444-4444-444444444444', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Zakat Camp', 'live-zakat', 'live', true, true)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO campaigns (org_id, title, slug, status, is_zakat_eligible, is_active)
@@ -78,8 +82,8 @@ SELECT is(
 
 SELECT is(
   (SELECT count(*) FROM get_public_campaigns()),
-  14::bigint,
-  'Anon sees 14 live campaigns via get_public_campaigns()'
+  15::bigint,
+  'Anon sees 15 live campaigns via get_public_campaigns()'
 );
 
 -- ====================================================================
@@ -135,7 +139,7 @@ SELECT lives_ok(
 -- ====================================================================
 
 SELECT throws_ok(
-  $$SELECT verify_campaign('p2222222-2222-2222-2222-222222222222')$$,
+  $$SELECT verify_campaign('22222222-2222-2222-2222-222222222222')$$,
   'Not authorized: system admin required',
   'Member cannot verify/publish a campaign'
 );
@@ -149,7 +153,7 @@ SELECT set_config('request.jwt.claims', '{"sub":"11111111-1111-1111-1111-1111111
 SET ROLE authenticated;
 
 SELECT throws_ok(
-  $$SELECT update_campaign('p2222222-2222-2222-2222-222222222222', p_status := 'live')$$,
+  $$SELECT update_campaign('22222222-2222-2222-2222-222222222222', p_status := 'live')$$,
   'Only a system admin may change campaign status',
   'Owner cannot self-publish a campaign'
 );
@@ -163,12 +167,12 @@ SELECT set_config('request.jwt.claims', '{"sub":"66666666-6666-6666-6666-6666666
 SET ROLE authenticated;
 
 SELECT lives_ok(
-  $$SELECT verify_campaign('p2222222-2222-2222-2222-222222222222')$$,
+  $$SELECT verify_campaign('22222222-2222-2222-2222-222222222222')$$,
   'System admin can verify/publish a campaign'
 );
 
 SELECT is(
-  (SELECT status FROM campaigns WHERE id = 'p2222222-2222-2222-2222-222222222222'),
+  (SELECT status FROM campaigns WHERE id = '22222222-2222-2222-2222-222222222222'),
   'live',
   'Verified campaign status is now live'
 );

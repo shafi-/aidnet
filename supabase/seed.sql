@@ -1,0 +1,19 @@
+-- ====================================================================
+-- supabase/seed.sql
+-- ====================================================================
+-- NOTE: This file is applied automatically by `supabase db reset`.
+--
+-- It intentionally does NOT create auth users. Raw SQL inserts into
+-- auth.users are NOT visible to GoTrue (login requires a scrypt password
+-- hash that only GoTrue's Auth API produces), so auth accounts + all
+-- demo data that depends on them (org, campaigns, donation methods) are
+-- seeded by `./supabase/seed-auth.sh`, which must be run AFTER
+-- `supabase db reset`:
+--
+--     supabase db reset
+--     ./supabase/seed-auth.sh
+--
+-- Credentials produced:
+--   test@example.com  / Password123!  (org owner + system admin)
+--   member@example.com / Password123!  (plain org member)
+-- ====================================================================
