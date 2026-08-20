@@ -20,21 +20,28 @@ export function Nav() {
         <div className="flex justify-between h-16">
           <div className="flex items-center gap-8">
             <Link href="/" className="font-bold text-xl">SupaNext</Link>
-            {user && (
-              <div className="hidden md:flex gap-4">
-                <Link href="/orgs" className="text-gray-600 hover:text-gray-900">Organizations</Link>
-                {currentOrg && (
-                  <>
-                    <Link href={`/orgs?id=${currentOrg.id}`} className="text-gray-600 hover:text-gray-900">Dashboard</Link>
-                    <Link href={`/orgs?id=${currentOrg.id}`} className="text-gray-600 hover:text-gray-900">Todos</Link>
-                    <Link href={`/orgs?id=${currentOrg.id}`} className="text-gray-600 hover:text-gray-900">Members</Link>
-                  </>
-                )}
-                {isSystemAdmin && (
-                  <Link href="/admin" className="text-gray-600 hover:text-gray-900">Admin</Link>
-                )}
-              </div>
-            )}
+            <div className="hidden md:flex gap-4">
+              <Link href="/campaigns" className="text-gray-600 hover:text-gray-900">Campaigns</Link>
+              {user && (
+                <>
+                  <Link href="/orgs" className="text-gray-600 hover:text-gray-900">Organizations</Link>
+                  {currentOrg && (
+                    <>
+                      <Link href={`/orgs?id=${currentOrg.id}`} className="text-gray-600 hover:text-gray-900">Dashboard</Link>
+                      <Link href={`/orgs?id=${currentOrg.id}`} className="text-gray-600 hover:text-gray-900">Todos</Link>
+                      <Link href={`/orgs?id=${currentOrg.id}`} className="text-gray-600 hover:text-gray-900">Members</Link>
+                      <Link href="/dashboard/campaigns" className="text-gray-600 hover:text-gray-900">Org Campaigns</Link>
+                    </>
+                  )}
+                  {isSystemAdmin && (
+                    <>
+                      <Link href="/admin" className="text-gray-600 hover:text-gray-900">Admin</Link>
+                      <Link href="/admin/campaigns" className="text-gray-600 hover:text-gray-900">Review Campaigns</Link>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-4">
             {user ? (
@@ -52,17 +59,21 @@ export function Nav() {
       {mobileOpen && (
         <div className="md:hidden border-t">
           <div className="px-4 py-2 space-y-2">
-            {user && (
-              <>
-                <Link href="/orgs" className="block py-2" onClick={() => setMobileOpen(false)}>Organizations</Link>
-                {currentOrg && (
-                  <Link href={`/orgs?id=${currentOrg.id}`} className="block py-2" onClick={() => setMobileOpen(false)}>Dashboard</Link>
-                )}
-                {isSystemAdmin && (
+          {user && (
+            <>
+              <Link href="/campaigns" className="block py-2" onClick={() => setMobileOpen(false)}>Campaigns</Link>
+              <Link href="/orgs" className="block py-2" onClick={() => setMobileOpen(false)}>Organizations</Link>
+              {currentOrg && (
+                <Link href={`/orgs?id=${currentOrg.id}`} className="block py-2" onClick={() => setMobileOpen(false)}>Dashboard</Link>
+              )}
+              {isSystemAdmin && (
+                <>
                   <Link href="/admin" className="block py-2" onClick={() => setMobileOpen(false)}>Admin</Link>
-                )}
-              </>
-            )}
+                  <Link href="/admin/campaigns" className="block py-2" onClick={() => setMobileOpen(false)}>Review Campaigns</Link>
+                </>
+              )}
+            </>
+          )}
           </div>
         </div>
       )}

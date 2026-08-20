@@ -17,6 +17,17 @@ export type {
   SubscribeDto,
 } from './subscription'
 export type { ServiceData, ApiResponse } from './api'
+export type {
+  Campaign,
+  CampaignStatus,
+  CampaignTag,
+  CreateCampaignDto,
+  DonationMethod,
+  DonationMethodDto,
+  PublicCampaign,
+  PublicCampaignFilters,
+  UpdateCampaignDto,
+} from './campaign'
 export type { AuthUser, AuthSession, LoginCredentials, RegisterCredentials, AuthState } from './auth'
 export type { ButtonProps, InputProps, CardProps, ToastProps } from './components'
 export { Rpc, type RpcFunction } from './rpc'

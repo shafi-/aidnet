@@ -3,9 +3,9 @@
 import { useOrganization } from './useOrganization'
 
 const PERMISSIONS = {
-  admin: ['org:read', 'org:update', 'org:delete', 'members:read', 'members:create', 'members:update', 'members:delete', 'todos:read', 'todos:create', 'todos:update', 'todos:delete', 'invites:read', 'invites:create', 'invites:delete'],
-  member: ['org:read', 'members:read', 'todos:read', 'todos:create', 'todos:update', 'todos:delete', 'invites:read'],
-  viewer: ['org:read', 'members:read', 'todos:read'],
+  admin: ['org:read', 'org:update', 'org:delete', 'members:read', 'members:create', 'members:update', 'members:delete', 'todos:read', 'todos:create', 'todos:update', 'todos:delete', 'invites:read', 'invites:create', 'invites:delete', 'campaigns:read', 'campaigns:create', 'campaigns:update', 'campaigns:delete'],
+  member: ['org:read', 'members:read', 'todos:read', 'todos:create', 'todos:update', 'todos:delete', 'invites:read', 'campaigns:read', 'campaigns:create', 'campaigns:update'],
+  viewer: ['org:read', 'members:read', 'todos:read', 'campaigns:read'],
 } as const
 
 export function usePermissions() {

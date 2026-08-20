@@ -64,6 +64,31 @@ export const Rpc = {
   Public: {
     GetOrgBySlug: 'get_public_org_by_slug' satisfies DbFunction,
   },
+  Campaign: {
+    Create: 'create_campaign' satisfies DbFunction,
+    GetMany: 'get_campaigns' satisfies DbFunction,
+    Get: 'get_campaign' satisfies DbFunction,
+    GetBySlug: 'get_campaign_by_slug' satisfies DbFunction,
+    Update: 'update_campaign' satisfies DbFunction,
+    Delete: 'delete_campaign' satisfies DbFunction,
+    Submit: 'submit_campaign_for_review' satisfies DbFunction,
+  },
+  AdminCampaign: {
+    Verify: 'verify_campaign' satisfies DbFunction,
+    Reject: 'reject_campaign' satisfies DbFunction,
+    GetPending: 'get_pending_campaigns' satisfies DbFunction,
+  },
+  DonationMethod: {
+    GetMany: 'get_donation_methods' satisfies DbFunction,
+    Upsert: 'upsert_donation_methods' satisfies DbFunction,
+  },
+  CampaignTag: {
+    GetMany: 'get_campaign_tags' satisfies DbFunction,
+    Set: 'set_campaign_tags' satisfies DbFunction,
+  },
+  PublicCampaign: {
+    GetMany: 'get_public_campaigns' satisfies DbFunction,
+  },
 } as const
 
 export type RpcFunction =
@@ -75,3 +100,8 @@ export type RpcFunction =
   | (typeof Rpc.Admin)[keyof typeof Rpc.Admin]
   | (typeof Rpc.Subscription)[keyof typeof Rpc.Subscription]
   | (typeof Rpc.Public)[keyof typeof Rpc.Public]
+  | (typeof Rpc.Campaign)[keyof typeof Rpc.Campaign]
+  | (typeof Rpc.AdminCampaign)[keyof typeof Rpc.AdminCampaign]
+  | (typeof Rpc.DonationMethod)[keyof typeof Rpc.DonationMethod]
+  | (typeof Rpc.CampaignTag)[keyof typeof Rpc.CampaignTag]
+  | (typeof Rpc.PublicCampaign)[keyof typeof Rpc.PublicCampaign]

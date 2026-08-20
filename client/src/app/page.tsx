@@ -2,6 +2,32 @@
 
 import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
+import { usePublicCampaigns } from '@/hooks/usePublicCampaigns'
+import { CampaignCard } from '@/components/campaign/CampaignCard'
+
+function LandingCampaigns() {
+  const { campaigns, loading } = usePublicCampaigns({ limit: 12 })
+
+  if (loading) {
+    return <div className="text-center text-gray-500 py-8">Loading campaigns...</div>
+  }
+
+  if (!campaigns.length) {
+    return (
+      <div className="text-center text-gray-500 py-8">
+        No live campaigns yet. Check back soon.
+      </div>
+    )
+  }
+
+  return (
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      {campaigns.map((c) => (
+        <CampaignCard key={c.id} campaign={c} />
+      ))}
+    </div>
+  )
+}
 
 export default function HomePage() {
   const { user, loading } = useAuth()
@@ -102,6 +128,17 @@ export default function HomePage() {
             )}
           </div>
         </div>
+
+        <section className="mt-20">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Latest Campaigns</h2>
+            <Link href="/campaigns" className="text-indigo-600 hover:text-indigo-700 font-medium">
+              See more →
+            </Link>
+          </div>
+
+          <LandingCampaigns />
+        </section>
 
         <div className="mt-20 grid grid-cols-1 gap-8 md:grid-cols-3">
           <div className="bg-white p-6 rounded-lg shadow">

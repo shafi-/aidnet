@@ -631,6 +631,250 @@ export type Database = {
           },
         ]
       }
+      campaigns: {
+        Row: {
+          cover_image_url: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          description: string | null
+          end_date: string | null
+          goal_amount: number | null
+          id: string
+          is_active: boolean | null
+          is_zakat_eligible: boolean | null
+          org_id: string
+          slug: string
+          start_date: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+          verified_at: string | null
+          verified_by: string | null
+          verification_notes: string | null
+        }
+        Insert: {
+          cover_image_url?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          description?: string | null
+          end_date?: string | null
+          goal_amount?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_zakat_eligible?: boolean | null
+          org_id: string
+          slug: string
+          start_date?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+          verification_notes?: string | null
+        }
+        Update: {
+          cover_image_url?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          description?: string | null
+          end_date?: string | null
+          goal_amount?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_zakat_eligible?: boolean | null
+          org_id?: string
+          slug?: string
+          start_date?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+          verification_notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaigns_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organization_detail_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaigns_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organization_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaigns_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaigns_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaigns_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      donation_methods: {
+        Row: {
+          bank_account_name: string | null
+          bank_account_number: string | null
+          bank_branch: string | null
+          bank_name: string | null
+          bank_routing_number: string | null
+          bkash_account_name: string | null
+          bkash_number: string | null
+          created_at: string | null
+          donation_url: string | null
+          id: string
+          instructions: string | null
+          is_preferred: boolean | null
+          nagad_account_name: string | null
+          nagad_number: string | null
+          organization_id: string
+          qr_image_url: string | null
+          rocket_account_name: string | null
+          rocket_number: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_branch?: string | null
+          bank_name?: string | null
+          bank_routing_number?: string | null
+          bkash_account_name?: string | null
+          bkash_number?: string | null
+          created_at?: string | null
+          donation_url?: string | null
+          id?: string
+          instructions?: string | null
+          is_preferred?: boolean | null
+          nagad_account_name?: string | null
+          nagad_number?: string | null
+          organization_id: string
+          qr_image_url?: string | null
+          rocket_account_name?: string | null
+          rocket_number?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_branch?: string | null
+          bank_name?: string | null
+          bank_routing_number?: string | null
+          bkash_account_name?: string | null
+          bkash_number?: string | null
+          created_at?: string | null
+          donation_url?: string | null
+          id?: string
+          instructions?: string | null
+          is_preferred?: boolean | null
+          nagad_account_name?: string | null
+          nagad_number?: string | null
+          organization_id?: string
+          qr_image_url?: string | null
+          rocket_account_name?: string | null
+          rocket_number?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "donation_methods_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization_detail_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "donation_methods_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "donation_methods_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_tags: {
+        Row: {
+          id: string
+          label: string
+          label_bn: string | null
+          slug: string
+        }
+        Insert: {
+          id?: string
+          label: string
+          label_bn?: string | null
+          slug: string
+        }
+        Update: {
+          id?: string
+          label?: string
+          label_bn?: string | null
+          slug?: string
+        }
+        Relationships: []
+      }
+      campaign_tag_map: {
+        Row: {
+          campaign_id: string
+          created_at: string | null
+          tag_id: string
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string | null
+          tag_id: string
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string | null
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_tag_map_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_tag_map_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "campaign_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       member_view: {
@@ -1410,9 +1654,425 @@ export type Database = {
           org_name: string
         }[]
       }
+      create_campaign: {
+        Args: {
+          p_currency?: string
+          p_cover_image_url?: string
+          p_description?: string
+          p_end_date?: string
+          p_goal_amount?: number
+          p_is_zakat_eligible?: boolean
+          p_org_id: string
+          p_slug: string
+          p_start_date?: string
+          p_title: string
+        }
+        Returns: {
+          cover_image_url: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          description: string | null
+          end_date: string | null
+          goal_amount: number | null
+          id: string
+          is_active: boolean | null
+          is_zakat_eligible: boolean | null
+          org_id: string
+          slug: string
+          start_date: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+          verified_at: string | null
+          verified_by: string | null
+          verification_notes: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "campaigns"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_campaigns: {
+        Args: { p_org_id: string }
+        Returns: {
+          cover_image_url: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          description: string | null
+          end_date: string | null
+          goal_amount: number | null
+          id: string
+          is_active: boolean | null
+          is_zakat_eligible: boolean | null
+          org_id: string
+          slug: string
+          start_date: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+          verified_at: string | null
+          verified_by: string | null
+          verification_notes: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "campaigns"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_campaign: {
+        Args: { p_campaign_id: string }
+        Returns: {
+          cover_image_url: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          description: string | null
+          end_date: string | null
+          goal_amount: number | null
+          id: string
+          is_active: boolean | null
+          is_zakat_eligible: boolean | null
+          org_id: string
+          slug: string
+          start_date: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+          verified_at: string | null
+          verified_by: string | null
+          verification_notes: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "campaigns"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_campaign_by_slug: {
+        Args: { p_slug: string }
+        Returns: {
+          cover_image_url: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          description: string | null
+          end_date: string | null
+          goal_amount: number | null
+          id: string
+          is_active: boolean | null
+          is_zakat_eligible: boolean | null
+          org_id: string
+          slug: string
+          start_date: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+          verified_at: string | null
+          verified_by: string | null
+          verification_notes: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "campaigns"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      update_campaign: {
+        Args: {
+          p_campaign_id: string
+          p_currency?: string
+          p_cover_image_url?: string
+          p_description?: string
+          p_end_date?: string
+          p_goal_amount?: number
+          p_is_zakat_eligible?: boolean
+          p_slug?: string
+          p_start_date?: string
+          p_status?: string
+          p_title?: string
+        }
+        Returns: {
+          cover_image_url: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          description: string | null
+          end_date: string | null
+          goal_amount: number | null
+          id: string
+          is_active: boolean | null
+          is_zakat_eligible: boolean | null
+          org_id: string
+          slug: string
+          start_date: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+          verified_at: string | null
+          verified_by: string | null
+          verification_notes: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "campaigns"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      delete_campaign: { Args: { p_campaign_id: string }; Returns: boolean }
+      submit_campaign_for_review: {
+        Args: { p_campaign_id: string }
+        Returns: {
+          cover_image_url: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          description: string | null
+          end_date: string | null
+          goal_amount: number | null
+          id: string
+          is_active: boolean | null
+          is_zakat_eligible: boolean | null
+          org_id: string
+          slug: string
+          start_date: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+          verified_at: string | null
+          verified_by: string | null
+          verification_notes: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "campaigns"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      verify_campaign: {
+        Args: { p_campaign_id: string; p_notes?: string }
+        Returns: {
+          cover_image_url: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          description: string | null
+          end_date: string | null
+          goal_amount: number | null
+          id: string
+          is_active: boolean | null
+          is_zakat_eligible: boolean | null
+          org_id: string
+          slug: string
+          start_date: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+          verified_at: string | null
+          verified_by: string | null
+          verification_notes: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "campaigns"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      reject_campaign: {
+        Args: { p_campaign_id: string; p_notes?: string }
+        Returns: {
+          cover_image_url: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          description: string | null
+          end_date: string | null
+          goal_amount: number | null
+          id: string
+          is_active: boolean | null
+          is_zakat_eligible: boolean | null
+          org_id: string
+          slug: string
+          start_date: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+          verified_at: string | null
+          verified_by: string | null
+          verification_notes: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "campaigns"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_pending_campaigns: {
+        Args: never
+        Returns: {
+          cover_image_url: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          description: string | null
+          end_date: string | null
+          goal_amount: number | null
+          id: string
+          is_active: boolean | null
+          is_zakat_eligible: boolean | null
+          org_id: string
+          slug: string
+          start_date: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+          verified_at: string | null
+          verified_by: string | null
+          verification_notes: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "campaigns"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_donation_methods: {
+        Args: { p_org_id: string }
+        Returns: {
+          bank_account_name: string | null
+          bank_account_number: string | null
+          bank_branch: string | null
+          bank_name: string | null
+          bank_routing_number: string | null
+          bkash_account_name: string | null
+          bkash_number: string | null
+          created_at: string | null
+          donation_url: string | null
+          id: string
+          instructions: string | null
+          is_preferred: boolean | null
+          nagad_account_name: string | null
+          nagad_number: string | null
+          organization_id: string
+          qr_image_url: string | null
+          rocket_account_name: string | null
+          rocket_number: string | null
+          updated_at: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "donation_methods"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      upsert_donation_methods: {
+        Args: {
+          p_bank_account_name?: string
+          p_bank_account_number?: string
+          p_bank_branch?: string
+          p_bank_name?: string
+          p_bank_routing_number?: string
+          p_bkash_account_name?: string
+          p_bkash_number?: string
+          p_donation_url?: string
+          p_instructions?: string
+          p_is_preferred?: boolean
+          p_nagad_account_name?: string
+          p_nagad_number?: string
+          p_org_id: string
+          p_qr_image_url?: string
+          p_rocket_account_name?: string
+          p_rocket_number?: string
+        }
+        Returns: {
+          bank_account_name: string | null
+          bank_account_number: string | null
+          bank_branch: string | null
+          bank_name: string | null
+          bank_routing_number: string | null
+          bkash_account_name: string | null
+          bkash_number: string | null
+          created_at: string | null
+          donation_url: string | null
+          id: string
+          instructions: string | null
+          is_preferred: boolean | null
+          nagad_account_name: string | null
+          nagad_number: string | null
+          organization_id: string
+          qr_image_url: string | null
+          rocket_account_name: string | null
+          rocket_number: string | null
+          updated_at: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "donation_methods"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_campaign_tags: {
+        Args: never
+        Returns: {
+          id: string
+          label: string
+          label_bn: string | null
+          slug: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "campaign_tags"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      set_campaign_tags: { Args: { p_campaign_id: string; p_tag_ids: string[] }; Returns: boolean }
+      get_public_campaigns: {
+        Args: { org_filter?: string; result_limit?: number; zakat_filter?: boolean }
+        Returns: {
+          cover_image_url: string | null
+          created_at: string | null
+          currency: string | null
+          description: string | null
+          donation_methods: Json
+          end_date: string | null
+          goal_amount: number | null
+          id: string
+          is_zakat_eligible: boolean | null
+          org_description: string | null
+          org_id: string
+          org_logo_url: string | null
+          org_name: string
+          org_slug: string
+          slug: string
+          start_date: string | null
+          tags: Json
+          title: string
+          updated_at: string | null
+        }[]
+      }
     }
     Enums: {
-      [_ in never]: never
+      campaign_status:
+        | "draft"
+        | "pending_review"
+        | "live"
+        | "rejected"
+        | "closed"
     }
     CompositeTypes: {
       [_ in never]: never
