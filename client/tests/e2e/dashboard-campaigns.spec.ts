@@ -2,12 +2,12 @@ import { test, expect } from '@playwright/test'
 
 const OWNER_EMAIL = 'owner@donate.app'
 const ADMIN_EMAIL = 'admin@donate.app'
-const password = 'Password123!'
+const PASSWORD = 'Password123!'
 
 async function login(page: import('@playwright/test').Page) {
   await page.goto('/auth/login')
   await page.fill('input[type="email"]', OWNER_EMAIL)
-  await page.fill('input[type="password"]', password)
+  await page.fill('input[type="password"]', PASSWORD)
   await page.getByRole('button', { name: /sign in/i }).click()
   await page.waitForURL((url) => !url.pathname.includes('/auth/login'), { timeout: 10000 })
 }
@@ -29,7 +29,7 @@ async function selectOrg(page: import('@playwright/test').Page) {
 
 test.describe('Dashboard Campaigns', () => {
   test('shows campaigns list page with New Campaign link', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!OWNER_EMAIL || !PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await login(page)
     await selectOrg(page)
 
@@ -39,7 +39,7 @@ test.describe('Dashboard Campaigns', () => {
   })
 
   test('New Campaign link navigates to campaign form', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!OWNER_EMAIL || !PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await login(page)
     await selectOrg(page)
 
@@ -50,7 +50,7 @@ test.describe('Dashboard Campaigns', () => {
   })
 
   test('campaign form shows all fields', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!OWNER_EMAIL || !PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await login(page)
     await selectOrg(page)
 
@@ -67,7 +67,7 @@ test.describe('Dashboard Campaigns', () => {
   })
 
   test('can create a campaign from form', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!OWNER_EMAIL || !PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await login(page)
     await selectOrg(page)
 
@@ -78,7 +78,7 @@ test.describe('Dashboard Campaigns', () => {
   })
 
   test('cancel button navigates back to campaigns list', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!OWNER_EMAIL || !PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await login(page)
     await selectOrg(page)
 
@@ -88,7 +88,7 @@ test.describe('Dashboard Campaigns', () => {
   })
 
   test('campaign list shows Edit link for each campaign', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!OWNER_EMAIL || !PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await login(page)
     await selectOrg(page)
 
@@ -100,7 +100,7 @@ test.describe('Dashboard Campaigns', () => {
   })
 
   test('Edit link navigates to campaign edit form', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!OWNER_EMAIL || !PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await login(page)
     await selectOrg(page)
 
@@ -114,7 +114,7 @@ test.describe('Dashboard Campaigns', () => {
   })
 
   test('edit form shows pre-filled data and Save Changes button', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!OWNER_EMAIL || !PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await login(page)
     await selectOrg(page)
 
@@ -129,7 +129,7 @@ test.describe('Dashboard Campaigns', () => {
   })
 
   test('campaign list shows Submit for Review for draft campaigns', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!OWNER_EMAIL || !PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await login(page)
     await selectOrg(page)
 
@@ -141,7 +141,7 @@ test.describe('Dashboard Campaigns', () => {
   })
 
   test('can toggle zakat eligible checkbox in campaign form', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!OWNER_EMAIL || !PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await login(page)
     await selectOrg(page)
 

@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 
-const email = process.env.E2E_EMAIL ?? 'test@example.com'
-const password = process.env.E2E_PASSWORD ?? 'Password123!'
+const ADMIN_EMAIL = 'admin@donate.app'
+const ADMIN_PASSWORD = 'Password123!'
 
 test.describe('Auth Links', () => {
   test('login page has Forgot password? link that navigates to reset password', async ({ page }) => {
@@ -23,7 +23,7 @@ test.describe('Auth Links', () => {
   })
 
   test('landing page authenticated nav shows Dashboard and Profile links', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
 
     await page.goto('/auth/login')
     await page.fill('input[type="email"]', email)

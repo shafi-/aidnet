@@ -32,7 +32,7 @@ async function goToDashboardWithOrg(page: import('@playwright/test').Page) {
 
 test.describe('OrgDashboard', () => {
   test('shows org name and billing tab', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!OWNER_EMAIL || !OWNER_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await goToDashboardWithOrg(page)
 
     // OrgDashboard renders org name as h1
@@ -42,7 +42,7 @@ test.describe('OrgDashboard', () => {
   })
 
   test('todos tab shows add form when feature enabled', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!OWNER_EMAIL || !OWNER_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await goToDashboardWithOrg(page)
 
     const todosBtn = page.getByRole('button', { name: 'Todos' })
@@ -60,7 +60,7 @@ test.describe('OrgDashboard', () => {
   })
 
   test('todos tab can toggle completion', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!OWNER_EMAIL || !OWNER_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await goToDashboardWithOrg(page)
 
     const todosBtn = page.getByRole('button', { name: 'Todos' })
@@ -82,7 +82,7 @@ test.describe('OrgDashboard', () => {
   })
 
   test('todos tab can delete a todo', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!OWNER_EMAIL || !OWNER_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await goToDashboardWithOrg(page)
 
     const todosBtn = page.getByRole('button', { name: 'Todos' })
@@ -103,7 +103,7 @@ test.describe('OrgDashboard', () => {
   })
 
   test('members tab shows member list when feature enabled', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!OWNER_EMAIL || !OWNER_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await goToDashboardWithOrg(page)
 
     const membersBtn = page.getByRole('button', { name: 'Members' })
@@ -116,7 +116,7 @@ test.describe('OrgDashboard', () => {
   })
 
   test('members tab shows add member form for admin', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!OWNER_EMAIL || !OWNER_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await goToDashboardWithOrg(page)
 
     const membersBtn = page.getByRole('button', { name: 'Members' })
@@ -129,7 +129,7 @@ test.describe('OrgDashboard', () => {
   })
 
   test('settings tab shows org form for admin when feature enabled', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!OWNER_EMAIL || !OWNER_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await goToDashboardWithOrg(page)
 
     const settingsBtn = page.getByRole('button', { name: 'Settings' })
@@ -145,7 +145,7 @@ test.describe('OrgDashboard', () => {
   })
 
   test('settings tab can save org changes', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!OWNER_EMAIL || !OWNER_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await goToDashboardWithOrg(page)
 
     const settingsBtn = page.getByRole('button', { name: 'Settings' })

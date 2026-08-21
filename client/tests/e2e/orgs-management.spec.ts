@@ -13,7 +13,7 @@ async function login(page: import('@playwright/test').Page) {
 
 test.describe('Orgs Page', () => {
   test('shows existing orgs as clickable links', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!OWNER_EMAIL || !OWNER_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await login(page)
     await page.goto('/orgs')
 
@@ -23,7 +23,7 @@ test.describe('Orgs Page', () => {
   })
 
   test('shows Create Organization form when button clicked', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!OWNER_EMAIL || !OWNER_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await login(page)
     await page.goto('/orgs')
 
@@ -34,7 +34,7 @@ test.describe('Orgs Page', () => {
   })
 
   test('can fill and submit create organization form', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!OWNER_EMAIL || !OWNER_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await login(page)
     await page.goto('/orgs')
 
@@ -62,7 +62,7 @@ test.describe('Orgs Page', () => {
   })
 
   test('clicking an org card selects the organization', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!OWNER_EMAIL || !OWNER_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await login(page)
     await page.goto('/orgs')
 
