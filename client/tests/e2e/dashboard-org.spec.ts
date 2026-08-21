@@ -13,11 +13,15 @@ async function login(page: import('@playwright/test').Page) {
 
 async function selectOrg(page: import('@playwright/test').Page) {
   await page.goto('/orgs')
-  await page.locator('a[href^="/orgs/?id="]').first().click()
-  await expect(page).toHaveURL(/\/orgs\/\?id=/)
-  await page.waitForFunction(() => {
+  const hasOrg = await page.waitForFunction(() => {
     return localStorage.getItem('supanext.currentOrgId') !== null
-  }, { timeout: 10000 })
+  }, { timeout: 10000 }).then(() => true).catch(() => false)
+  if (!hasOrg) {
+    await page.locator('a[href*="/orgs?id="]').first().click()
+    await page.waitForFunction(() => {
+      return localStorage.getItem('supanext.currentOrgId') !== null
+    }, { timeout: 10000 })
+  }
 }
 
 async function goToDashboardWithOrg(page: import('@playwright/test').Page) {

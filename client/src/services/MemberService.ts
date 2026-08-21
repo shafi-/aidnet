@@ -34,7 +34,7 @@ export class MemberService extends BaseRepository {
 
   async getMembership(orgId: string): ServiceData<Membership[]> {
     return this.callRpc<Membership[]>(Rpc.Member.GetMembership, {
-      target_org_id: orgId,
+      p_org_id: orgId,
     })
   }
 }

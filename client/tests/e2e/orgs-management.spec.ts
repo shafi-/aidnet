@@ -61,13 +61,19 @@ test.describe('Orgs Page', () => {
     expect(onDashboard || stillOnOrgs).toBeTruthy()
   })
 
-  test('clicking an org card navigates to org detail', async ({ page }) => {
+  test('clicking an org card selects the organization', async ({ page }) => {
     test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
     await login(page)
     await page.goto('/orgs')
 
     const orgLink = page.locator('a[href^="/orgs/?id="]').first()
+    const href = await orgLink.getAttribute('href')
+    const orgId = new URL(href!, 'http://localhost').searchParams.get('id')
     await orgLink.click()
-    await expect(page).toHaveURL(/\/orgs\/\?id=/)
+    // Page selects the org then cleans the URL via replaceState
+    await expect(page).toHaveURL(/\/orgs\/?$/)
+    // Org ID should be stored in localStorage
+    const stored = await page.evaluate(() => localStorage.getItem('supanext.currentOrgId'))
+    expect(stored).toBe(orgId)
   })
 })

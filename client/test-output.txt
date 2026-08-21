@@ -1,0 +1,9 @@
+$ playwright test --project=chromium --reporter=line tests/e2e/auth.spec.ts:127
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › tests/e2e/auth.spec.ts:127:9 › Auth Flow › Reset Password Page › has link back to login after submit
+[chromium] › tests/e2e/auth.spec.ts:127:9 › Auth Flow › Reset Password Page › has link back to login after submit
+Console messages: []
+
+  1 passed (9.2s)

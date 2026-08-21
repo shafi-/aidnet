@@ -22,9 +22,11 @@ export class OrganizationService extends BaseRepository {
   }
 
   async getOrganization(orgId: string): ServiceData<OrganizationDetailView> {
-    return this.callRpc<OrganizationDetailView>(Rpc.Org.Get, {
+    const { data, error } = await this.callRpc<OrganizationDetailView[]>(Rpc.Org.Get, {
       target_org_id: orgId,
     })
+    if (error) return { data: null, error }
+    return { data: (data as OrganizationDetailView[])?.[0] ?? null, error: null }
   }
 
   async updateOrganization(

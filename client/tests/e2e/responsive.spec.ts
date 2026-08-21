@@ -7,7 +7,7 @@ test.describe('Responsive Design', () => {
     test('landing page renders on mobile', async ({ page }) => {
       await page.goto('/')
       await expect(page.locator('h1')).toContainText('SupaNext')
-      await expect(page.locator('h2')).toContainText('Welcome to SupaNext')
+      await expect(page.getByRole('heading', { name: 'Welcome to SupaNext' })).toBeVisible()
     })
 
     test('auth pages render on mobile', async ({ page }) => {

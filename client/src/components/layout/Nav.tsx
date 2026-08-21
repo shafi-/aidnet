@@ -27,9 +27,9 @@ export function Nav() {
                   <Link href="/orgs" className="text-gray-600 hover:text-gray-900">Organizations</Link>
                   {currentOrg && (
                     <>
-                      <Link href={`/orgs?id=${currentOrg.id}`} className="text-gray-600 hover:text-gray-900">Dashboard</Link>
-                      <Link href={`/orgs?id=${currentOrg.id}`} className="text-gray-600 hover:text-gray-900">Todos</Link>
-                      <Link href={`/orgs?id=${currentOrg.id}`} className="text-gray-600 hover:text-gray-900">Members</Link>
+                      <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">Dashboard</Link>
+                      <Link href="/dashboard/todos" className="text-gray-600 hover:text-gray-900">Todos</Link>
+                      <Link href="/dashboard/members" className="text-gray-600 hover:text-gray-900">Members</Link>
                       <Link href="/dashboard/campaigns" className="text-gray-600 hover:text-gray-900">Org Campaigns</Link>
                     </>
                   )}
@@ -64,7 +64,7 @@ export function Nav() {
               <Link href="/campaigns" className="block py-2" onClick={() => setMobileOpen(false)}>Campaigns</Link>
               <Link href="/orgs" className="block py-2" onClick={() => setMobileOpen(false)}>Organizations</Link>
               {currentOrg && (
-                <Link href={`/orgs?id=${currentOrg.id}`} className="block py-2" onClick={() => setMobileOpen(false)}>Dashboard</Link>
+                <Link href="/dashboard" className="block py-2" onClick={() => setMobileOpen(false)}>Dashboard</Link>
               )}
               {isSystemAdmin && (
                 <>

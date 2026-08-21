@@ -2,6 +2,8 @@ import { test, expect } from '@playwright/test'
 
 const ADMIN_PASSWORD = 'AdminPassword123!'
 const ADMIN_EMAIL = `admin-e2e-${Date.now()}@example.com`
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'http://127.0.0.1:55321'
+const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH'
 
 async function setupSystemAdmin(page: import('@playwright/test').Page) {
   await page.goto('/auth/register/')
@@ -20,16 +22,16 @@ async function setupSystemAdmin(page: import('@playwright/test').Page) {
     return JSON.parse(stored).access_token
   })
 
-  await page.evaluate(async ({ token }) => {
-    await fetch('http://localhost:54321/rest/v1/rpc/bootstrap_system_admin', {
+  await page.evaluate(async ({ token, SUPABASE_URL, ANON_KEY }) => {
+    await fetch(`${SUPABASE_URL}/rest/v1/rpc/bootstrap_system_admin`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
-        'apikey': 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH',
+        'apikey': ANON_KEY,
       },
     })
-  }, { token })
+  }, { token, SUPABASE_URL, ANON_KEY })
 }
 
 test.describe.serial('Admin Pages', () => {

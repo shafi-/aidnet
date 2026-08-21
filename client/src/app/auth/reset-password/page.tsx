@@ -12,9 +12,15 @@ export default function ResetPasswordPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    const { error } = await supabaseManager.getClient().auth.resetPasswordForEmail(email)
-    if (error) setError(error.message)
-    else setSent(true)
+    const result = await supabaseManager.getClient().auth.resetPasswordForEmail(email)
+    console.log('[ResetPassword] resetPasswordForEmail result:', result)
+    if (result.error) {
+      console.log('[ResetPassword] Error:', result.error)
+      setError(result.error.message)
+    } else {
+      console.log('[ResetPassword] Success, setting sent=true')
+      setSent(true)
+    }
   }
 
   if (sent) {

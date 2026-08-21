@@ -11,6 +11,7 @@ export function usePublicOrg(slug: string | null) {
   const loadOrg = useCallback(async () => {
     if (!slug) {
       setOrg(null)
+      setError('Organization not found')
       setLoading(false)
       return
     }

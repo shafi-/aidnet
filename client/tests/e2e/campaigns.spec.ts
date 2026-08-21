@@ -99,7 +99,8 @@ test.describe('Founder + Admin flow', () => {
     // Select the founder's organization so the campaigns dashboard is available
     await page.goto('/orgs')
     await page.locator('a[href^="/orgs/?id="]').first().click()
-    await expect(page).toHaveURL(/\/orgs\/\?id=/)
+    // Page selects the org then cleans the URL via replaceState
+    await expect(page).toHaveURL(/\/orgs\/?$/)
 
     await page.goto('/dashboard/campaigns')
     await page.getByRole('link', { name: 'New Campaign' }).click()
