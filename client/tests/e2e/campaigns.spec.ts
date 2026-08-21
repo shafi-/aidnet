@@ -18,7 +18,11 @@ async function loginIfPossible(page: import('@playwright/test').Page) {
   await page.fill('input[type="email"]', email)
   await page.fill('input[type="password"]', password)
   await page.getByRole('button', { name: /sign in/i }).click()
-  await page.waitForLoadState('networkidle')
+  try {
+    await page.waitForURL((url) => !url.pathname.includes('/auth/login'), { timeout: 10000 })
+  } catch {
+    return false
+  }
   return true
 }
 
@@ -62,6 +66,19 @@ test.describe('Public discovery + filters', () => {
     await page.goto('/campaigns/detail?slug=does-not-exist')
     await expect(page.getByRole('heading', { name: 'Campaign Not Available' })).toBeVisible()
   })
+
+  test('clear filter link removes zakat param', async ({ page }) => {
+    await page.goto('/campaigns/?zakat=true')
+    await expect(page.getByRole('link', { name: 'Clear filter' })).toBeVisible()
+    await page.getByRole('link', { name: 'Clear filter' }).click()
+    await expect(page).toHaveURL(/\/campaigns\/?$/)
+  })
+
+  test('back to home link navigates to landing', async ({ page }) => {
+    await page.goto('/campaigns/')
+    await page.getByRole('link', { name: /Home/ }).click()
+    await expect(page).toHaveURL('/')
+  })
 })
 
 test.describe('Admin gating', () => {
@@ -78,11 +95,17 @@ test.describe('Founder + Admin flow', () => {
     // Founder creates a campaign
     const loggedIn = await loginIfPossible(page)
     test.skip(!loggedIn, 'login failed')
+
+    // Select the founder's organization so the campaigns dashboard is available
+    await page.goto('/orgs')
+    await page.locator('a[href^="/orgs/?id="]').first().click()
+    await expect(page).toHaveURL(/\/orgs\/\?id=/)
+
     await page.goto('/dashboard/campaigns')
     await page.getByRole('link', { name: 'New Campaign' }).click()
     await page.fill('input[placeholder*="Clean Water"]', `E2E Campaign ${Date.now()}`)
     await page.getByRole('button', { name: 'Create Campaign' }).click()
-    await expect(page).toHaveURL(/\/dashboard\/campaigns/)
+    await expect(page).toHaveURL(/\/dashboard\/campaigns\/?$/)
 
     // Submit the most recent draft for review
     await page.getByRole('button', { name: 'Submit for Review' }).first().click()
@@ -91,7 +114,7 @@ test.describe('Founder + Admin flow', () => {
     // Admin verifies it
     await page.goto('/admin/campaigns')
     await expect(page.getByRole('heading', { name: 'Campaign Review Queue' })).toBeVisible()
-    const firstItem = page.locator('a[href^="/admin/campaigns?slug="]').first()
+    const firstItem = page.locator('a[href^="/admin/campaigns/?slug="]').first()
     await firstItem.click()
     await page.getByRole('button', { name: 'Verify & Publish' }).click()
     await expect(page.getByText(/verified and published/i)).toBeVisible()
