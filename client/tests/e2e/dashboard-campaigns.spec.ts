@@ -1,11 +1,12 @@
 import { test, expect } from '@playwright/test'
 
-const email = process.env.E2E_EMAIL ?? 'test@example.com'
-const password = process.env.E2E_PASSWORD ?? 'Password123!'
+const OWNER_EMAIL = 'owner@donate.app'
+const ADMIN_EMAIL = 'admin@donate.app'
+const password = 'Password123!'
 
 async function login(page: import('@playwright/test').Page) {
   await page.goto('/auth/login')
-  await page.fill('input[type="email"]', email)
+  await page.fill('input[type="email"]', OWNER_EMAIL)
   await page.fill('input[type="password"]', password)
   await page.getByRole('button', { name: /sign in/i }).click()
   await page.waitForURL((url) => !url.pathname.includes('/auth/login'), { timeout: 10000 })

@@ -7,8 +7,9 @@
 # and raw SQL auth.users inserts are invisible to GoTrue).
 #
 # Produces:
-#   test@example.com   / Password123!  (org owner + system admin)
-#   member@example.com / Password123!  (plain org member)
+#   admin@donate.app      / Password123!  (system admin - NO org membership)
+#   owner@donate.app      / Password123!  (org owner - owns demo org)
+#   member@donate.app     / Password123!  (plain org member)
 #   + 14 LIVE demo campaigns (1 zakat) + donation methods for the org
 # ====================================================================
 set -euo pipefail
@@ -16,8 +17,9 @@ set -euo pipefail
 PROJECT="donate-local"
 API_URL="${SUPABASE_API_URL:-http://127.0.0.1:55321}"
 PW="Password123!"
-OWNER_EMAIL="test@example.com"
-MEMBER_EMAIL="member@example.com"
+ADMIN_EMAIL="admin@donate.app"
+OWNER_EMAIL="owner@donate.app"
+MEMBER_EMAIL="member@donate.app"
 
 # --- resolve service role key + db container -------------------------
 SERVICE_ROLE_KEY="$(supabase status --output env 2>/dev/null | awk -F'"' '/SERVICE_ROLE_KEY/{print $2}' | tr -d '[:space:]')"
@@ -54,21 +56,47 @@ create_user() {
 }
 
 echo "==> creating auth users"
+create_user "$ADMIN_EMAIL"
 create_user "$OWNER_EMAIL"
 create_user "$MEMBER_EMAIL"
 
-# --- promote owner to system admin -----------------------------------
-echo "==> promoting ${OWNER_EMAIL} to system admin"
-psql -c "UPDATE profiles SET is_system_admin = true WHERE email = '${OWNER_EMAIL}';"
+# --- promote admin to system admin -----------------------------------
+echo "==> promoting ${ADMIN_EMAIL} to system admin"
+psql -c "UPDATE profiles SET is_system_admin = true WHERE email = '${ADMIN_EMAIL}';"
 
-# --- link member into owner's org -------------------------------------
-echo "==> linking ${MEMBER_EMAIL} into owner org"
+# --- create demo organization for org owner ---------------------------
+echo "==> creating demo organization for ${OWNER_EMAIL}"
+psql -c "
+DO \$\$
+DECLARE v_owner_id UUID; v_org_id UUID;
+BEGIN
+  SELECT id INTO v_owner_id FROM profiles WHERE email = '${OWNER_EMAIL}';
+  IF v_owner_id IS NULL THEN RAISE EXCEPTION 'owner user not found'; END IF;
+
+  -- Check if org already exists, get its ID
+  SELECT id INTO v_org_id FROM organizations WHERE slug = 'demo-org';
+
+  IF v_org_id IS NULL THEN
+    -- Create the organization
+    INSERT INTO organizations (name, slug, description)
+    VALUES ('Demo Organization', 'demo-org', 'Organization for testing and demonstration purposes')
+    RETURNING id INTO v_org_id;
+  END IF;
+
+  -- Add the owner as an org member with admin role and owner flag if not already a member
+  INSERT INTO organization_members (organization_id, user_id, role, status, is_owner)
+  VALUES (v_org_id, v_owner_id, 'admin', 'active', true)
+  ON CONFLICT (organization_id, user_id) DO NOTHING;
+END \$\$;
+"
+
+# --- link member into demo org -------------------------------------
+echo "==> linking ${MEMBER_EMAIL} into demo org"
 psql -c "
 INSERT INTO organization_members (organization_id, user_id, role, status, is_owner)
-SELECT om.organization_id, p.id, 'member', 'active', false
-FROM organization_members om
-JOIN profiles p ON p.email = '${MEMBER_EMAIL}'
-WHERE om.user_id = (SELECT id FROM profiles WHERE email = '${OWNER_EMAIL}') AND om.is_owner = true
+SELECT o.id, p.id, 'member', 'active', false
+FROM organizations o, profiles p
+WHERE o.slug = 'demo-org' AND p.email = '${MEMBER_EMAIL}'
 ON CONFLICT (organization_id, user_id) DO NOTHING;
 "
 
@@ -76,18 +104,17 @@ ON CONFLICT (organization_id, user_id) DO NOTHING;
 echo "==> seeding demo campaigns + donation methods"
 psql -c "
 DO \$\$
-DECLARE v_org UUID;
+DECLARE v_org UUID; v_admin_id UUID; v_owner_id UUID;
 BEGIN
-  SELECT organization_id INTO v_org
-  FROM organization_members
-  WHERE user_id = (SELECT id FROM profiles WHERE email = '${OWNER_EMAIL}') AND is_owner = true
-  LIMIT 1;
-  IF v_org IS NULL THEN RAISE EXCEPTION 'owner organization not found'; END IF;
+  SELECT id INTO v_org FROM organizations WHERE slug = 'demo-org';
+  SELECT id INTO v_admin_id FROM profiles WHERE email = '${ADMIN_EMAIL}';
+  SELECT id INTO v_owner_id FROM profiles WHERE email = '${OWNER_EMAIL}';
+  IF v_org IS NULL THEN RAISE EXCEPTION 'demo org not found'; END IF;
 
   INSERT INTO campaigns (org_id, title, slug, description, goal_amount, currency, is_zakat_eligible, status, is_active, created_by)
   SELECT v_org, 'Demo Campaign ' || g, 'demo-campaign-' || g,
          'A humanitarian campaign seeded for local testing.', 100000 + g*1000, 'BDT',
-         (g = 1), 'live', true, (SELECT id FROM profiles WHERE email = '${OWNER_EMAIL}')
+         (g = 1), 'live', true, v_owner_id
   FROM generate_series(1,14) g
   ON CONFLICT (slug) DO NOTHING;
 

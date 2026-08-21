@@ -9,13 +9,14 @@ import { test, expect } from '@playwright/test'
 // runs against a freshly `supabase db reset`'d database.
 // ---------------------------------------------------------------------------
 
-const email = process.env.E2E_EMAIL ?? 'test@example.com'
-const password = process.env.E2E_PASSWORD ?? 'Password123!'
+const FOUNDER_EMAIL = 'org-owner@example.com'
+const ADMIN_EMAIL = 'test@example.com'
+const password = 'Password123!'
 
-async function loginIfPossible(page: import('@playwright/test').Page) {
-  if (!email || !password) return false
+async function loginAs(page: import('@playwright/test').Page, userEmail: string) {
+  if (!userEmail || !password) return false
   await page.goto('/auth/login')
-  await page.fill('input[type="email"]', email)
+  await page.fill('input[type="email"]', userEmail)
   await page.fill('input[type="password"]', password)
   await page.getByRole('button', { name: /sign in/i }).click()
   try {
@@ -24,6 +25,14 @@ async function loginIfPossible(page: import('@playwright/test').Page) {
     return false
   }
   return true
+}
+
+async function loginIfPossible(page: import('@playwright/test').Page) {
+  return loginAs(page, FOUNDER_EMAIL)
+}
+
+async function loginAsAdmin(page: import('@playwright/test').Page) {
+  return loginAs(page, ADMIN_EMAIL)
 }
 
 test.describe('Landing — latest campaigns', () => {
@@ -90,11 +99,11 @@ test.describe('Admin gating', () => {
 
 test.describe('Founder + Admin flow', () => {
   test('founder creates and submits a campaign, admin verifies it live', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!FOUNDER_EMAIL || !ADMIN_EMAIL || !password, 'E2E credentials not set')
 
     // Founder creates a campaign
-    const loggedIn = await loginIfPossible(page)
-    test.skip(!loggedIn, 'login failed')
+    const loggedIn = await loginAs(page, FOUNDER_EMAIL)
+    test.skip(!loggedIn, 'founder login failed')
 
     // Select the founder's organization so the campaigns dashboard is available
     await page.goto('/orgs')
@@ -113,6 +122,9 @@ test.describe('Founder + Admin flow', () => {
     await expect(page.getByText(/pending_review|pending/).first()).toBeVisible()
 
     // Admin verifies it
+    const adminLoggedIn = await loginAsAdmin(page)
+    test.skip(!adminLoggedIn, 'admin login failed')
+
     await page.goto('/admin/campaigns')
     await expect(page.getByRole('heading', { name: 'Campaign Review Queue' })).toBeVisible()
     const firstItem = page.locator('a[href^="/admin/campaigns/?slug="]').first()

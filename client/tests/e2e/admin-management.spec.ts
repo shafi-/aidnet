@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test'
 
-const email = process.env.E2E_EMAIL ?? 'test@example.com'
-const password = process.env.E2E_PASSWORD ?? 'Password123!'
+const ADMIN_EMAIL = 'admin@donate.app'
+const ADMIN_PASSWORD = 'Password123!'
 
 async function loginAsAdmin(page: import('@playwright/test').Page) {
   await page.goto('/auth/login')
-  await page.fill('input[type="email"]', email)
-  await page.fill('input[type="password"]', password)
+  await page.fill('input[type="email"]', ADMIN_EMAIL)
+  await page.fill('input[type="password"]', ADMIN_PASSWORD)
   await page.getByRole('button', { name: /sign in/i }).click()
   await page.waitForURL((url) => !url.pathname.includes('/auth/login'), { timeout: 10000 })
 }
@@ -29,7 +29,7 @@ async function goToAdminPlans(page: import('@playwright/test').Page): Promise<bo
 
 test.describe('Admin - Subscription Plans', () => {
   test('plans page shows Create Plan button or access denied', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await loginAsAdmin(page)
 
     const isAdmin = await goToAdminPlans(page)
@@ -42,7 +42,7 @@ test.describe('Admin - Subscription Plans', () => {
   })
 
   test('Create Plan button opens form with required fields', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await loginAsAdmin(page)
 
     const isAdmin = await goToAdminPlans(page)
@@ -55,7 +55,7 @@ test.describe('Admin - Subscription Plans', () => {
   })
 
   test('Cancel button closes create form', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await loginAsAdmin(page)
 
     const isAdmin = await goToAdminPlans(page)
@@ -68,7 +68,7 @@ test.describe('Admin - Subscription Plans', () => {
   })
 
   test('plans table shows seed plans', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await loginAsAdmin(page)
 
     const isAdmin = await goToAdminPlans(page)
@@ -82,7 +82,7 @@ test.describe('Admin - Subscription Plans', () => {
   })
 
   test('each plan row has Edit and Activate/Deactivate buttons', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await loginAsAdmin(page)
 
     const isAdmin = await goToAdminPlans(page)
@@ -95,7 +95,7 @@ test.describe('Admin - Subscription Plans', () => {
   })
 
   test('Edit button opens edit form with pre-filled data', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await loginAsAdmin(page)
 
     const isAdmin = await goToAdminPlans(page)
@@ -109,7 +109,7 @@ test.describe('Admin - Subscription Plans', () => {
   })
 
   test('create plan form submits', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await loginAsAdmin(page)
 
     const isAdmin = await goToAdminPlans(page)
@@ -125,7 +125,7 @@ test.describe('Admin - Subscription Plans', () => {
 
 test.describe('Admin - Campaign Review', () => {
   test('campaign review queue shows heading', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await loginAsAdmin(page)
 
     await page.goto('/admin/campaigns')
@@ -133,7 +133,7 @@ test.describe('Admin - Campaign Review', () => {
   })
 
   test('campaign review shows pending campaigns or empty state', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await loginAsAdmin(page)
 
     await page.goto('/admin/campaigns')
@@ -148,7 +148,7 @@ test.describe('Admin - Campaign Review', () => {
   })
 
   test('clicking pending campaign shows review details', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await loginAsAdmin(page)
 
     await page.goto('/admin/campaigns')
@@ -164,7 +164,7 @@ test.describe('Admin - Campaign Review', () => {
   })
 
   test('reject button requires confirmation and rejects campaign', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await loginAsAdmin(page)
 
     await page.goto('/admin/campaigns')
@@ -181,7 +181,7 @@ test.describe('Admin - Campaign Review', () => {
   })
 
   test('back to queue link navigates back', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await loginAsAdmin(page)
 
     await page.goto('/admin/campaigns')
@@ -198,7 +198,7 @@ test.describe('Admin - Campaign Review', () => {
 
 test.describe('Admin - Subscriptions Management', () => {
   test('subscriptions page shows heading and table', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await loginAsAdmin(page)
 
     await page.goto('/admin/subscriptions')
@@ -207,7 +207,7 @@ test.describe('Admin - Subscriptions Management', () => {
   })
 
   test('subscriptions page shows empty state or data rows', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await loginAsAdmin(page)
 
     await page.goto('/admin/subscriptions')
@@ -219,7 +219,7 @@ test.describe('Admin - Subscriptions Management', () => {
   })
 
   test('subscription rows have History and Pause/Unpause buttons when data exists', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await loginAsAdmin(page)
 
     await page.goto('/admin/subscriptions')
@@ -235,7 +235,7 @@ test.describe('Admin - Subscriptions Management', () => {
   })
 
   test('History button opens history panel', async ({ page }) => {
-    test.skip(!email || !password, 'E2E_EMAIL / E2E_PASSWORD not set')
+    test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
     await loginAsAdmin(page)
 
     await page.goto('/admin/subscriptions')
