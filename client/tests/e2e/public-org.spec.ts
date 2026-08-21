@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 
-const ANON_KEY = 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH'
-const API_URL = 'http://localhost:54321'
+const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH'
+const API_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'http://127.0.0.1:55321'
 
 async function setupOrg(): Promise<string> {
   const email = `puborg-${crypto.randomUUID()}@example.com`
@@ -51,8 +51,8 @@ test.describe.serial('Public Org Page', () => {
 
   test('public page shows Sign In and Create Account', async ({ page }) => {
     await page.goto(`/orgs/public/?slug=${testSlug}`, { waitUntil: 'networkidle' })
-    await expect(page.getByRole('link', { name: 'Sign In' })).toBeVisible({ timeout: 10000 })
-    await expect(page.getByRole('link', { name: 'Create Account' })).toBeVisible()
+    await expect(page.locator('main').getByRole('link', { name: 'Sign In' })).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('main').getByRole('link', { name: 'Create Account' })).toBeVisible()
   })
 
   test('public page shows created date', async ({ page }) => {
