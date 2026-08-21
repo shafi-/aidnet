@@ -30,7 +30,7 @@ Audit of every page: what it has, what users expect, what tests should cover, an
 | Campaign cards render with correct data | ✅ Exists | |
 | Campaign card click → detail page | ✅ Exists | |
 | Feature cards visible | ✅ Exists | |
-| Auth nav: Dashboard + Profile links visible | ❌ Failing | Test checks `nav` but landing page has its own nav, not AppLayout nav. Landing nav has "Dashboard" + "Profile" links, not email. Fix: update selector to match landing nav structure |
+| Auth nav: Dashboard + Profile links visible | ✅ Fixed | Updated to check landing nav structure, not AppLayout nav |
 | Sign in / Get Started buttons work | ✅ Exists | |
 
 **Fixes needed:**
@@ -560,19 +560,17 @@ Audit of every page: what it has, what users expect, what tests should cover, an
 **Tests needed:**
 | Test | Status | Notes |
 |------|--------|-------|
-| Create Plan button opens form | ❌ Failing | Button click doesn't open form — `showCreate` state not toggling |
-| Cancel button closes form | ❌ Failing | Form never opened |
-| Plans table shows seed plans | ❌ Failing | Table may not render |
-| Edit and Activate/Deactivate buttons exist | ❌ Failing | Table rows may not render |
-| Edit opens pre-filled form | ❌ Failing | |
-| Create plan submits | ❌ Failing | |
+| Create Plan button opens form | ✅ Fixed | Root cause: `features` from DB returned as JSON string, `.map()` crashed |
+| Cancel button closes form | ✅ Fixed | |
+| Plans table shows seed plans | ✅ Fixed | |
+| Edit and Activate/Deactivate buttons exist | ✅ Fixed | |
+| Edit opens pre-filled form | ✅ Fixed | |
+| Create plan submits | ✅ Fixed | |
 
-**Fixes needed:**
-- All 6 admin plan tests fail. Root cause: the page renders "Access Denied" because the test user (`test@example.com`) is not a system admin, OR the `showCreate` toggle isn't working. Need to verify:
-  1. Is `test@example.com` a system admin? (seed sets `is_system_admin: true`)
-  2. Does the admin check pass? (check `useSystemAdmin()` hook)
-  3. If admin check passes, does the "Create Plan" button actually toggle the form?
-- Likely fix: the admin auth gate is failing under parallel load (same rate limiting issue as auth tests). Add retries
+**Fixes applied:**
+- `normalizeFeatures()` utility added at `src/lib/normalizeFeatures.ts` — parses JSON string features to array
+- Applied to: `admin/plans/page.tsx`, `BillingTab.tsx`, `useSubscription.ts`
+- Non-admin users now see Access Denied instead of crash
 
 ---
 

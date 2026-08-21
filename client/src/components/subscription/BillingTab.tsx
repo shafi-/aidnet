@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { subscriptionService } from '@/services/SubscriptionService'
 import type { CurrentSubscription, SubscriptionPlan, SubscriptionHistoryView } from '@/types'
 import { subscriptionPlanService } from '@/services/SubscriptionPlanService'
+import { normalizeFeatures } from '@/lib/normalizeFeatures'
 
 interface BillingTabProps {
   orgId: string
@@ -25,8 +26,15 @@ export function BillingTab({ orgId, isOwner }: BillingTabProps) {
       subscriptionPlanService.getHistory(orgId),
     ])
 
-    if (currentResult.data) setCurrentPlan(currentResult.data as unknown as CurrentSubscription)
-    if (plansResult.data) setPlans(plansResult.data as unknown as SubscriptionPlan[])
+    if (currentResult.data) {
+      const cp = currentResult.data as unknown as Record<string, unknown>
+      cp.features = normalizeFeatures(cp.features)
+      setCurrentPlan(cp as unknown as CurrentSubscription)
+    }
+    if (plansResult.data) {
+      const raw = plansResult.data as unknown as Record<string, unknown>[]
+      setPlans(raw.map(p => ({ ...p, features: normalizeFeatures(p.features) })) as SubscriptionPlan[])
+    }
     if (historyResult.data) setHistory(historyResult.data as unknown as SubscriptionHistoryView[])
 
     setLoading(false)

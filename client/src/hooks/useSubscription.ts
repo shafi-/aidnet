@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { CurrentSubscription } from '@/types'
 import { subscriptionService } from '@/services/SubscriptionService'
+import { normalizeFeatures } from '@/lib/normalizeFeatures'
 
 export function useSubscription(orgId: string | null) {
   const [currentPlan, setCurrentPlan] = useState<CurrentSubscription | null>(null)
@@ -27,7 +28,9 @@ export function useSubscription(orgId: string | null) {
       if (error || !data) {
         setCurrentPlan(null)
       } else {
-        setCurrentPlan(data as unknown as CurrentSubscription)
+        const sub = data as unknown as Record<string, unknown>
+        sub.features = normalizeFeatures(sub.features)
+        setCurrentPlan(sub as unknown as CurrentSubscription)
       }
     } catch {
       setCurrentPlan(null)

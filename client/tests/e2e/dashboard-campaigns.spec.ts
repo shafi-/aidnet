@@ -13,11 +13,17 @@ async function login(page: import('@playwright/test').Page) {
 
 async function selectOrg(page: import('@playwright/test').Page) {
   await page.goto('/orgs')
-  await page.locator('a[href^="/orgs/?id="]').first().click()
-  await expect(page).toHaveURL(/\/orgs\/\?id=/)
-  await page.waitForFunction(() => {
+  // Wait for localStorage to be set — either by auto-select (1 org) or by clicking a link
+  const hasOrg = await page.waitForFunction(() => {
     return localStorage.getItem('supanext.currentOrgId') !== null
-  }, { timeout: 10000 })
+  }, { timeout: 10000 }).then(() => true).catch(() => false)
+  if (!hasOrg) {
+    // Multiple orgs — click the first one
+    await page.locator('a[href*="/orgs?id="]').first().click()
+    await page.waitForFunction(() => {
+      return localStorage.getItem('supanext.currentOrgId') !== null
+    }, { timeout: 10000 })
+  }
 }
 
 test.describe('Dashboard Campaigns', () => {

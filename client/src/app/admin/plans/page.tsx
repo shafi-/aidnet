@@ -3,6 +3,7 @@
 import { AppLayout } from '@/components/layout/AppLayout'
 import { subscriptionPlanService } from '@/services/SubscriptionPlanService'
 import { useSystemAdmin } from '@/hooks/useSystemAdmin'
+import { normalizeFeatures } from '@/lib/normalizeFeatures'
 import { useState, useEffect, useCallback } from 'react'
 import type { SubscriptionPlan } from '@/types'
 import Link from 'next/link'
@@ -24,7 +25,13 @@ export default function AdminPlansPage() {
 
   const loadPlans = useCallback(async () => {
     const { data } = await subscriptionPlanService.getPlans()
-    if (data) setPlans(data as unknown as SubscriptionPlan[])
+    if (data) {
+      const raw = data as unknown as Record<string, unknown>[]
+      setPlans(raw.map(p => ({
+        ...p,
+        features: normalizeFeatures(p.features),
+      })) as SubscriptionPlan[])
+    }
     setLoading(false)
   }, [])
 
