@@ -13,9 +13,15 @@ export class SubscriptionService extends BaseRepository {
   }
 
   async getMySubscription(orgId: string): ServiceData<CurrentSubscription> {
-    return this.callRpc<CurrentSubscription>(Rpc.Subscription.GetMy, {
-      p_org_id: orgId,
-    })
+    const { data, error } = await this.callRpc<CurrentSubscription[]>(
+      Rpc.Subscription.GetMy,
+      {
+        p_org_id: orgId,
+      }
+    )
+    if (error) return { data: null, error }
+    // RPC is defined as RETURNS TABLE(...) so PostgREST wraps the row in an array
+    return { data: (data as CurrentSubscription[])?.[0] ?? null, error: null }
   }
 
   async subscribe(

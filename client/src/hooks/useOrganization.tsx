@@ -1,6 +1,12 @@
 'use client'
 
-import { useState, useEffect, useCallback, createContext, useContext } from 'react'
+import {
+  useState,
+  useEffect,
+  useCallback,
+  createContext,
+  useContext,
+} from 'react'
 import { organizationService } from '@/services/OrganizationService'
 import { memberService } from '@/services/MemberService'
 import { useAuth } from './useAuth'
@@ -17,36 +23,46 @@ interface OrganizationContextType {
   refreshOrg: () => Promise<void>
 }
 
-const OrganizationContext = createContext<OrganizationContextType | undefined>(undefined)
+const OrganizationContext = createContext<OrganizationContextType | undefined>(
+  undefined
+)
 
 const CURRENT_ORG_STORAGE_KEY = 'supanext.currentOrgId'
 
-export function OrganizationProvider({ children }: { children: React.ReactNode }) {
+export function OrganizationProvider({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   const { user } = useAuth()
-  const [currentOrg, rawSetCurrentOrg] = useState<OrganizationDetailView | null>(null)
+  const [currentOrg, rawSetCurrentOrg] =
+    useState<OrganizationDetailView | null>(null)
   const [membership, setMembership] = useState<Membership | null>(null)
-  const [organizations, setOrganizations] = useState<OrganizationDetailView[]>([])
+  const [organizations, setOrganizations] = useState<OrganizationDetailView[]>(
+    []
+  )
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectionRequired, setSelectionRequired] = useState(false)
 
-  const setCurrentOrg = useCallback(
-    (org: OrganizationDetailView | null) => {
-      rawSetCurrentOrg(org)
-      try {
-        if (org?.id) localStorage.setItem(CURRENT_ORG_STORAGE_KEY, org.id)
-        else localStorage.removeItem(CURRENT_ORG_STORAGE_KEY)
-      } catch {
-        // Ignore storage access errors
-      }
-    },
-    [],
-  )
+  const setCurrentOrg = useCallback((org: OrganizationDetailView | null) => {
+    rawSetCurrentOrg(org)
+    try {
+      if (org?.id) localStorage.setItem(CURRENT_ORG_STORAGE_KEY, org.id)
+      else localStorage.removeItem(CURRENT_ORG_STORAGE_KEY)
+    } catch {
+      // Ignore storage access errors
+    }
+  }, [])
 
+  // Restore persisted org selection once the auth session is available.
+  // Running before hydration would call get_organization unauthenticated
+  // and silently drop the selection on every cold page load.
   useEffect(() => {
+    if (!user?.id) return
     try {
       const persistedId = localStorage.getItem(CURRENT_ORG_STORAGE_KEY)
-      if (persistedId) {
+      if (persistedId && !currentOrg) {
         organizationService.getOrganization(persistedId).then(({ data }) => {
           if (data) rawSetCurrentOrg(data as OrganizationDetailView)
         })
@@ -54,7 +70,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
     } catch {
       // Ignore storage access errors
     }
-  }, [])
+  }, [user?.id])
 
   const loadOrganizations = useCallback(async () => {
     setLoading(true)
@@ -126,20 +142,28 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
       }}
     >
       {selectionRequired ? (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-          <div className="max-w-2xl w-full bg-white rounded-lg shadow p-8 space-y-6">
-            <h1 className="text-2xl font-bold text-center">Select an Organization</h1>
-            <p className="text-gray-600 text-center">You belong to multiple organizations. Choose one to continue.</p>
+        <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+          <div className="w-full max-w-2xl space-y-6 rounded-lg bg-white p-8 shadow">
+            <h1 className="text-center text-2xl font-bold">
+              Select an Organization
+            </h1>
+            <p className="text-center text-gray-600">
+              You belong to multiple organizations. Choose one to continue.
+            </p>
             <div className="grid gap-4 md:grid-cols-2">
-              {organizations.map((org) => (
+              {organizations.map(org => (
                 <button
                   key={org.id}
                   onClick={() => setCurrentOrg(org)}
-                  className="p-6 border rounded-lg hover:border-blue-500 hover:bg-blue-50 text-left transition-colors"
+                  className="rounded-lg border p-6 text-left transition-colors hover:border-blue-500 hover:bg-blue-50"
                 >
-                  <h2 className="font-semibold text-lg">{org.name}</h2>
-                  <p className="text-sm text-gray-600 mt-1">{org.description ?? 'No description'}</p>
-                  <p className="text-xs text-gray-500 mt-2">{org.member_count} members</p>
+                  <h2 className="text-lg font-semibold">{org.name}</h2>
+                  <p className="mt-1 text-sm text-gray-600">
+                    {org.description ?? 'No description'}
+                  </p>
+                  <p className="mt-2 text-xs text-gray-500">
+                    {org.member_count} members
+                  </p>
                 </button>
               ))}
             </div>
@@ -155,7 +179,9 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
 export function useOrganization() {
   const context = useContext(OrganizationContext)
   if (!context) {
-    throw new Error('useOrganization must be used within an OrganizationProvider')
+    throw new Error(
+      'useOrganization must be used within an OrganizationProvider'
+    )
   }
   return {
     ...context,
