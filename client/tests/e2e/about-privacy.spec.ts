@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('About Page', () => {
-  test('loads with heading and feature list', async ({ page }) => {
+  test('When anon loads /about, heading and feature list render', async ({ page }) => {
     await page.goto('/about/')
     await expect(page.getByRole('heading', { name: 'About SupaNext' })).toBeVisible()
     await expect(page.getByText('A NextJS + Supabase starter template')).toBeVisible()
@@ -15,7 +15,7 @@ test.describe('About Page', () => {
 })
 
 test.describe('Privacy Page', () => {
-  test('loads with privacy policy content', async ({ page }) => {
+  test('When anon loads /privacy, policy sections render', async ({ page }) => {
     await page.goto('/privacy/')
     await expect(page.getByRole('heading', { name: 'Privacy Policy' })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Data Collection' })).toBeVisible()

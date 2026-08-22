@@ -1,168 +1,159 @@
 import { test, expect } from '@playwright/test'
+import { USERS, signIn, getOrgFeatures } from './lib/api'
+import { DashboardPage } from './pages/OrgPages'
 
-const OWNER_EMAIL = 'owner@donate.app'
-const OWNER_PASSWORD = 'Password123!'
+test.use({ storageState: `${'tests/e2e'}/.auth/orgOwner.json` })
 
-async function login(page: import('@playwright/test').Page) {
-  await page.goto('/auth/login')
-  await page.fill('input[type="email"]', OWNER_EMAIL)
-  await page.fill('input[type="password"]', OWNER_PASSWORD)
-  await page.getByRole('button', { name: /sign in/i }).click()
-  await page.waitForURL((url) => !url.pathname.includes('/auth/login'), { timeout: 10000 })
-}
+let features: string[] = []
 
-async function selectOrg(page: import('@playwright/test').Page) {
-  await page.goto('/orgs')
-  const hasOrg = await page.waitForFunction(() => {
-    return localStorage.getItem('supanext.currentOrgId') !== null
-  }, { timeout: 10000 }).then(() => true).catch(() => false)
-  if (!hasOrg) {
-    await page.locator('a[href*="/orgs?id="]').first().click()
-    await page.waitForFunction(() => {
-      return localStorage.getItem('supanext.currentOrgId') !== null
-    }, { timeout: 10000 })
-  }
-}
-
-async function goToDashboardWithOrg(page: import('@playwright/test').Page) {
-  await login(page)
-  await selectOrg(page)
-  await page.goto('/dashboard')
-}
+test.beforeAll(async ({ request }) => {
+  const session = await signIn(request, USERS.orgOwner.email, USERS.orgOwner.password)
+  features = await getOrgFeatures(request, session)
+})
 
 test.describe('OrgDashboard', () => {
-  test('shows org name and billing tab', async ({ page }) => {
-    test.skip(!OWNER_EMAIL || !OWNER_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
-    await goToDashboardWithOrg(page)
+  test('When owner opens dashboard, org name and Billing tab show', async ({ page }) => {
+    const dashboard = new DashboardPage(page)
+    await dashboard.open()
 
-    // OrgDashboard renders org name as h1
     await expect(page.locator('.bg-white.rounded-lg.shadow h1').first()).toBeVisible()
-    // Billing tab is always visible for owners
-    await expect(page.getByRole('button', { name: 'Billing' })).toBeVisible()
+    // Billing always visible to owners regardless of subscription
+    await expect(dashboard.tab('Billing')).toBeVisible()
   })
 
-  test('todos tab shows add form when feature enabled', async ({ page }) => {
-    test.skip(!OWNER_EMAIL || !OWNER_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
-    await goToDashboardWithOrg(page)
+  test('When todos feature active, owner can add a todo', async ({ page }) => {
+    const dashboard = new DashboardPage(page)
+    await dashboard.open()
+    const todosTab = dashboard.tab('Todos')
 
-    const todosBtn = page.getByRole('button', { name: 'Todos' })
-    if ((await todosBtn.count()) === 0) {
-      test.skip()
+    if (!features.includes('todos')) {
+      // Not in active subscription - app must deny access
+      await expect(todosTab).not.toBeVisible()
       return
     }
-    await todosBtn.click()
+
+    await todosTab.click()
     await expect(page.getByPlaceholder('New todo...')).toBeVisible()
 
-    const todoTitle = `E2E Todo ${Date.now()}`
-    await page.getByPlaceholder('New todo...').fill(todoTitle)
+    const title = `E2E Todo ${Date.now()}`
+    await page.getByPlaceholder('New todo...').fill(title)
     await page.getByRole('button', { name: 'Add' }).click()
-    await expect(page.getByText(todoTitle)).toBeVisible()
+    await expect(page.getByText(title)).toBeVisible()
   })
 
-  test('todos tab can toggle completion', async ({ page }) => {
-    test.skip(!OWNER_EMAIL || !OWNER_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
-    await goToDashboardWithOrg(page)
+  test('When todos feature active, owner can toggle todo completion', async ({ page }) => {
+    const dashboard = new DashboardPage(page)
+    await dashboard.open()
+    const todosTab = dashboard.tab('Todos')
 
-    const todosBtn = page.getByRole('button', { name: 'Todos' })
-    if ((await todosBtn.count()) === 0) {
-      test.skip()
+    if (!features.includes('todos')) {
+      // No feature -> the tab must not be reachable (denial is the assertion)
+      await expect(todosTab).not.toBeVisible()
       return
     }
-    await todosBtn.click()
 
-    const todoTitle = `E2E Toggle ${Date.now()}`
-    await page.getByPlaceholder('New todo...').fill(todoTitle)
+    await todosTab.click()
+
+    const title = `E2E Toggle ${Date.now()}`
+    await page.getByPlaceholder('New todo...').fill(title)
     await page.getByRole('button', { name: 'Add' }).click()
-    await expect(page.getByText(todoTitle)).toBeVisible()
+    await expect(page.getByText(title)).toBeVisible()
 
-    const todoItem = page.locator('li').filter({ hasText: todoTitle })
-    const checkbox = todoItem.locator('input[type="checkbox"]')
+    const item = page.locator('li').filter({ hasText: title })
+    const checkbox = item.locator('input[type="checkbox"]')
     await checkbox.click()
     await expect(checkbox).toBeChecked()
   })
 
-  test('todos tab can delete a todo', async ({ page }) => {
-    test.skip(!OWNER_EMAIL || !OWNER_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
-    await goToDashboardWithOrg(page)
+  test('When todos feature active, owner can delete a todo', async ({ page }) => {
+    const dashboard = new DashboardPage(page)
+    await dashboard.open()
+    const todosTab = dashboard.tab('Todos')
 
-    const todosBtn = page.getByRole('button', { name: 'Todos' })
-    if ((await todosBtn.count()) === 0) {
-      test.skip()
+    if (!features.includes('todos')) {
+      await expect(todosTab).not.toBeVisible()
       return
     }
-    await todosBtn.click()
 
-    const todoTitle = `E2E Delete ${Date.now()}`
-    await page.getByPlaceholder('New todo...').fill(todoTitle)
+    await todosTab.click()
+
+    const title = `E2E Delete ${Date.now()}`
+    await page.getByPlaceholder('New todo...').fill(title)
     await page.getByRole('button', { name: 'Add' }).click()
-    await expect(page.getByText(todoTitle)).toBeVisible()
+    await expect(page.getByText(title)).toBeVisible()
 
-    const todoItem = page.locator('li').filter({ hasText: todoTitle })
-    await todoItem.getByRole('button', { name: 'Delete' }).click()
-    await expect(page.getByText(todoTitle)).not.toBeVisible()
+    await page
+      .locator('li')
+      .filter({ hasText: title })
+      .getByRole('button', { name: 'Delete' })
+      .click()
+    await expect(page.getByText(title)).not.toBeVisible()
   })
 
-  test('members tab shows member list when feature enabled', async ({ page }) => {
-    test.skip(!OWNER_EMAIL || !OWNER_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
-    await goToDashboardWithOrg(page)
+  test('When members feature active, Members tab shows member list', async ({ page }) => {
+    const dashboard = new DashboardPage(page)
+    await dashboard.open()
+    const membersTab = dashboard.tab('Members')
 
-    const membersBtn = page.getByRole('button', { name: 'Members' })
-    if ((await membersBtn.count()) === 0) {
-      test.skip()
+    if (!features.includes('members')) {
+      await expect(membersTab).not.toBeVisible()
       return
     }
-    await membersBtn.click()
+
+    await membersTab.click()
     await expect(page.locator('ul')).toBeVisible()
   })
 
-  test('members tab shows add member form for admin', async ({ page }) => {
-    test.skip(!OWNER_EMAIL || !OWNER_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
-    await goToDashboardWithOrg(page)
+  test('When members feature active, add-member form shows', async ({ page }) => {
+    const dashboard = new DashboardPage(page)
+    await dashboard.open()
+    const membersTab = dashboard.tab('Members')
 
-    const membersBtn = page.getByRole('button', { name: 'Members' })
-    if ((await membersBtn.count()) === 0) {
-      test.skip()
+    if (!features.includes('members')) {
+      await expect(membersTab).not.toBeVisible()
       return
     }
-    await membersBtn.click()
+
+    await membersTab.click()
     await expect(page.getByPlaceholder('Add member by email...')).toBeVisible()
   })
 
-  test('settings tab shows org form for admin when feature enabled', async ({ page }) => {
-    test.skip(!OWNER_EMAIL || !OWNER_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
-    await goToDashboardWithOrg(page)
+  test('When settings feature active, Settings tab shows org form', async ({ page }) => {
+    const dashboard = new DashboardPage(page)
+    await dashboard.open()
+    const settingsTab = dashboard.tab('Settings')
 
-    const settingsBtn = page.getByRole('button', { name: 'Settings' })
-    if ((await settingsBtn.count()) === 0) {
-      test.skip()
+    if (!features.includes('settings')) {
+      await expect(settingsTab).not.toBeVisible()
       return
     }
-    await settingsBtn.click()
+
+    await settingsTab.click()
     await expect(page.getByLabel('Organization Name')).toBeVisible()
     await expect(page.getByLabel('Slug')).toBeVisible()
     await expect(page.getByLabel('Description')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Save Changes' })).toBeVisible()
   })
 
-  test('settings tab can save org changes', async ({ page }) => {
-    test.skip(!OWNER_EMAIL || !OWNER_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
-    await goToDashboardWithOrg(page)
+  test('When settings feature active, owner can save org settings', async ({ page }) => {
+    const dashboard = new DashboardPage(page)
+    await dashboard.open()
+    const settingsTab = dashboard.tab('Settings')
 
-    const settingsBtn = page.getByRole('button', { name: 'Settings' })
-    if ((await settingsBtn.count()) === 0) {
-      test.skip()
+    if (!features.includes('settings')) {
+      await expect(settingsTab).not.toBeVisible()
       return
     }
-    await settingsBtn.click()
+
+    await settingsTab.click()
 
     const nameInput = page.getByLabel('Organization Name')
-    const originalName = await nameInput.inputValue()
-    await nameInput.fill(`${originalName} Updated`)
+    const original = await nameInput.inputValue()
+    await nameInput.fill(`${original} Updated`)
     await page.getByRole('button', { name: 'Save Changes' }).click()
     await expect(page.getByText('Saved!')).toBeVisible()
 
-    // Restore original name
-    await nameInput.fill(originalName)
+    await nameInput.fill(original)
     await page.getByRole('button', { name: 'Save Changes' }).click()
     await expect(page.getByText('Saved!')).toBeVisible()
   })

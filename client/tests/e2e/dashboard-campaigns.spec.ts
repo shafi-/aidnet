@@ -1,59 +1,24 @@
 import { test, expect } from '@playwright/test'
 
-const OWNER_EMAIL = 'owner@donate.app'
-const ADMIN_EMAIL = 'admin@donate.app'
-const PASSWORD = 'Password123!'
+const OWNER_STATE = 'tests/e2e/.auth/orgOwner.json'
 
-async function login(page: import('@playwright/test').Page) {
-  await page.goto('/auth/login')
-  await page.fill('input[type="email"]', OWNER_EMAIL)
-  await page.fill('input[type="password"]', PASSWORD)
-  await page.getByRole('button', { name: /sign in/i }).click()
-  await page.waitForURL((url) => !url.pathname.includes('/auth/login'), { timeout: 10000 })
-}
-
-async function selectOrg(page: import('@playwright/test').Page) {
-  await page.goto('/orgs')
-  // Wait for localStorage to be set — either by auto-select (1 org) or by clicking a link
-  const hasOrg = await page.waitForFunction(() => {
-    return localStorage.getItem('supanext.currentOrgId') !== null
-  }, { timeout: 10000 }).then(() => true).catch(() => false)
-  if (!hasOrg) {
-    // Multiple orgs — click the first one
-    await page.locator('a[href*="/orgs?id="]').first().click()
-    await page.waitForFunction(() => {
-      return localStorage.getItem('supanext.currentOrgId') !== null
-    }, { timeout: 10000 })
-  }
-}
+test.use({ storageState: OWNER_STATE })
 
 test.describe('Dashboard Campaigns', () => {
-  test('shows campaigns list page with New Campaign link', async ({ page }) => {
-    test.skip(!OWNER_EMAIL || !PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
-    await login(page)
-    await selectOrg(page)
-
+  test('When owner loads /dashboard/campaigns, list and New Campaign link show', async ({ page }) => {
     await page.goto('/dashboard/campaigns')
     await expect(page.getByRole('heading', { name: 'Campaigns' })).toBeVisible()
     await expect(page.getByRole('link', { name: 'New Campaign' })).toBeVisible()
   })
 
-  test('New Campaign link navigates to campaign form', async ({ page }) => {
-    test.skip(!OWNER_EMAIL || !PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
-    await login(page)
-    await selectOrg(page)
-
+  test('When owner clicks New Campaign, navigates to campaign form', async ({ page }) => {
     await page.goto('/dashboard/campaigns')
     await page.getByRole('link', { name: 'New Campaign' }).click()
     await expect(page).toHaveURL(/\/dashboard\/campaigns\/new/)
     await expect(page.getByRole('heading', { name: 'New Campaign' })).toBeVisible()
   })
 
-  test('campaign form shows all fields', async ({ page }) => {
-    test.skip(!OWNER_EMAIL || !PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
-    await login(page)
-    await selectOrg(page)
-
+  test('When owner opens campaign form, all fields are present', async ({ page }) => {
     await page.goto('/dashboard/campaigns/new')
     await expect(page.getByRole('textbox', { name: 'Title', exact: true })).toBeVisible()
     await expect(page.getByRole('textbox', { name: /Slug/ })).toBeVisible()
@@ -66,32 +31,20 @@ test.describe('Dashboard Campaigns', () => {
     await expect(page.getByText('Zakat eligible', { exact: true })).toBeVisible()
   })
 
-  test('can create a campaign from form', async ({ page }) => {
-    test.skip(!OWNER_EMAIL || !PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
-    await login(page)
-    await selectOrg(page)
-
+  test('When owner submits campaign form, returns to campaigns list', async ({ page }) => {
     await page.goto('/dashboard/campaigns/new')
     await page.getByRole('textbox', { name: 'Title', exact: true }).fill(`E2E Campaign ${Date.now()}`)
     await page.getByRole('button', { name: 'Create Campaign' }).click()
     await expect(page).toHaveURL(/\/dashboard\/campaigns\/?$/)
   })
 
-  test('cancel button navigates back to campaigns list', async ({ page }) => {
-    test.skip(!OWNER_EMAIL || !PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
-    await login(page)
-    await selectOrg(page)
-
+  test('When owner clicks Cancel on form, returns to campaigns list', async ({ page }) => {
     await page.goto('/dashboard/campaigns/new')
     await page.getByRole('button', { name: 'Cancel' }).click()
     await expect(page).toHaveURL(/\/dashboard\/campaigns\/?$/)
   })
 
-  test('campaign list shows Edit link for each campaign', async ({ page }) => {
-    test.skip(!OWNER_EMAIL || !PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
-    await login(page)
-    await selectOrg(page)
-
+  test('When campaigns exist, each shows an Edit link', async ({ page }) => {
     await page.goto('/dashboard/campaigns')
     const editLinks = page.locator('a[href*="/dashboard/campaigns/edit"]')
     if ((await editLinks.count()) > 0) {
@@ -99,11 +52,7 @@ test.describe('Dashboard Campaigns', () => {
     }
   })
 
-  test('Edit link navigates to campaign edit form', async ({ page }) => {
-    test.skip(!OWNER_EMAIL || !PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
-    await login(page)
-    await selectOrg(page)
-
+  test('When owner clicks Edit, navigates to edit form', async ({ page }) => {
     await page.goto('/dashboard/campaigns')
     const editLink = page.locator('a[href*="/dashboard/campaigns/edit"]').first()
     if ((await editLink.count()) > 0) {
@@ -113,11 +62,7 @@ test.describe('Dashboard Campaigns', () => {
     }
   })
 
-  test('edit form shows pre-filled data and Save Changes button', async ({ page }) => {
-    test.skip(!OWNER_EMAIL || !PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
-    await login(page)
-    await selectOrg(page)
-
+  test('When owner opens edit form, fields are pre-filled with Save Changes', async ({ page }) => {
     await page.goto('/dashboard/campaigns')
     const editLink = page.locator('a[href*="/dashboard/campaigns/edit"]').first()
     if ((await editLink.count()) > 0) {
@@ -128,11 +73,7 @@ test.describe('Dashboard Campaigns', () => {
     }
   })
 
-  test('campaign list shows Submit for Review for draft campaigns', async ({ page }) => {
-    test.skip(!OWNER_EMAIL || !PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
-    await login(page)
-    await selectOrg(page)
-
+  test('When draft campaigns exist, Submit for Review is shown', async ({ page }) => {
     await page.goto('/dashboard/campaigns')
     const submitBtn = page.getByRole('button', { name: 'Submit for Review' })
     if ((await submitBtn.count()) > 0) {
@@ -140,11 +81,7 @@ test.describe('Dashboard Campaigns', () => {
     }
   })
 
-  test('can toggle zakat eligible checkbox in campaign form', async ({ page }) => {
-    test.skip(!OWNER_EMAIL || !PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
-    await login(page)
-    await selectOrg(page)
-
+  test('When owner toggles Zakat eligible, checkbox becomes checked', async ({ page }) => {
     await page.goto('/dashboard/campaigns/new')
     const zakatRow = page.getByText('Zakat eligible', { exact: true })
     const checkbox = zakatRow.locator('..').locator('input[type="checkbox"]')

@@ -4,19 +4,19 @@ test.describe('Responsive Design', () => {
   test.describe('Mobile Layout', () => {
     test.use({ viewport: { width: 375, height: 812 } })
 
-    test('landing page renders on mobile', async ({ page }) => {
+    test('When mobile viewport, landing page renders', async ({ page }) => {
       await page.goto('/')
       await expect(page.locator('h1')).toContainText('SupaNext')
       await expect(page.getByRole('heading', { name: 'Welcome to SupaNext' })).toBeVisible()
     })
 
-    test('auth pages render on mobile', async ({ page }) => {
+    test('When mobile viewport, auth login page renders', async ({ page }) => {
       await page.goto('/auth/login/')
       await expect(page.locator('h1')).toContainText('Sign In')
       await expect(page.locator('#email')).toBeVisible()
     })
 
-    test('register page renders on mobile', async ({ page }) => {
+    test('When mobile viewport, register page renders', async ({ page }) => {
       await page.goto('/auth/register/')
       await expect(page.locator('h1')).toContainText('Create Account')
       await expect(page.locator('#email')).toBeVisible()
@@ -26,14 +26,14 @@ test.describe('Responsive Design', () => {
   test.describe('Desktop Layout', () => {
     test.use({ viewport: { width: 1920, height: 1080 } })
 
-    test('landing page renders on desktop', async ({ page }) => {
+    test('When desktop viewport, landing shows 3 feature cards', async ({ page }) => {
       await page.goto('/')
       await expect(page.locator('h1')).toContainText('SupaNext')
       const cards = page.locator('.grid > div')
       await expect(cards).toHaveCount(3)
     })
 
-    test('dashboard renders on desktop', async ({ page }) => {
+    test('When desktop viewport and authed, dashboard renders', async ({ page }) => {
       const testEmail = `desktop-${Date.now()}@example.com`
       const testPassword = 'DesktopPass123!'
 
