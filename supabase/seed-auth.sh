@@ -87,6 +87,16 @@ BEGIN
   INSERT INTO organization_members (organization_id, user_id, role, status, is_owner)
   VALUES (v_org_id, v_owner_id, 'admin', 'active', true)
   ON CONFLICT (organization_id, user_id) DO NOTHING;
+
+  -- Give the demo org an active Pro subscription (todos, members, invites, settings)
+  INSERT INTO organization_subscriptions (organization_id, plan_id, status, billing_period)
+  SELECT v_org_id, p.id, 'active', 'monthly'
+  FROM subscription_plans p
+  WHERE p.name = 'Pro'
+    AND NOT EXISTS (
+      SELECT 1 FROM organization_subscriptions s
+      WHERE s.organization_id = v_org_id AND s.status = 'active'
+    );
 END \$\$;
 "
 
