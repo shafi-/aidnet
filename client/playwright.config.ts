@@ -12,7 +12,7 @@ export default defineConfig({
   timeout: 60000,
   // Ensures required seed data (auth users, demo org, campaigns, plans) exists
   // before the auth.setup project logs in and before any spec runs.
-  globalSetup: './tests/e2e/global-setup.ts',
+  globalSetup: './tests/e2e/global-setup.mjs',
   use: {
     baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
