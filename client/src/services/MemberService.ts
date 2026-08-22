@@ -1,41 +1,35 @@
-import { BaseRepository } from '@/repositories/BaseRepository'
 import type { ServiceData, MemberView, Membership } from '@/types'
-import { Rpc } from '@/types/rpc'
+import { MemberRepository } from '@/repositories/MemberRepository'
 
-export class MemberService extends BaseRepository {
+export class MemberService {
+  constructor(private memberRepo: MemberRepository = new MemberRepository()) {}
+
   async getMembers(orgId: string): ServiceData<MemberView[]> {
-    return this.callRpc<MemberView[]>(Rpc.Member.GetMany, {
-      target_org_id: orgId,
-    })
+    return this.memberRepo.getMembers(orgId)
   }
 
-  async addMember(orgId: string, email: string, role: string = 'member'): ServiceData<MemberView> {
-    return this.callRpc<MemberView>(Rpc.Member.Add, {
-      target_org_id: orgId,
-      target_user_email: email,
-      member_role: role,
-    })
+  async addMember(
+    orgId: string,
+    email: string,
+    role: string = 'member'
+  ): ServiceData<MemberView> {
+    return this.memberRepo.addMember(orgId, email, role)
   }
 
   async removeMember(orgId: string, userId: string): ServiceData<boolean> {
-    return this.callRpc<boolean>(Rpc.Member.Remove, {
-      target_org_id: orgId,
-      target_user_id: userId,
-    })
+    return this.memberRepo.removeMember(orgId, userId)
   }
 
-  async updateMemberRole(orgId: string, userId: string, newRole: string): ServiceData<MemberView> {
-    return this.callRpc<MemberView>(Rpc.Member.UpdateRole, {
-      target_org_id: orgId,
-      target_user_id: userId,
-      new_role: newRole,
-    })
+  async updateMemberRole(
+    orgId: string,
+    userId: string,
+    newRole: string
+  ): ServiceData<MemberView> {
+    return this.memberRepo.updateMemberRole(orgId, userId, newRole)
   }
 
   async getMembership(orgId: string): ServiceData<Membership[]> {
-    return this.callRpc<Membership[]>(Rpc.Member.GetMembership, {
-      p_org_id: orgId,
-    })
+    return this.memberRepo.getMembership(orgId)
   }
 }
 

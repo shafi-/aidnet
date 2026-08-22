@@ -1,7 +1,7 @@
 'use client'
 
 import { AppLayout } from '@/components/layout/AppLayout'
-import { adminService } from '@/services/AdminService'
+import { systemAdminService } from '@/services/SystemAdminService'
 import { useSystemAdmin } from '@/hooks/useSystemAdmin'
 import { useState, useEffect } from 'react'
 import type { SystemStats } from '@/types'
@@ -15,7 +15,7 @@ export default function AdminPage() {
   useEffect(() => {
     if (isSystemAdmin) {
       const load = async () => {
-        const { data } = await adminService.getSystemStats()
+        const { data } = await systemAdminService.getSystemStats()
         if (data) setStats(data)
         setLoading(false)
       }
@@ -23,15 +23,25 @@ export default function AdminPage() {
     }
   }, [isSystemAdmin])
 
-  if (adminLoading) return <AppLayout><div>Loading...</div></AppLayout>
+  if (adminLoading)
+    return (
+      <AppLayout>
+        <div>Loading...</div>
+      </AppLayout>
+    )
 
   if (!isSystemAdmin) {
     return (
       <AppLayout>
-        <div className="text-center py-12">
+        <div className="py-12 text-center">
           <h1 className="text-2xl font-bold text-gray-900">Access Denied</h1>
-          <p className="mt-2 text-gray-600">You don&apos;t have permission to access this page.</p>
-          <Link href="/" className="mt-4 inline-block text-blue-600 hover:underline">
+          <p className="mt-2 text-gray-600">
+            You don&apos;t have permission to access this page.
+          </p>
+          <Link
+            href="/"
+            className="mt-4 inline-block text-blue-600 hover:underline"
+          >
             Back to home
           </Link>
         </div>
@@ -39,7 +49,12 @@ export default function AdminPage() {
     )
   }
 
-  if (loading) return <AppLayout><div>Loading...</div></AppLayout>
+  if (loading)
+    return (
+      <AppLayout>
+        <div>Loading...</div>
+      </AppLayout>
+    )
 
   return (
     <AppLayout>
@@ -47,19 +62,19 @@ export default function AdminPage() {
         <h1 className="text-2xl font-bold">System Admin</h1>
         {stats && (
           <div className="grid gap-4 md:grid-cols-4">
-            <div className="bg-white p-4 rounded-lg shadow">
+            <div className="rounded-lg bg-white p-4 shadow">
               <p className="text-sm text-gray-500">Organizations</p>
               <p className="text-2xl font-bold">{stats.total_orgs}</p>
             </div>
-            <div className="bg-white p-4 rounded-lg shadow">
+            <div className="rounded-lg bg-white p-4 shadow">
               <p className="text-sm text-gray-500">Users</p>
               <p className="text-2xl font-bold">{stats.total_users}</p>
             </div>
-            <div className="bg-white p-4 rounded-lg shadow">
+            <div className="rounded-lg bg-white p-4 shadow">
               <p className="text-sm text-gray-500">Members</p>
               <p className="text-2xl font-bold">{stats.total_members}</p>
             </div>
-            <div className="bg-white p-4 rounded-lg shadow">
+            <div className="rounded-lg bg-white p-4 shadow">
               <p className="text-sm text-gray-500">Recent Signups</p>
               <p className="text-2xl font-bold">{stats.recent_signups}</p>
             </div>
@@ -68,10 +83,16 @@ export default function AdminPage() {
         <Link href="/admin/orgs" className="text-blue-600 hover:underline">
           Manage Organizations
         </Link>
-        <Link href="/admin/plans" className="text-blue-600 hover:underline block">
+        <Link
+          href="/admin/plans"
+          className="block text-blue-600 hover:underline"
+        >
           Subscription Plans
         </Link>
-        <Link href="/admin/subscriptions" className="text-blue-600 hover:underline block">
+        <Link
+          href="/admin/subscriptions"
+          className="block text-blue-600 hover:underline"
+        >
           Organization Subscriptions
         </Link>
       </div>

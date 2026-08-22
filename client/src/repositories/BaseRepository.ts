@@ -3,12 +3,24 @@ import type { ServiceData } from '@/types'
 import { Rpc, type RpcFunction } from '@/types/rpc'
 
 /**
+ * Minimal structural contract the repository layer needs from the Supabase
+ * gateway. Defaults to the app singleton; tests inject a mock (src/testing).
+ */
+export interface RpcGateway {
+  rpc<T = unknown>(
+    functionName: string,
+    params?: Record<string, unknown>
+  ): Promise<{ data: T | null; error: string | null }>
+  getUserId(): Promise<string | null>
+}
+
+/**
  * Base Repository Class
  * All database access goes through RPC functions via callRpc.
  * Direct table access is not allowed — use database functions instead.
  */
 export abstract class BaseRepository {
-  protected supabase = supabaseManager
+  constructor(protected readonly supabase: RpcGateway = supabaseManager) {}
 
   /**
    * Call a Supabase RPC function
@@ -56,10 +68,14 @@ export abstract class BaseRepository {
     organizationId: string,
     role: string
   ): Promise<boolean> {
-    const { data } = await this.callRpc<Array<{ role: string; permissions: string[]; is_active: boolean; is_owner: boolean }>>(
-      Rpc.Member.GetMembership,
-      { p_org_id: organizationId }
-    )
+    const { data } = await this.callRpc<
+      Array<{
+        role: string
+        permissions: string[]
+        is_active: boolean
+        is_owner: boolean
+      }>
+    >(Rpc.Member.GetMembership, { p_org_id: organizationId })
 
     if (!data || data.length === 0) return false
 

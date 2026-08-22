@@ -1,38 +1,30 @@
-import { BaseRepository } from '@/repositories/BaseRepository'
 import type { ServiceData, Todo } from '@/types'
-import { Rpc } from '@/types/rpc'
+import { TodoRepository } from '@/repositories/TodoRepository'
 
-export class TodoService extends BaseRepository {
-  async createTodo(orgId: string, title: string, description?: string): ServiceData<Todo> {
-    return this.callRpc<Todo>(Rpc.Todo.Create, {
-      p_organization_id: orgId,
-      p_title: title,
-      p_description: description || null,
-    })
+export class TodoService {
+  constructor(private todoRepo: TodoRepository = new TodoRepository()) {}
+
+  async createTodo(
+    orgId: string,
+    title: string,
+    description?: string
+  ): ServiceData<Todo> {
+    return this.todoRepo.createTodo(orgId, title, description)
   }
 
   async getTodos(orgId: string): ServiceData<Todo[]> {
-    return this.callRpc<Todo[]>(Rpc.Todo.GetMany, {
-      p_organization_id: orgId,
-    })
+    return this.todoRepo.getTodos(orgId)
   }
 
   async updateTodo(
     todoId: string,
     data: { title?: string; description?: string; completed?: boolean }
   ): ServiceData<Todo> {
-    return this.callRpc<Todo>(Rpc.Todo.Update, {
-      p_todo_id: todoId,
-      p_title: data.title,
-      p_description: data.description,
-      p_completed: data.completed,
-    })
+    return this.todoRepo.updateTodo(todoId, data)
   }
 
   async deleteTodo(todoId: string): ServiceData<boolean> {
-    return this.callRpc<boolean>(Rpc.Todo.Delete, {
-      p_todo_id: todoId,
-    })
+    return this.todoRepo.deleteTodo(todoId)
   }
 }
 

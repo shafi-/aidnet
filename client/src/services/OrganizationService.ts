@@ -1,51 +1,48 @@
-import { BaseRepository } from '@/repositories/BaseRepository'
-import type { ServiceData, OrganizationView, OrganizationDetailView } from '@/types'
-import { Rpc } from '@/types/rpc'
+import type {
+  ServiceData,
+  OrganizationView,
+  OrganizationDetailView,
+} from '@/types'
+import { OrganizationRepository } from '@/repositories/OrganizationRepository'
 
-export class OrganizationService extends BaseRepository {
+export class OrganizationService {
+  constructor(
+    private orgRepo: OrganizationRepository = new OrganizationRepository()
+  ) {}
+
   async createOrganization(
     name: string,
     slug: string,
     description?: string,
     settings?: Record<string, unknown>
   ): ServiceData<OrganizationView> {
-    return this.callRpc<OrganizationView>(Rpc.Org.Create, {
-      org_name: name,
-      org_slug: slug,
-      org_description: description,
-      org_settings: settings,
-    })
+    return this.orgRepo.createOrganization(name, slug, description, settings)
   }
 
   async getMyOrganizations(): ServiceData<OrganizationView[]> {
-    return this.callRpc<OrganizationView[]>(Rpc.Org.GetMy)
+    return this.orgRepo.getMyOrganizations()
   }
 
   async getOrganization(orgId: string): ServiceData<OrganizationDetailView> {
-    const { data, error } = await this.callRpc<OrganizationDetailView[]>(Rpc.Org.Get, {
-      target_org_id: orgId,
-    })
+    const { data, error } = await this.orgRepo.getOrganization(orgId)
     if (error) return { data: null, error }
-    return { data: (data as OrganizationDetailView[])?.[0] ?? null, error: null }
+    return { data: data?.[0] ?? null, error: null }
   }
 
   async updateOrganization(
     orgId: string,
-    data: { name?: string; slug?: string; description?: string; settings?: Record<string, unknown> }
+    data: {
+      name?: string
+      slug?: string
+      description?: string
+      settings?: Record<string, unknown>
+    }
   ): ServiceData<OrganizationView> {
-    return this.callRpc<OrganizationView>(Rpc.Org.Update, {
-      target_org_id: orgId,
-      new_name: data.name,
-      new_slug: data.slug,
-      new_description: data.description,
-      new_settings: data.settings,
-    })
+    return this.orgRepo.updateOrganization(orgId, data)
   }
 
   async deleteOrganization(orgId: string): ServiceData<boolean> {
-    return this.callRpc<boolean>(Rpc.Org.Delete, {
-      target_org_id: orgId,
-    })
+    return this.orgRepo.deleteOrganization(orgId)
   }
 }
 

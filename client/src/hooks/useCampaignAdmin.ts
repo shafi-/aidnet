@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { adminCampaignService } from '@/services/AdminCampaignService'
+import { systemAdminCampaignService } from '@/services/SystemAdminCampaignService'
 import type { Campaign } from '@/types'
 
 export function useCampaignAdmin() {
@@ -13,7 +13,8 @@ export function useCampaignAdmin() {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const { data, error: err } = await adminCampaignService.getPendingCampaigns()
+      const { data, error: err } =
+        await systemAdminCampaignService.getPendingCampaigns()
       if (err) {
         setError(err)
         setPending([])
@@ -33,29 +34,49 @@ export function useCampaignAdmin() {
     load()
   }, [load])
 
-  const verify = useCallback(async (campaignId: string, notes?: string) => {
-    setActionLoading(true)
-    try {
-      const { error: err } = await adminCampaignService.verifyCampaign(campaignId, notes)
-      if (err) return { error: err }
-      await load()
-      return { error: null }
-    } finally {
-      setActionLoading(false)
-    }
-  }, [load])
+  const verify = useCallback(
+    async (campaignId: string, notes?: string) => {
+      setActionLoading(true)
+      try {
+        const { error: err } = await systemAdminCampaignService.verifyCampaign(
+          campaignId,
+          notes
+        )
+        if (err) return { error: err }
+        await load()
+        return { error: null }
+      } finally {
+        setActionLoading(false)
+      }
+    },
+    [load]
+  )
 
-  const reject = useCallback(async (campaignId: string, notes?: string) => {
-    setActionLoading(true)
-    try {
-      const { error: err } = await adminCampaignService.rejectCampaign(campaignId, notes)
-      if (err) return { error: err }
-      await load()
-      return { error: null }
-    } finally {
-      setActionLoading(false)
-    }
-  }, [load])
+  const reject = useCallback(
+    async (campaignId: string, notes?: string) => {
+      setActionLoading(true)
+      try {
+        const { error: err } = await systemAdminCampaignService.rejectCampaign(
+          campaignId,
+          notes
+        )
+        if (err) return { error: err }
+        await load()
+        return { error: null }
+      } finally {
+        setActionLoading(false)
+      }
+    },
+    [load]
+  )
 
-  return { pending, loading, error, actionLoading, refetch: load, verify, reject }
+  return {
+    pending,
+    loading,
+    error,
+    actionLoading,
+    refetch: load,
+    verify,
+    reject,
+  }
 }

@@ -1,4 +1,3 @@
-import { BaseRepository } from '@/repositories/BaseRepository'
 import type {
   Campaign,
   CampaignTag,
@@ -6,86 +5,57 @@ import type {
   ServiceData,
   UpdateCampaignDto,
 } from '@/types'
-import { Rpc } from '@/types/rpc'
+import { CampaignRepository } from '@/repositories/CampaignRepository'
 
-export class CampaignService extends BaseRepository {
+export class CampaignService {
+  constructor(
+    private campaignRepo: CampaignRepository = new CampaignRepository()
+  ) {}
+
   async createCampaign(dto: CreateCampaignDto): ServiceData<Campaign> {
-    return this.callRpc<Campaign>(Rpc.Campaign.Create, {
-      p_org_id: dto.orgId,
-      p_title: dto.title,
-      p_slug: dto.slug,
-      p_description: dto.description ?? null,
-      p_cover_image_url: dto.coverImageUrl ?? null,
-      p_goal_amount: dto.goalAmount ?? null,
-      p_currency: dto.currency ?? 'BDT',
-      p_start_date: dto.startDate ?? null,
-      p_end_date: dto.endDate ?? null,
-      p_is_zakat_eligible: dto.isZakatEligible ?? false,
-    })
+    return this.campaignRepo.createCampaign(dto)
   }
 
   async getCampaigns(orgId: string): ServiceData<Campaign[]> {
-    return this.callRpc<Campaign[]>(Rpc.Campaign.GetMany, {
-      p_org_id: orgId,
-    })
+    return this.campaignRepo.getCampaigns(orgId)
   }
 
   async getCampaign(campaignId: string): ServiceData<Campaign> {
-    const { data, error } = await this.callRpc<Campaign[]>(Rpc.Campaign.Get, {
-      p_campaign_id: campaignId,
-    })
+    const { data, error } = await this.campaignRepo.getCampaign(campaignId)
     if (error) return { data: null, error }
-    return { data: (data as Campaign[])?.[0] ?? null, error: null }
+    return { data: data?.[0] ?? null, error: null }
   }
 
   async getCampaignBySlug(slug: string): ServiceData<Campaign> {
-    const { data, error } = await this.callRpc<Campaign[]>(Rpc.Campaign.GetBySlug, {
-      p_slug: slug,
-    })
+    const { data, error } = await this.campaignRepo.getCampaignBySlug(slug)
     if (error) return { data: null, error }
-    return { data: (data as Campaign[])?.[0] ?? null, error: null }
+    return { data: data?.[0] ?? null, error: null }
   }
 
   async updateCampaign(
     campaignId: string,
     dto: UpdateCampaignDto
   ): ServiceData<Campaign> {
-    return this.callRpc<Campaign>(Rpc.Campaign.Update, {
-      p_campaign_id: campaignId,
-      p_title: dto.title,
-      p_slug: dto.slug,
-      p_description: dto.description ?? null,
-      p_cover_image_url: dto.coverImageUrl ?? null,
-      p_goal_amount: dto.goalAmount ?? null,
-      p_currency: dto.currency,
-      p_start_date: dto.startDate ?? null,
-      p_end_date: dto.endDate ?? null,
-      p_is_zakat_eligible: dto.isZakatEligible,
-      p_status: dto.status,
-    })
+    return this.campaignRepo.updateCampaign(campaignId, dto)
   }
 
   async deleteCampaign(campaignId: string): ServiceData<boolean> {
-    return this.callRpc<boolean>(Rpc.Campaign.Delete, {
-      p_campaign_id: campaignId,
-    })
+    return this.campaignRepo.deleteCampaign(campaignId)
   }
 
   async submitForReview(campaignId: string): ServiceData<Campaign> {
-    return this.callRpc<Campaign>(Rpc.Campaign.Submit, {
-      p_campaign_id: campaignId,
-    })
+    return this.campaignRepo.submitForReview(campaignId)
   }
 
   async getCampaignTags(): ServiceData<CampaignTag[]> {
-    return this.callRpc<CampaignTag[]>(Rpc.CampaignTag.GetMany)
+    return this.campaignRepo.getCampaignTags()
   }
 
-  async setCampaignTags(campaignId: string, tagIds: string[]): ServiceData<boolean> {
-    return this.callRpc<boolean>(Rpc.CampaignTag.Set, {
-      p_campaign_id: campaignId,
-      p_tag_ids: tagIds,
-    })
+  async setCampaignTags(
+    campaignId: string,
+    tagIds: string[]
+  ): ServiceData<boolean> {
+    return this.campaignRepo.setCampaignTags(campaignId, tagIds)
   }
 }
 

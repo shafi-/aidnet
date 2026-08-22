@@ -1,7 +1,7 @@
 'use client'
 
 import { AppLayout } from '@/components/layout/AppLayout'
-import { adminService } from '@/services/AdminService'
+import { systemAdminService } from '@/services/SystemAdminService'
 import { useSystemAdmin } from '@/hooks/useSystemAdmin'
 import { useState, useEffect } from 'react'
 import type { OrganizationDetailView } from '@/types'
@@ -15,7 +15,7 @@ export default function AdminOrgsPage() {
   useEffect(() => {
     if (isSystemAdmin) {
       const load = async () => {
-        const { data } = await adminService.getAllOrgs()
+        const { data } = await systemAdminService.getAllOrgs()
         if (data) setOrgs(data)
         setLoading(false)
       }
@@ -23,15 +23,25 @@ export default function AdminOrgsPage() {
     }
   }, [isSystemAdmin])
 
-  if (adminLoading) return <AppLayout><div>Loading...</div></AppLayout>
+  if (adminLoading)
+    return (
+      <AppLayout>
+        <div>Loading...</div>
+      </AppLayout>
+    )
 
   if (!isSystemAdmin) {
     return (
       <AppLayout>
-        <div className="text-center py-12">
+        <div className="py-12 text-center">
           <h1 className="text-2xl font-bold text-gray-900">Access Denied</h1>
-          <p className="mt-2 text-gray-600">You don&apos;t have permission to access this page.</p>
-          <Link href="/" className="mt-4 inline-block text-blue-600 hover:underline">
+          <p className="mt-2 text-gray-600">
+            You don&apos;t have permission to access this page.
+          </p>
+          <Link
+            href="/"
+            className="mt-4 inline-block text-blue-600 hover:underline"
+          >
             Back to home
           </Link>
         </div>
@@ -46,21 +56,29 @@ export default function AdminOrgsPage() {
         {loading ? (
           <div>Loading...</div>
         ) : (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="overflow-hidden rounded-lg bg-white shadow">
             <table className="min-w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Slug</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Members</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">
+                    Name
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">
+                    Slug
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">
+                    Members
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {orgs.map((org) => (
+                {orgs.map(org => (
                   <tr key={org.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">{org.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{org.slug}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{org.member_count}</td>
+                    <td className="whitespace-nowrap px-6 py-4">{org.name}</td>
+                    <td className="whitespace-nowrap px-6 py-4">{org.slug}</td>
+                    <td className="whitespace-nowrap px-6 py-4">
+                      {org.member_count}
+                    </td>
                   </tr>
                 ))}
               </tbody>

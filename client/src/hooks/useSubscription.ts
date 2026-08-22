@@ -2,11 +2,13 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import type { CurrentSubscription } from '@/types'
-import { subscriptionService } from '@/services/SubscriptionService'
+import { orgSubscriptionService } from '@/services/OrgSubscriptionService'
 import { normalizeFeatures } from '@/lib/normalizeFeatures'
 
 export function useSubscription(orgId: string | null) {
-  const [currentPlan, setCurrentPlan] = useState<CurrentSubscription | null>(null)
+  const [currentPlan, setCurrentPlan] = useState<CurrentSubscription | null>(
+    null
+  )
   const [loading, setLoading] = useState(true)
 
   const hasFeature = useCallback(
@@ -24,7 +26,8 @@ export function useSubscription(orgId: string | null) {
     }
 
     try {
-      const { data, error } = await subscriptionService.getMySubscription(orgId)
+      const { data, error } =
+        await orgSubscriptionService.getMySubscription(orgId)
       if (error || !data) {
         setCurrentPlan(null)
       } else {

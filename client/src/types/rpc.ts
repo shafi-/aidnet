@@ -8,6 +8,11 @@ import type { Database } from './database'
  * TypeScript errors if you add a name that doesn't exist in the generated types.
  */
 type DbFunction = keyof Database['public']['Functions']
+export type { DbFunction }
+
+/** The exact return type of a DB function — use it to type test fixtures. */
+export type RpcReturn<F extends DbFunction> =
+  Database['public']['Functions'][F]['Returns']
 
 export const Rpc = {
   Profile: {
@@ -42,24 +47,28 @@ export const Rpc = {
     Accept: 'accept_invite' satisfies DbFunction,
     Revoke: 'revoke_invite' satisfies DbFunction,
   },
-  Admin: {
+  SystemAdmin: {
     GetStats: 'get_system_stats' satisfies DbFunction,
     GetAllOrgs: 'get_all_organizations' satisfies DbFunction,
     IsSystemAdmin: 'is_system_admin' satisfies DbFunction,
   },
   Subscription: {
+    // Org-facing reads & actions (pricing page, billing tab)
     GetPlans: 'get_subscription_plans' satisfies DbFunction,
-    CreatePlan: 'create_subscription_plan' satisfies DbFunction,
-    UpdatePlan: 'update_subscription_plan' satisfies DbFunction,
-    GetOrgSubscriptions: 'get_organization_subscriptions' satisfies DbFunction,
     GetHistory: 'get_subscription_history' satisfies DbFunction,
-    Pause: 'pause_subscription' satisfies DbFunction,
-    Unpause: 'unpause_subscription' satisfies DbFunction,
     Subscribe: 'subscribe_to_plan' satisfies DbFunction,
     ChangePlan: 'change_plan' satisfies DbFunction,
     Cancel: 'cancel_subscription' satisfies DbFunction,
     GetMy: 'get_my_subscription' satisfies DbFunction,
     HasFeature: 'has_feature' satisfies DbFunction,
+  },
+  SystemAdminSubscription: {
+    // System-admin-only plan & org-subscription management
+    CreatePlan: 'create_subscription_plan' satisfies DbFunction,
+    UpdatePlan: 'update_subscription_plan' satisfies DbFunction,
+    GetOrgSubscriptions: 'get_organization_subscriptions' satisfies DbFunction,
+    Pause: 'pause_subscription' satisfies DbFunction,
+    Unpause: 'unpause_subscription' satisfies DbFunction,
   },
   Public: {
     GetOrgBySlug: 'get_public_org_by_slug' satisfies DbFunction,
@@ -73,7 +82,7 @@ export const Rpc = {
     Delete: 'delete_campaign' satisfies DbFunction,
     Submit: 'submit_campaign_for_review' satisfies DbFunction,
   },
-  AdminCampaign: {
+  SystemAdminCampaign: {
     Verify: 'verify_campaign' satisfies DbFunction,
     Reject: 'reject_campaign' satisfies DbFunction,
     GetPending: 'get_pending_campaigns' satisfies DbFunction,
@@ -97,11 +106,12 @@ export type RpcFunction =
   | (typeof Rpc.Member)[keyof typeof Rpc.Member]
   | (typeof Rpc.Todo)[keyof typeof Rpc.Todo]
   | (typeof Rpc.Invite)[keyof typeof Rpc.Invite]
-  | (typeof Rpc.Admin)[keyof typeof Rpc.Admin]
+  | (typeof Rpc.SystemAdmin)[keyof typeof Rpc.SystemAdmin]
   | (typeof Rpc.Subscription)[keyof typeof Rpc.Subscription]
+  | (typeof Rpc.SystemAdminSubscription)[keyof typeof Rpc.SystemAdminSubscription]
   | (typeof Rpc.Public)[keyof typeof Rpc.Public]
   | (typeof Rpc.Campaign)[keyof typeof Rpc.Campaign]
-  | (typeof Rpc.AdminCampaign)[keyof typeof Rpc.AdminCampaign]
+  | (typeof Rpc.SystemAdminCampaign)[keyof typeof Rpc.SystemAdminCampaign]
   | (typeof Rpc.DonationMethod)[keyof typeof Rpc.DonationMethod]
   | (typeof Rpc.CampaignTag)[keyof typeof Rpc.CampaignTag]
   | (typeof Rpc.PublicCampaign)[keyof typeof Rpc.PublicCampaign]
