@@ -1,0 +1,104 @@
+import { describe, expect, it, vi } from 'vitest'
+import { CampaignService } from './CampaignService'
+import { CampaignRepository } from '@/repositories/CampaignRepository'
+import { aCampaign, aCampaignTag } from '@/testing/fixtures'
+import { mockRepository } from '@/testing/mockRpcClient'
+
+const ok = <T>(data: T) => ({ data, error: null })
+const dto = { orgId: 'org-1', title: 'T', slug: 't' }
+
+describe('CampaignService', () => {
+  it('createCampaign delegates the DTO', async () => {
+    const createCampaign = vi.fn().mockResolvedValue(ok(aCampaign()))
+    const svc = new CampaignService(
+      mockRepository<CampaignRepository>({ createCampaign })
+    )
+
+    const res = await svc.createCampaign(dto)
+
+    expect(createCampaign).toHaveBeenCalledWith(dto)
+    expect(res).toEqual(ok(aCampaign()))
+  })
+
+  it('getCampaign unwraps single row', async () => {
+    const campaign = aCampaign()
+    const getCampaign = vi.fn().mockResolvedValue(ok([campaign]))
+    const svc = new CampaignService(
+      mockRepository<CampaignRepository>({ getCampaign })
+    )
+
+    const res = await svc.getCampaign('camp-1')
+
+    expect(getCampaign).toHaveBeenCalledWith('camp-1')
+    expect(res).toEqual(ok(campaign))
+  })
+
+  it('getCampaignBySlug unwraps and returns null for empty rows', async () => {
+    const getCampaignBySlug = vi
+      .fn()
+      .mockResolvedValueOnce(ok([aCampaign()]))
+      .mockResolvedValueOnce(ok([]))
+    const svc = new CampaignService(
+      mockRepository<CampaignRepository>({ getCampaignBySlug })
+    )
+
+    const found = await svc.getCampaignBySlug('build-a-school')
+    const missing = await svc.getCampaignBySlug('nope')
+
+    expect(found.data?.slug).toBe('build-a-school')
+    expect(missing).toEqual({ data: null, error: null })
+  })
+
+  it('unwrap methods propagate errors untouched', async () => {
+    const error = { data: null as unknown as unknown[], error: 'denied' }
+    const getCampaign = vi.fn().mockResolvedValue(error)
+    const svc = new CampaignService(
+      mockRepository<CampaignRepository>({ getCampaign })
+    )
+
+    const res = await svc.getCampaign('camp-1')
+
+    expect(res).toEqual({ data: null, error: 'denied' })
+  })
+
+  it('update, delete and submit delegate ids', async () => {
+    const updateCampaign = vi
+      .fn()
+      .mockResolvedValue(ok(aCampaign({ status: 'live' })))
+    const deleteCampaign = vi.fn().mockResolvedValue(ok(true))
+    const submitForReview = vi
+      .fn()
+      .mockResolvedValue(ok(aCampaign({ status: 'pending_review' })))
+    const svc = new CampaignService(
+      mockRepository<CampaignRepository>({
+        updateCampaign,
+        deleteCampaign,
+        submitForReview,
+      })
+    )
+
+    await svc.updateCampaign('camp-1', { title: 'New' })
+    const del = await svc.deleteCampaign('camp-1')
+    const sub = await svc.submitForReview('camp-1')
+
+    expect(updateCampaign).toHaveBeenCalledWith('camp-1', { title: 'New' })
+    expect(del).toEqual(ok(true))
+    expect(sub.data?.status).toBe('pending_review')
+  })
+
+  it('tags delegate through', async () => {
+    const tags = [aCampaignTag()]
+    const getCampaignTags = vi.fn().mockResolvedValue(ok(tags))
+    const setCampaignTags = vi.fn().mockResolvedValue(ok(true))
+    const svc = new CampaignService(
+      mockRepository<CampaignRepository>({ getCampaignTags, setCampaignTags })
+    )
+
+    const got = await svc.getCampaignTags()
+    const set = await svc.setCampaignTags('camp-1', ['tag-1'])
+
+    expect(got).toEqual(ok(tags))
+    expect(setCampaignTags).toHaveBeenCalledWith('camp-1', ['tag-1'])
+    expect(set).toEqual(ok(true))
+  })
+})

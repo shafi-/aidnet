@@ -1,0 +1,87 @@
+import { describe, expect, it, vi } from 'vitest'
+import { OrganizationService } from './OrganizationService'
+import { OrganizationRepository } from '@/repositories/OrganizationRepository'
+import { anOrganizationView, anOrgDetail } from '@/testing/fixtures'
+import { mockRepository } from '@/testing/mockRpcClient'
+
+const ok = <T>(data: T) => ({ data, error: null })
+
+describe('OrganizationService', () => {
+  it('createOrganization delegates args', async () => {
+    const org = anOrganizationView()
+    const createOrganization = vi.fn().mockResolvedValue(ok(org))
+    const svc = new OrganizationService(
+      mockRepository<OrganizationRepository>({ createOrganization })
+    )
+
+    const res = await svc.createOrganization('Demo Org', 'demo-org', 'desc', {
+      a: 1,
+    })
+
+    expect(createOrganization).toHaveBeenCalledWith(
+      'Demo Org',
+      'demo-org',
+      'desc',
+      { a: 1 }
+    )
+    expect(res).toEqual(ok(org))
+  })
+
+  it('getOrganization unwraps the single table row', async () => {
+    const detail = anOrgDetail()
+    const getOrganization = vi.fn().mockResolvedValue(ok([detail]))
+    const svc = new OrganizationService(
+      mockRepository<OrganizationRepository>({ getOrganization })
+    )
+
+    const res = await svc.getOrganization('org-1')
+
+    expect(getOrganization).toHaveBeenCalledWith('org-1')
+    expect(res).toEqual(ok(detail))
+  })
+
+  it('getOrganization returns null when rows are empty', async () => {
+    const getOrganization = vi.fn().mockResolvedValue(ok([]))
+    const svc = new OrganizationService(
+      mockRepository<OrganizationRepository>({ getOrganization })
+    )
+
+    const res = await svc.getOrganization('missing')
+
+    expect(res).toEqual({ data: null, error: null })
+  })
+
+  it('getOrganization propagates errors without unwrapping', async () => {
+    const getOrganization = vi
+      .fn()
+      .mockResolvedValue({ data: null, error: 'denied' })
+    const svc = new OrganizationService(
+      mockRepository<OrganizationRepository>({ getOrganization })
+    )
+
+    const res = await svc.getOrganization('org-1')
+
+    expect(res).toEqual({ data: null, error: 'denied' })
+  })
+
+  it('update and delete delegate ids', async () => {
+    const updateOrganization = vi
+      .fn()
+      .mockResolvedValue(ok(anOrganizationView()))
+    const deleteOrganization = vi.fn().mockResolvedValue(ok(true))
+    const svc = new OrganizationService(
+      mockRepository<OrganizationRepository>({
+        updateOrganization,
+        deleteOrganization,
+      })
+    )
+
+    await svc.updateOrganization('org-1', { slug: 'new-slug' })
+    const del = await svc.deleteOrganization('org-1')
+
+    expect(updateOrganization).toHaveBeenCalledWith('org-1', {
+      slug: 'new-slug',
+    })
+    expect(del).toEqual(ok(true))
+  })
+})
