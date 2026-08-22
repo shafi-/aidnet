@@ -38,6 +38,8 @@ tsconfig.tsbuildinfo
 # Testing
 coverage/
 client/playwright-report
+# Playwright generated auth storage states (contain session tokens)
+client/tests/e2e/.auth/
 
 # Temp
 .temp/
