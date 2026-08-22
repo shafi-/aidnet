@@ -16,6 +16,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
+    "test:e2e:seed": "bash ../supabase/seed-auth.sh",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
