@@ -36,6 +36,13 @@ async function setupOrg(): Promise<string> {
 }
 
 test.describe.serial('Public Org Page', () => {
+  test.beforeAll(async () => {
+    test.skip(
+      !process.env.NEXT_PUBLIC_SUPABASE_URL,
+      'NEXT_PUBLIC_SUPABASE_URL not set — run against a local Supabase instance'
+    )
+  })
+
   let testSlug = ''
 
   test('setup: create user and org', async () => {
@@ -43,29 +50,29 @@ test.describe.serial('Public Org Page', () => {
     expect(testSlug).toBeTruthy()
   })
 
-  test('public page shows org info by slug', async ({ page }) => {
+  test('When valid slug opened, public org page shows org info', async ({ page }) => {
     await page.goto(`/orgs/public/?slug=${testSlug}`, { waitUntil: 'networkidle' })
     await expect(page.locator('h1')).toBeVisible({ timeout: 10000 })
     await expect(page.locator(`text=${testSlug}`)).toBeVisible()
   })
 
-  test('public page shows Sign In and Create Account', async ({ page }) => {
+  test('When public org page opened, Sign In and Create Account links are shown', async ({ page }) => {
     await page.goto(`/orgs/public/?slug=${testSlug}`, { waitUntil: 'networkidle' })
     await expect(page.locator('main').getByRole('link', { name: 'Sign In' })).toBeVisible({ timeout: 10000 })
     await expect(page.locator('main').getByRole('link', { name: 'Create Account' })).toBeVisible()
   })
 
-  test('public page shows created date', async ({ page }) => {
+  test('When public org page opened, created date is shown', async ({ page }) => {
     await page.goto(`/orgs/public/?slug=${testSlug}`, { waitUntil: 'networkidle' })
     await expect(page.locator('text=Created')).toBeVisible({ timeout: 10000 })
   })
 
-  test('shows not found for invalid slug', async ({ page }) => {
+  test('When invalid slug opened, Organization Not Found is shown', async ({ page }) => {
     await page.goto('/orgs/public/?slug=nonexistent-slug-12345', { waitUntil: 'networkidle' })
     await expect(page.locator('h1:has-text("Organization Not Found")')).toBeVisible({ timeout: 10000 })
   })
 
-  test('shows not found for empty slug', async ({ page }) => {
+  test('When empty slug opened, Organization Not Found is shown', async ({ page }) => {
     await page.goto('/orgs/public/', { waitUntil: 'networkidle' })
     await expect(page.locator('h1:has-text("Organization Not Found")')).toBeVisible({ timeout: 10000 })
   })

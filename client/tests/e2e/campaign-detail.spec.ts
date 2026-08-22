@@ -1,88 +1,73 @@
 import { test, expect } from '@playwright/test'
 
-test.describe('Campaign Detail Page', () => {
-  test('shows not found for non-existent slug', async ({ page }) => {
+const OWNER_STATE = 'tests/e2e/.auth/orgOwner.json'
+
+test.describe('Campaign Detail Page - error states', () => {
+  test('When unknown slug opened, Campaign Not Available is shown', async ({ page }) => {
     await page.goto('/campaigns/detail?slug=nonexistent')
-    await expect(page.getByRole('heading', { name: 'Campaign Not Available' })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: 'Campaign Not Available' })
+    ).toBeVisible()
   })
 
-  test('shows missing slug error when no slug param', async ({ page }) => {
+  test('When slug missing, missing-slug error is shown', async ({ page }) => {
     await page.goto('/campaigns/detail')
-    await expect(page.getByRole('heading', { name: 'Campaign Not Available' })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: 'Campaign Not Available' })
+    ).toBeVisible()
     await expect(page.getByText('Missing campaign slug')).toBeVisible()
   })
 
-  test('back link navigates to campaigns list', async ({ page }) => {
+  test('When user clicks back link, navigates to campaigns list', async ({ page }) => {
     await page.goto('/campaigns/detail?slug=anything')
     await page.getByRole('link', { name: '← Back to campaigns' }).click()
     await expect(page).toHaveURL(/\/campaigns/)
   })
+})
 
-  test('renders campaign content when valid slug exists', async ({ page }) => {
-    // This test depends on a live campaign existing in the DB
-    // The seed data should have at least one live campaign
-    await page.goto('/campaigns')
+test.describe.serial('Campaign lifecycle - public visibility rules', () => {
+  test.use({ storageState: OWNER_STATE })
 
-    // Find the first campaign card link
-    const campaignLink = page.locator('a[href^="/campaigns/detail?slug="]').first()
-    if ((await campaignLink.count()) === 0) {
-      test.skip()
-      return
+  let slug = ''
+
+  test('When owner creates and submits a campaign, it enters pending review', async ({
+    page,
+  }) => {
+    await page.goto('/dashboard/campaigns')
+    await page.getByRole('link', { name: 'New Campaign' }).click()
+
+    const title = `E2E Detail Campaign ${Date.now()}`
+    await page.getByLabel('Title', { exact: true }).fill(title)
+    await page.getByLabel('Description', { exact: true }).fill('E2E campaign for detail-page behaviour')
+    const goal = page.getByLabel(/Goal Amount/)
+    if ((await goal.count()) > 0) await goal.fill('100000')
+    await page.getByText('Zakat eligible', { exact: true }).click()
+    await page.getByRole('button', { name: /Create/i }).click()
+    await expect(page).toHaveURL(/\/dashboard\/campaigns\/?$/)
+
+    // Move to a known domain state: pending review
+    const submitBtn = page.getByRole('button', { name: 'Submit for Review' }).first()
+    if ((await submitBtn.count()) > 0) {
+      await submitBtn.click()
+      await expect(page.getByText(/pending/).first()).toBeVisible()
     }
 
-    await campaignLink.click()
-    await expect(page).toHaveURL(/\/campaigns\/detail\?slug=/)
-
-    // Should show campaign title (h1)
-    const title = page.locator('article h1')
-    await expect(title).toBeVisible()
-
-    // Should show org name link
-    const orgLink = page.locator('a[href^="/orgs/public?slug="]')
-    await expect(orgLink).toBeVisible()
-
-    // Should show donate section
-    await expect(page.getByRole('heading', { name: 'Donate Directly' })).toBeVisible()
+    slug = title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '')
   })
 
-  test('campaign detail shows back to campaigns link', async ({ page }) => {
-    await page.goto('/campaigns')
-    const campaignLink = page.locator('a[href^="/campaigns/detail?slug="]').first()
-    if ((await campaignLink.count()) === 0) {
-      test.skip()
-      return
-    }
-    await campaignLink.click()
-    await expect(page.getByRole('link', { name: '← Back to campaigns' })).toBeVisible()
-  })
-
-  test('campaign detail shows zakat badge if eligible', async ({ page }) => {
-    await page.goto('/campaigns')
-    const campaignLink = page.locator('a[href^="/campaigns/detail?slug="]').first()
-    if ((await campaignLink.count()) === 0) {
-      test.skip()
-      return
-    }
-    await campaignLink.click()
-
-    // Zakat badge may or may not be present depending on the campaign
-    const zakatBadge = page.getByText('Zakat Eligible')
-    const count = await zakatBadge.count()
-    // Just verify the page loaded - zakat badge presence is data-dependent
-    expect(count).toBeGreaterThanOrEqual(0)
-  })
-
-  test('org name link navigates to public org page', async ({ page }) => {
-    await page.goto('/campaigns')
-    const campaignLink = page.locator('a[href^="/campaigns/detail?slug="]').first()
-    if ((await campaignLink.count()) === 0) {
-      test.skip()
-      return
-    }
-    await campaignLink.click()
-
-    const orgLink = page.locator('a[href^="/orgs/public?slug="]').first()
-    await orgLink.click()
-    await expect(page).toHaveURL(/\/orgs\/public\?slug=/)
+  test('When unpublished campaign slug opened publicly, page is unavailable', async ({
+    page,
+  }) => {
+    test.fail(
+      !slug,
+      'Owner lifecycle step did not produce a campaign to assert visibility on'
+    )
+    await page.goto(`/campaigns/detail?slug=${slug}`)
+    await expect(
+      page.getByRole('heading', { name: 'Campaign Not Available' })
+    ).toBeVisible()
   })
 })

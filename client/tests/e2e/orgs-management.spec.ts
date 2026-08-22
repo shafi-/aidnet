@@ -1,20 +1,11 @@
 import { test, expect } from '@playwright/test'
 
-const OWNER_EMAIL = 'owner@donate.app'
-const OWNER_PASSWORD = 'Password123!'
+const OWNER_STATE = 'tests/e2e/.auth/orgOwner.json'
 
-async function login(page: import('@playwright/test').Page) {
-  await page.goto('/auth/login')
-  await page.fill('input[type="email"]', OWNER_EMAIL)
-  await page.fill('input[type="password"]', OWNER_PASSWORD)
-  await page.getByRole('button', { name: /sign in/i }).click()
-  await page.waitForURL((url) => !url.pathname.includes('/auth/login'), { timeout: 10000 })
-}
+test.use({ storageState: OWNER_STATE })
 
 test.describe('Orgs Page', () => {
-  test('shows existing orgs as clickable links', async ({ page }) => {
-    test.skip(!OWNER_EMAIL || !OWNER_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
-    await login(page)
+  test('When owner loads /orgs, existing orgs are shown as links', async ({ page }) => {
     await page.goto('/orgs')
 
     const orgLinks = page.locator('a[href^="/orgs/?id="]')
@@ -22,9 +13,7 @@ test.describe('Orgs Page', () => {
     expect(await orgLinks.count()).toBeGreaterThanOrEqual(1)
   })
 
-  test('shows Create Organization form when button clicked', async ({ page }) => {
-    test.skip(!OWNER_EMAIL || !OWNER_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
-    await login(page)
+  test('When owner clicks Create Organization, form fields appear', async ({ page }) => {
     await page.goto('/orgs')
 
     await page.getByRole('button', { name: 'Create Organization' }).click()
@@ -33,9 +22,9 @@ test.describe('Orgs Page', () => {
     await expect(page.getByRole('button', { name: 'Create', exact: true })).toBeVisible()
   })
 
-  test('can fill and submit create organization form', async ({ page }) => {
-    test.skip(!OWNER_EMAIL || !OWNER_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
-    await login(page)
+  test('When owner submits valid org form, org is created and listed', async ({
+    page,
+  }) => {
     await page.goto('/orgs')
 
     await page.getByRole('button', { name: 'Create Organization' }).click()
@@ -49,31 +38,28 @@ test.describe('Orgs Page', () => {
     await slugInput.fill(`e2e-org-${Date.now()}`)
     await descInput.fill('Created by e2e test')
 
-    // Handle possible alert from API error (e.g., one-org limit)
-    page.on('dialog', dialog => dialog.accept())
-
     await page.getByRole('button', { name: 'Create', exact: true }).click()
-    await page.waitForTimeout(2000)
 
-    // Form submission triggers — either redirects to dashboard or stays with error alert
-    const onDashboard = page.url().includes('/dashboard')
-    const stillOnOrgs = page.url().includes('/orgs')
-    expect(onDashboard || stillOnOrgs).toBeTruthy()
+    // Success path redirects to the new org's dashboard.
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 })
+
+    // The created org now appears in the owner's organization list.
+    await page.goto('/orgs')
+    await expect(page.getByText(orgName)).toBeVisible()
   })
 
-  test('clicking an org card selects the organization', async ({ page }) => {
-    test.skip(!OWNER_EMAIL || !OWNER_PASSWORD, 'E2E_EMAIL / E2E_PASSWORD not set')
-    await login(page)
+  test('When owner clicks an org card, that org is selected', async ({ page }) => {
     await page.goto('/orgs')
 
     const orgLink = page.locator('a[href^="/orgs/?id="]').first()
     const href = await orgLink.getAttribute('href')
-    const orgId = new URL(href!, 'http://localhost').searchParams.get('id')
     await orgLink.click()
     // Page selects the org then cleans the URL via replaceState
     await expect(page).toHaveURL(/\/orgs\/?$/)
-    // Org ID should be stored in localStorage
-    const stored = await page.evaluate(() => localStorage.getItem('supanext.currentOrgId'))
-    expect(stored).toBe(orgId)
+    // Org selection effect persists the id asynchronously
+    const expectedId = new URL(href!, 'http://localhost').searchParams.get('id')
+    await expect
+      .poll(() => page.evaluate(() => localStorage.getItem('supanext.currentOrgId')))
+      .toBe(expectedId)
   })
 })

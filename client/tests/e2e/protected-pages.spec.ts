@@ -23,12 +23,12 @@ async function registerOrLogin(page: import('@playwright/test').Page) {
 
 test.describe('Protected Pages', () => {
   test.describe('Profile Page', () => {
-    test('redirects to login when not authenticated', async ({ page }) => {
+    test('When not authenticated, /profile redirects to login', async ({ page }) => {
       await page.goto('/profile/')
       await expect(page).toHaveURL(/\/auth\/login/, { timeout: 10000 })
     })
 
-    test('displays user email when authenticated', async ({ page }) => {
+    test('When authenticated, profile shows the user email', async ({ page }) => {
       await registerOrLogin(page)
 
       await page.goto('/profile/')
@@ -38,29 +38,29 @@ test.describe('Protected Pages', () => {
   })
 
   test.describe('Orgs Page', () => {
-    test('redirects to login when not authenticated', async ({ page }) => {
+    test('When not authenticated, visiting /orgs redirects to login', async ({
+      page,
+    }) => {
       await page.goto('/orgs/')
-      const url = page.url()
-      const isOnOrgs = url.includes('/orgs/')
-      const isOnLogin = url.includes('/auth/login/')
-      expect(isOnOrgs || isOnLogin).toBeTruthy()
+      await expect(page).toHaveURL(/\/auth\/login\//, { timeout: 10000 })
     })
 
-    test('loads orgs page when authenticated', async ({ page }) => {
+    test('When authenticated, /orgs shows the organization list', async ({ page }) => {
       await registerOrLogin(page)
 
       await page.goto('/orgs/')
-      await expect(page.locator('body')).toBeVisible()
+      await expect(page.getByRole('heading', { name: 'Organizations' })).toBeVisible()
+      await expect(page.getByRole('button', { name: 'Create Organization' })).toBeVisible()
     })
   })
 
   test.describe('Invite Page', () => {
-    test('loads with invalid token shows error', async ({ page }) => {
+    test('When invalid token supplied, Invalid Invite is shown', async ({ page }) => {
       await page.goto('/invite/?token=invalidtoken')
       await expect(page.getByRole('heading', { name: 'Invalid Invite' })).toBeVisible({ timeout: 10000 })
     })
 
-    test('loads with empty token', async ({ page }) => {
+    test('When empty token supplied, invite page renders', async ({ page }) => {
       await page.goto('/invite/')
       await expect(page.locator('body')).toBeVisible()
     })
