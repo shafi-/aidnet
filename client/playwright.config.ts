@@ -1,4 +1,13 @@
 import { defineConfig, devices } from '@playwright/test'
+import { readFileSync } from 'node:fs'
+
+// Load .env.local (no dotenv dep in devDeps) so API-contract helpers in
+// tests/e2e/lib/api.ts see NEXT_PUBLIC_SUPABASE_URL / _ANON_KEY.
+for (const line of readFileSync('.env.local', 'utf8').split('\n')) {
+  const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/)
+  if (m && !process.env[m[1]])
+    process.env[m[1]] = m[2].replace(/^["']|["']$/g, '')
+}
 
 const AUTH_DIR = 'tests/e2e/.auth'
 
@@ -7,7 +16,10 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  // Workers must be 1: several specs share the single seeded system admin
+  // and the /admin/org-requests review list, so parallel workers race on
+  // each other's pending requests.
+  workers: process.env.CI ? 1 : 1,
   reporter: 'html',
   timeout: 60000,
   // Ensures required seed data (auth users, demo org, campaigns, plans) exists

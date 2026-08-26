@@ -9,20 +9,32 @@ for (const [role, creds] of Object.entries(USERS)) {
     await page.fill('input[type="email"]', creds.email)
     await page.fill('input[type="password"]', creds.password)
     await page.getByRole('button', { name: /sign in/i }).click()
-    await page.waitForURL((url) => !url.pathname.includes('/auth/login'), {
+    await page.waitForURL(url => !url.pathname.includes('/auth/login'), {
       timeout: 15000,
     })
 
     if (selectOrgFor(role)) {
       await page.goto('/orgs')
+      // Fresh context has no currentOrgId. Single-org accounts are
+      // auto-selected by the OrganizationProvider (the select-screen is
+      // skipped), so the org card may not be visible. Multi-org accounts
+      // see the select-screen with orgs rendered as buttons.
       const card = page
         .getByRole('button')
-        .filter({ has: page.getByRole('heading', { name: 'Demo Organization' }) })
+        .filter({
+          has: page.getByRole('heading', { name: 'Demo Organization' }),
+        })
         .first()
-      await expect(card).toBeVisible()
-      await card.click()
+      try {
+        await expect(card).toBeVisible({ timeout: 5000 })
+        await card.click()
+      } catch {
+        // Auto-selected: nothing to click.
+      }
       await expect
-        .poll(() => page.evaluate(() => localStorage.getItem('supanext.currentOrgId')))
+        .poll(() =>
+          page.evaluate(() => localStorage.getItem('supanext.currentOrgId'))
+        )
         .toBeTruthy()
     }
 

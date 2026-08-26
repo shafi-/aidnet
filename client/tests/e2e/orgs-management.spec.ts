@@ -4,8 +4,50 @@ const OWNER_STATE = 'tests/e2e/.auth/orgOwner.json'
 
 test.use({ storageState: OWNER_STATE })
 
-test.describe('Orgs Page', () => {
-  test('When owner loads /orgs, existing orgs are shown as links', async ({ page }) => {
+test.describe('Orgs Page - Updated for Request Flow', () => {
+  test('When owner loads /orgs, shows Request Organization button instead of Create', async ({
+    page,
+  }) => {
+    await page.goto('/orgs')
+
+    await expect(
+      page.getByRole('link', { name: 'Request Organization' })
+    ).toBeVisible()
+    await expect(
+      page.getByRole('button', { name: 'Create Organization' })
+    ).not.toBeVisible()
+  })
+
+  test('When owner has orgs, they are listed as selectable links', async ({
+    page,
+  }) => {
+    await page.goto('/orgs')
+
+    // handle_new_user auto-creates a personal org per user, so the list is
+    // never empty; each org renders as a link with its name heading.
+    const orgLinks = page.locator('a[href^="/orgs/?id="]')
+    await expect(orgLinks.first()).toBeVisible()
+    await expect(orgLinks.first()).toContainText(/.+/)
+  })
+
+  test('When owner clicks Request Organization, navigates to request page', async ({
+    page,
+  }) => {
+    await page.goto('/orgs')
+
+    await page.getByRole('link', { name: 'Request Organization' }).click()
+    await expect(page).toHaveURL(/\/org\/request/)
+    await expect(
+      page.getByRole('heading', { name: 'Create Organization' })
+    ).toBeVisible()
+    await expect(
+      page.getByText('Submit your organization for review and approval')
+    ).toBeVisible()
+  })
+
+  test('When owner has existing orgs, shows them as clickable links', async ({
+    page,
+  }) => {
     await page.goto('/orgs')
 
     const orgLinks = page.locator('a[href^="/orgs/?id="]')
@@ -13,53 +55,23 @@ test.describe('Orgs Page', () => {
     expect(await orgLinks.count()).toBeGreaterThanOrEqual(1)
   })
 
-  test('When owner clicks Create Organization, form fields appear', async ({ page }) => {
-    await page.goto('/orgs')
-
-    await page.getByRole('button', { name: 'Create Organization' }).click()
-    await expect(page.getByText('Organization Name', { exact: true })).toBeVisible()
-    await expect(page.getByText('Description', { exact: true })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Create', exact: true })).toBeVisible()
-  })
-
-  test('When owner submits valid org form, org is created and listed', async ({
+  test('When owner clicks an org card, that org is selected', async ({
     page,
   }) => {
-    await page.goto('/orgs')
-
-    await page.getByRole('button', { name: 'Create Organization' }).click()
-
-    const orgName = `E2E Org ${Date.now()}`
-    const nameInput = page.locator('text=Organization Name').locator('..').locator('input').first()
-    const slugInput = page.locator('text=Slug').locator('..').locator('input').first()
-    const descInput = page.locator('text=Description').locator('..').locator('textarea').first()
-
-    await nameInput.fill(orgName)
-    await slugInput.fill(`e2e-org-${Date.now()}`)
-    await descInput.fill('Created by e2e test')
-
-    await page.getByRole('button', { name: 'Create', exact: true }).click()
-
-    // Success path redirects to the new org's dashboard.
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 })
-
-    // The created org now appears in the owner's organization list.
-    await page.goto('/orgs')
-    await expect(page.getByText(orgName)).toBeVisible()
-  })
-
-  test('When owner clicks an org card, that org is selected', async ({ page }) => {
     await page.goto('/orgs')
 
     const orgLink = page.locator('a[href^="/orgs/?id="]').first()
     const href = await orgLink.getAttribute('href')
     await orgLink.click()
+
     // Page selects the org then cleans the URL via replaceState
     await expect(page).toHaveURL(/\/orgs\/?$/)
     // Org selection effect persists the id asynchronously
     const expectedId = new URL(href!, 'http://localhost').searchParams.get('id')
     await expect
-      .poll(() => page.evaluate(() => localStorage.getItem('supanext.currentOrgId')))
+      .poll(() =>
+        page.evaluate(() => localStorage.getItem('supanext.currentOrgId'))
+      )
       .toBe(expectedId)
   })
 })

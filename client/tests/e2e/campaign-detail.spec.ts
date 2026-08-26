@@ -3,7 +3,9 @@ import { test, expect } from '@playwright/test'
 const OWNER_STATE = 'tests/e2e/.auth/orgOwner.json'
 
 test.describe('Campaign Detail Page - error states', () => {
-  test('When unknown slug opened, Campaign Not Available is shown', async ({ page }) => {
+  test('When unknown slug opened, Campaign Not Available is shown', async ({
+    page,
+  }) => {
     await page.goto('/campaigns/detail?slug=nonexistent')
     await expect(
       page.getByRole('heading', { name: 'Campaign Not Available' })
@@ -18,7 +20,9 @@ test.describe('Campaign Detail Page - error states', () => {
     await expect(page.getByText('Missing campaign slug')).toBeVisible()
   })
 
-  test('When user clicks back link, navigates to campaigns list', async ({ page }) => {
+  test('When user clicks back link, navigates to campaigns list', async ({
+    page,
+  }) => {
     await page.goto('/campaigns/detail?slug=anything')
     await page.getByRole('link', { name: '← Back to campaigns' }).click()
     await expect(page).toHaveURL(/\/campaigns/)
@@ -38,7 +42,9 @@ test.describe.serial('Campaign lifecycle - public visibility rules', () => {
 
     const title = `E2E Detail Campaign ${Date.now()}`
     await page.getByLabel('Title', { exact: true }).fill(title)
-    await page.getByLabel('Description', { exact: true }).fill('E2E campaign for detail-page behaviour')
+    await page
+      .getByLabel('Description', { exact: true })
+      .fill('E2E campaign for detail-page behaviour')
     const goal = page.getByLabel(/Goal Amount/)
     if ((await goal.count()) > 0) await goal.fill('100000')
     await page.getByText('Zakat eligible', { exact: true }).click()
@@ -46,7 +52,9 @@ test.describe.serial('Campaign lifecycle - public visibility rules', () => {
     await expect(page).toHaveURL(/\/dashboard\/campaigns\/?$/)
 
     // Move to a known domain state: pending review
-    const submitBtn = page.getByRole('button', { name: 'Submit for Review' }).first()
+    const submitBtn = page
+      .getByRole('button', { name: 'Submit for Review' })
+      .first()
     if ((await submitBtn.count()) > 0) {
       await submitBtn.click()
       await expect(page.getByText(/pending/).first()).toBeVisible()

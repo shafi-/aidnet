@@ -7,16 +7,24 @@ test.use({ storageState: `${'tests/e2e'}/.auth/orgOwner.json` })
 let features: string[] = []
 
 test.beforeAll(async ({ request }) => {
-  const session = await signIn(request, USERS.orgOwner.email, USERS.orgOwner.password)
+  const session = await signIn(
+    request,
+    USERS.orgOwner.email,
+    USERS.orgOwner.password
+  )
   features = await getOrgFeatures(request, session)
 })
 
 test.describe('OrgDashboard', () => {
-  test('When owner opens dashboard, org name and Billing tab show', async ({ page }) => {
+  test('When owner opens dashboard, org name and Billing tab show', async ({
+    page,
+  }) => {
     const dashboard = new DashboardPage(page)
     await dashboard.open()
 
-    await expect(page.locator('.bg-white.rounded-lg.shadow h1').first()).toBeVisible()
+    await expect(
+      page.locator('.bg-white.rounded-lg.shadow h1').first()
+    ).toBeVisible()
     // Billing always visible to owners regardless of subscription
     await expect(dashboard.tab('Billing')).toBeVisible()
   })
@@ -41,7 +49,9 @@ test.describe('OrgDashboard', () => {
     await expect(page.getByText(title)).toBeVisible()
   })
 
-  test('When todos feature active, owner can toggle todo completion', async ({ page }) => {
+  test('When todos feature active, owner can toggle todo completion', async ({
+    page,
+  }) => {
     const dashboard = new DashboardPage(page)
     await dashboard.open()
     const todosTab = dashboard.tab('Todos')
@@ -65,7 +75,9 @@ test.describe('OrgDashboard', () => {
     await expect(checkbox).toBeChecked()
   })
 
-  test('When todos feature active, owner can delete a todo', async ({ page }) => {
+  test('When todos feature active, owner can delete a todo', async ({
+    page,
+  }) => {
     const dashboard = new DashboardPage(page)
     await dashboard.open()
     const todosTab = dashboard.tab('Todos')
@@ -90,7 +102,9 @@ test.describe('OrgDashboard', () => {
     await expect(page.getByText(title)).not.toBeVisible()
   })
 
-  test('When members feature active, Members tab shows member list', async ({ page }) => {
+  test('When members feature active, Members tab shows member list', async ({
+    page,
+  }) => {
     const dashboard = new DashboardPage(page)
     await dashboard.open()
     const membersTab = dashboard.tab('Members')
@@ -104,7 +118,9 @@ test.describe('OrgDashboard', () => {
     await expect(page.locator('ul')).toBeVisible()
   })
 
-  test('When members feature active, add-member form shows', async ({ page }) => {
+  test('When members feature active, add-member form shows', async ({
+    page,
+  }) => {
     const dashboard = new DashboardPage(page)
     await dashboard.open()
     const membersTab = dashboard.tab('Members')
@@ -118,7 +134,9 @@ test.describe('OrgDashboard', () => {
     await expect(page.getByPlaceholder('Add member by email...')).toBeVisible()
   })
 
-  test('When settings feature active, Settings tab shows org form', async ({ page }) => {
+  test('When settings feature active, Settings tab shows org form', async ({
+    page,
+  }) => {
     const dashboard = new DashboardPage(page)
     await dashboard.open()
     const settingsTab = dashboard.tab('Settings')
@@ -132,10 +150,14 @@ test.describe('OrgDashboard', () => {
     await expect(page.getByLabel('Organization Name')).toBeVisible()
     await expect(page.getByLabel('Slug')).toBeVisible()
     await expect(page.getByLabel('Description')).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Save Changes' })).toBeVisible()
+    await expect(
+      page.getByRole('button', { name: 'Save Changes' })
+    ).toBeVisible()
   })
 
-  test('When settings feature active, owner can save org settings', async ({ page }) => {
+  test('When settings feature active, owner can save org settings', async ({
+    page,
+  }) => {
     const dashboard = new DashboardPage(page)
     await dashboard.open()
     const settingsTab = dashboard.tab('Settings')

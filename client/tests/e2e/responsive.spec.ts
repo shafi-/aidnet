@@ -7,7 +7,9 @@ test.describe('Responsive Design', () => {
     test('When mobile viewport, landing page renders', async ({ page }) => {
       await page.goto('/')
       await expect(page.locator('h1')).toContainText('SupaNext')
-      await expect(page.getByRole('heading', { name: 'Welcome to SupaNext' })).toBeVisible()
+      await expect(
+        page.getByRole('heading', { name: 'Welcome to SupaNext' })
+      ).toBeVisible()
     })
 
     test('When mobile viewport, auth login page renders', async ({ page }) => {
@@ -26,14 +28,18 @@ test.describe('Responsive Design', () => {
   test.describe('Desktop Layout', () => {
     test.use({ viewport: { width: 1920, height: 1080 } })
 
-    test('When desktop viewport, landing shows 3 feature cards', async ({ page }) => {
+    test('When desktop viewport, landing shows 3 feature cards', async ({
+      page,
+    }) => {
       await page.goto('/')
       await expect(page.locator('h1')).toContainText('SupaNext')
       const cards = page.locator('.grid > div')
       await expect(cards).toHaveCount(3)
     })
 
-    test('When desktop viewport and authed, dashboard renders', async ({ page }) => {
+    test('When desktop viewport and authed, dashboard renders', async ({
+      page,
+    }) => {
       const testEmail = `desktop-${Date.now()}@example.com`
       const testPassword = 'DesktopPass123!'
 
@@ -47,7 +53,9 @@ test.describe('Responsive Design', () => {
 
       await expect(page.locator('text=My Organizations')).toBeVisible()
       await expect(page.locator('text=Profile Settings')).toBeVisible()
-      await expect(page.getByRole('heading', { name: 'Security' })).toBeVisible()
+      await expect(
+        page.getByRole('heading', { name: 'Security' })
+      ).toBeVisible()
     })
   })
 })

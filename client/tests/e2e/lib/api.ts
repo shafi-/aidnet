@@ -19,10 +19,13 @@ export async function signIn(
   email: string,
   password: string
 ): Promise<Session> {
-  const res = await request.post(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-    data: { email, password },
-    headers: { apikey: SUPABASE_ANON_KEY },
-  })
+  const res = await request.post(
+    `${SUPABASE_URL}/auth/v1/token?grant_type=password`,
+    {
+      data: { email, password },
+      headers: { apikey: SUPABASE_ANON_KEY },
+    }
+  )
   if (!res.ok()) throw new Error(`signIn failed for ${email}: ${res.status()}`)
   return (await res.json()) as Session
 }
@@ -40,7 +43,10 @@ export async function rpc<T>(
       Authorization: `Bearer ${session.access_token}`,
     },
   })
-  if (!res.ok()) throw new Error(`rpc ${fn} failed: ${res.status()}`)
+  if (!res.ok()) {
+    const detail = await res.text().catch(() => '')
+    throw new Error(`rpc ${fn} failed: ${res.status()} ${detail.slice(0, 200)}`)
+  }
   return (await res.json()) as T
 }
 
@@ -69,6 +75,84 @@ export interface PublicCampaign {
   is_zakat_eligible: boolean
 }
 
+/**
+ * CONTRACT: assert the full server-side outcome of org provisioning at the
+ * moment it happens — org readable, requester is active admin/owner, and an
+ * active subscription with the baseline feature set exists.
+ *
+ * Without this, a missing DB row surfaces much later as an unrelated UI
+ * timeout (e.g. "Settings button not visible") instead of failing here with
+ * the actual cause.
+ */
+export async function expectOrgProvisioned(
+  request: APIRequestContext,
+  credsOrSession: Session | { email: string; password: string },
+  orgRef: string,
+  opts: { features?: string[]; role?: string; isOwner?: boolean } = {}
+): Promise<void> {
+  const { expect } = await import('@playwright/test')
+  const session =
+    'access_token' in credsOrSession
+      ? credsOrSession
+      : await signIn(request, credsOrSession.email, credsOrSession.password)
+
+  // orgRef may be a uuid or a human-readable org name (resolved via the
+  // caller's own membership list).
+  const UUID_RE =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  let orgId = orgRef
+  if (!UUID_RE.test(orgRef)) {
+    const mine = await rpc<Array<{ id: string; name: string }>>(
+      request,
+      session,
+      'get_my_organizations'
+    )
+    const row = mine.find(o => o.name === orgRef)
+    expect(row, `org '${orgRef}' in caller's organizations`).toBeTruthy()
+    orgId = row!.id
+  }
+
+  // RETURNS TABLE functions arrive wrapped in an array via PostgREST.
+  type Membership = {
+    role: string
+    permissions: string[]
+    is_active: boolean
+    is_owner: boolean
+  }
+  const membershipRaw = await rpc<Membership[] | Membership>(
+    request,
+    session,
+    'get_membership',
+    { p_org_id: orgId }
+  )
+  const membership = Array.isArray(membershipRaw)
+    ? membershipRaw[0]
+    : membershipRaw
+  expect(membership, 'membership row for new org').toBeTruthy()
+  expect(membership!.is_active).toBe(true)
+  if (opts.role) expect(membership!.role).toBe(opts.role)
+  if (opts.isOwner !== undefined)
+    expect(membership!.is_owner).toBe(opts.isOwner)
+
+  type Sub = { plan_name: string; status: string; features: string[] }
+  const subRaw = await rpc<Sub[] | Sub | null>(
+    request,
+    session,
+    'get_my_subscription',
+    {
+      p_org_id: orgId,
+    }
+  )
+  const sub = Array.isArray(subRaw) ? subRaw[0] : subRaw
+  const BASE_FEATURES = ['todos', 'members', 'settings']
+  const expected = opts.features ?? BASE_FEATURES
+  expect(sub, 'active subscription for new org').toBeTruthy()
+  expect(sub!.status).toBe('active')
+  for (const f of expected) {
+    expect(sub!.features, `plan must grant '${f}'`).toContain(f)
+  }
+}
+
 /** Public campaign discovery — same RPC the landing / /campaigns UI calls. */
 export async function getPublicCampaigns(
   request: APIRequestContext,
@@ -86,9 +170,13 @@ export async function getCampaignBySlug(
   request: APIRequestContext,
   slug: string
 ): Promise<PublicCampaign | null> {
-  const rows = await anonRpc<PublicCampaign[]>(request, 'get_campaign_by_slug', {
-    p_slug: slug,
-  })
+  const rows = await anonRpc<PublicCampaign[]>(
+    request,
+    'get_campaign_by_slug',
+    {
+      p_slug: slug,
+    }
+  )
   return Array.isArray(rows) && rows.length > 0 ? rows[0] : null
 }
 
@@ -103,7 +191,13 @@ export async function getMyProfile(
   request: APIRequestContext,
   session: Session
 ): Promise<MyProfile> {
-  return rpc<MyProfile>(request, session, 'get_my_profile')
+  // RETURNS TABLE arrives wrapped in an array via PostgREST
+  const raw = await rpc<MyProfile[] | MyProfile>(
+    request,
+    session,
+    'get_my_profile'
+  )
+  return Array.isArray(raw) ? raw[0] : raw
 }
 
 /** Feature keys in the org's active subscription — same RPC the app uses. */
@@ -116,7 +210,7 @@ export async function getOrgFeatures(
     session,
     'get_my_organizations'
   )
-  const demoOrg = orgs.find((o) => o.slug === 'demo-org')
+  const demoOrg = orgs.find(o => o.slug === 'demo-org')
   if (!demoOrg) return []
 
   const subs = await rpc<Array<{ features: unknown }>>(

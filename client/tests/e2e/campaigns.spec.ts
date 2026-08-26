@@ -9,24 +9,34 @@ const OWNER_STATE = 'tests/e2e/.auth/orgOwner.json'
 const ADMIN_STATE = 'tests/e2e/.auth/systemAdmin.json'
 
 test.describe('Landing — latest campaigns', () => {
-  test('When anon loads landing, Latest Campaigns section and See more show', async ({ page }) => {
+  test('When anon loads landing, Latest Campaigns section and See more show', async ({
+    page,
+  }) => {
     await page.goto('/')
-    await expect(page.getByRole('heading', { name: 'Latest Campaigns' })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: 'Latest Campaigns' })
+    ).toBeVisible()
     await expect(page.getByRole('link', { name: 'See more' })).toBeVisible()
   })
 
-  test('When anon clicks See more, navigates to public campaign list', async ({ page }) => {
+  test('When anon clicks See more, navigates to public campaign list', async ({
+    page,
+  }) => {
     await page.goto('/')
     await page.getByRole('link', { name: 'See more' }).click()
     await expect(page).toHaveURL(/\/campaigns/)
-    await expect(page.getByRole('heading', { name: 'Discover Campaigns' })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: 'Discover Campaigns' })
+    ).toBeVisible()
   })
 
   test('When landing renders, Latest Campaigns shows at most 12 cards', async ({
     page,
   }) => {
     await page.goto('/')
-    await expect(page.getByRole('heading', { name: 'Latest Campaigns' })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: 'Latest Campaigns' })
+    ).toBeVisible()
     const cards = page.locator('a[href^="/campaigns/detail"]')
     expect(await cards.count()).toBeLessThanOrEqual(12)
   })
@@ -38,12 +48,17 @@ test.describe('Public discovery + filters', () => {
     request,
   }) => {
     await page.goto('/campaigns')
-    await expect(page.getByRole('heading', { name: 'Discover Campaigns' })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: 'Discover Campaigns' })
+    ).toBeVisible()
 
     // API contract: the public discovery RPC is the source of truth the page
     // renders. Asserting it first isolates a data-layer regression (API returns
     // nothing) from a UI regression (API fine but page empty).
-    test.skip(!SUPABASE_URL, 'NEXT_PUBLIC_SUPABASE_URL not set — skipping API check')
+    test.skip(
+      !SUPABASE_URL,
+      'NEXT_PUBLIC_SUPABASE_URL not set — skipping API check'
+    )
     const apiCampaigns = await getPublicCampaigns(request)
     expect(apiCampaigns.length).toBeGreaterThan(0)
 
@@ -57,19 +72,27 @@ test.describe('Public discovery + filters', () => {
     page,
   }) => {
     await page.goto('/campaigns')
-    await page.getByRole('link', { name: /Zakat Eligible|All Campaigns/ }).click()
+    await page
+      .getByRole('link', { name: /Zakat Eligible|All Campaigns/ })
+      .click()
     await expect(page).toHaveURL(/zakat=true/)
-    await expect(page.getByRole('link', { name: 'Zakat Eligible' })).toBeVisible()
+    await expect(
+      page.getByRole('link', { name: 'Zakat Eligible' })
+    ).toBeVisible()
   })
 
   test('When anon opens an unavailable campaign slug, Campaign Not Available is shown', async ({
     page,
   }) => {
     await page.goto('/campaigns/detail?slug=does-not-exist')
-    await expect(page.getByRole('heading', { name: 'Campaign Not Available' })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: 'Campaign Not Available' })
+    ).toBeVisible()
   })
 
-  test('When anon clicks Clear filter, zakat param is removed', async ({ page }) => {
+  test('When anon clicks Clear filter, zakat param is removed', async ({
+    page,
+  }) => {
     await page.goto('/campaigns/?zakat=true')
     await expect(page.getByRole('link', { name: 'Clear filter' })).toBeVisible()
     await page.getByRole('link', { name: 'Clear filter' }).click()
@@ -89,7 +112,9 @@ test.describe.serial('Founder + Admin lifecycle', () => {
   test.describe('as org owner', () => {
     test.use({ storageState: OWNER_STATE })
 
-    test('When owner creates and submits a campaign, it enters pending review', async ({ page }) => {
+    test('When owner creates and submits a campaign, it enters pending review', async ({
+      page,
+    }) => {
       // Setup preselected demo-org for the owner
       await page.goto('/dashboard/campaigns')
       await page.getByRole('link', { name: 'New Campaign' }).click()
@@ -99,8 +124,13 @@ test.describe.serial('Founder + Admin lifecycle', () => {
       await page.getByRole('button', { name: 'Create Campaign' }).click()
       await expect(page).toHaveURL(/\/dashboard\/campaigns\/?$/)
 
-      await page.getByRole('button', { name: 'Submit for Review' }).first().click()
-      await expect(page.getByText(/pending_review|pending/).first()).toBeVisible()
+      await page
+        .getByRole('button', { name: 'Submit for Review' })
+        .first()
+        .click()
+      await expect(
+        page.getByText(/pending_review|pending/).first()
+      ).toBeVisible()
 
       slug = title
         .toLowerCase()
@@ -122,7 +152,9 @@ test.describe.serial('Founder + Admin lifecycle', () => {
 
       await page.goto(`/admin/campaigns/?slug=${slug}`)
       // Review screen shows the submitted campaign inline
-      await expect(page.getByRole('button', { name: 'Verify & Publish' })).toBeVisible()
+      await expect(
+        page.getByRole('button', { name: 'Verify & Publish' })
+      ).toBeVisible()
       await page.getByRole('button', { name: 'Verify & Publish' }).click()
       await expect(page.getByText(/verified and published/i)).toBeVisible()
     })
@@ -154,7 +186,9 @@ test.describe.serial('Founder + Admin lifecycle', () => {
         expect(Array.isArray(body) ? body.length > 0 : !!body).toBeTruthy()
       } else {
         // Unknown slug must return no rows
-        expect(Array.isArray(body) ? body.length === 0 : body === null).toBeTruthy()
+        expect(
+          Array.isArray(body) ? body.length === 0 : body === null
+        ).toBeTruthy()
       }
     })
   })
