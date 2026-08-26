@@ -88,14 +88,25 @@ BEGIN
   VALUES (v_org_id, v_owner_id, 'admin', 'active', true)
   ON CONFLICT (organization_id, user_id) DO NOTHING;
 
-  -- Give the demo org an active Pro subscription (todos, members, invites, settings)
-  INSERT INTO organization_subscriptions (organization_id, plan_id, status, billing_period)
-  SELECT v_org_id, p.id, 'active', 'monthly'
+  -- Give the demo org an active Pro subscription (todos, members, invites, settings).
+  -- The org-create trigger may already have attached the baseline Free plan;
+  -- upgrade (replace it) rather than skip, so demo always exercises Pro features.
+  DELETE FROM organization_subscriptions s
+  USING subscription_plans fp
+  WHERE s.organization_id = v_org_id
+    AND s.plan_id = fp.id AND fp.name = 'Free';
+
+  INSERT INTO organization_subscriptions
+    (organization_id, plan_id, status, billing_period,
+     current_period_start, current_period_end)
+  SELECT v_org_id, p.id, 'active', 'monthly', NOW(), NOW() + interval '1 month'
   FROM subscription_plans p
   WHERE p.name = 'Pro'
     AND NOT EXISTS (
       SELECT 1 FROM organization_subscriptions s
-      WHERE s.organization_id = v_org_id AND s.status = 'active'
+      JOIN subscription_plans pp ON pp.id = s.plan_id
+      WHERE s.organization_id = v_org_id
+        AND s.status = 'active' AND pp.name <> 'Free'
     );
 END \$\$;
 "
