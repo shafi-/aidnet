@@ -23,7 +23,7 @@ This is a NextJS + Supabase project starter template with pre-built common compo
 - **Edge Functions**: Cloudflare/Supabase edge functions for auth operations (sign-up, sign-in, password reset)
 - **Service Layer**: Business logic in `/backend` directory, imported by edge functions
 - **Repository Pattern**: BaseRepository with CRUD, extended by feature-specific repositories
-- **RPC Type Safety**: `Rpc` const in `types/rpc.ts` uses `satisfies DbFunction` to validate function names against `database.ts` at compile time. Services use nested `Rpc.Group.Action` pattern (e.g., `Rpc.Todo.Create`).
+- **RPC Type Safety**: `Rpc` const in `types/rpc.ts` uses `satisfies DbFunction` to validate function names against `database.ts` at compile time. Only repositories may import `Rpc` and call `callRpc(Rpc.Group.Action, ...)`; services, hooks, containers and components never reference `Rpc` or function-name strings — they use domain methods on repositories.
 
 ### Database Architecture Philosophy
 The project treats PostgreSQL as an application backend, not just data storage:
