@@ -30,7 +30,9 @@ function CampaignDetailContent() {
           setError(err)
           setCampaign(null)
         } else {
-          const found = ((data as PublicCampaign[]) ?? []).find((c) => c.slug === slug)
+          const found = ((data as PublicCampaign[]) ?? []).find(
+            c => c.slug === slug
+          )
           if (!found) {
             setError('Campaign not found or not yet live')
             setCampaign(null)
@@ -48,16 +50,23 @@ function CampaignDetailContent() {
 
   return (
     <AppLayout>
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        <Link href="/campaigns" className="text-indigo-600 hover:text-indigo-700 font-medium">
+      <div className="mx-auto max-w-3xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
+        <Link
+          href="/campaigns"
+          className="font-medium text-indigo-600 hover:text-indigo-700"
+        >
           ← Back to campaigns
         </Link>
 
-        {loading && <div className="text-center text-gray-500 py-12">Loading...</div>}
+        {loading && (
+          <div className="py-12 text-center text-gray-500">Loading...</div>
+        )}
 
         {error && (
-          <div className="text-center py-12 space-y-4">
-            <h1 className="text-2xl font-bold text-gray-900">Campaign Not Available</h1>
+          <div className="space-y-4 py-12 text-center">
+            <h1 className="text-2xl font-bold text-gray-900">
+              Campaign Not Available
+            </h1>
             <p className="text-gray-600">{error}</p>
           </div>
         )}
@@ -66,9 +75,11 @@ function CampaignDetailContent() {
           <article className="space-y-8">
             <header className="space-y-3">
               <div className="flex items-start justify-between gap-4">
-                <h1 className="text-3xl font-bold text-gray-900">{campaign.title}</h1>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  {campaign.title}
+                </h1>
                 {campaign.is_zakat_eligible && (
-                  <span className="shrink-0 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                  <span className="shrink-0 rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800">
                     Zakat Eligible
                   </span>
                 )}
@@ -94,24 +105,25 @@ function CampaignDetailContent() {
             )}
 
             {campaign.description && (
-              <p className="text-gray-700 whitespace-pre-line leading-relaxed">
+              <p className="whitespace-pre-line leading-relaxed text-gray-700">
                 {campaign.description}
               </p>
             )}
 
             <div className="flex flex-wrap gap-4 text-sm text-gray-600">
               {campaign.goal_amount != null && (
-                <span className="bg-gray-100 px-3 py-1 rounded-md">
-                  Goal: {campaign.goal_amount.toLocaleString()} {campaign.currency}
+                <span className="rounded-md bg-gray-100 px-3 py-1">
+                  Goal: {campaign.goal_amount.toLocaleString()}{' '}
+                  {campaign.currency}
                 </span>
               )}
               {campaign.start_date && (
-                <span className="bg-gray-100 px-3 py-1 rounded-md">
+                <span className="rounded-md bg-gray-100 px-3 py-1">
                   Starts: {new Date(campaign.start_date).toLocaleDateString()}
                 </span>
               )}
               {campaign.end_date && (
-                <span className="bg-gray-100 px-3 py-1 rounded-md">
+                <span className="rounded-md bg-gray-100 px-3 py-1">
                   Ends: {new Date(campaign.end_date).toLocaleDateString()}
                 </span>
               )}
@@ -119,19 +131,24 @@ function CampaignDetailContent() {
 
             {campaign.tags && campaign.tags.length > 0 && (
               <div className="flex flex-wrap gap-2">
-                {campaign.tags.map((t) => (
-                  <span key={t.id} className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-sm">
+                {campaign.tags.map(t => (
+                  <span
+                    key={t.id}
+                    className="rounded-full bg-indigo-50 px-3 py-1 text-sm text-indigo-700"
+                  >
                     {t.label}
                   </span>
                 ))}
               </div>
             )}
 
-            <section className="bg-white rounded-lg shadow p-6 space-y-4">
-              <h2 className="text-xl font-semibold text-gray-900">Donate Directly</h2>
+            <section className="space-y-4 rounded-lg bg-white p-6 shadow">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Donate Directly
+              </h2>
               <p className="text-sm text-gray-600">
-                This platform does not process payments. Please donate directly to the
-                organization using the methods below.
+                This platform does not process payments. Please donate directly
+                to the organization using the methods below.
               </p>
               <DonationMethods methods={campaign.donation_methods} />
             </section>
@@ -142,18 +159,42 @@ function CampaignDetailContent() {
   )
 }
 
-function DonationMethods({ methods }: { methods: PublicCampaign['donation_methods'] }) {
+function DonationMethods({
+  methods,
+}: {
+  methods: PublicCampaign['donation_methods']
+}) {
   if (!methods || methods.length === 0) {
     return <p className="text-gray-500">No donation methods listed yet.</p>
   }
 
   const m = methods[0]
   const rows: { label: string; value: string | null }[] = [
-    { label: 'bKash', value: m.bkash_number ? `${m.bkash_number}${m.bkash_account_name ? ` (${m.bkash_account_name})` : ''}` : null },
-    { label: 'Nagad', value: m.nagad_number ? `${m.nagad_number}${m.nagad_account_name ? ` (${m.nagad_account_name})` : ''}` : null },
-    { label: 'Rocket', value: m.rocket_number ? `${m.rocket_number}${m.rocket_account_name ? ` (${m.rocket_account_name})` : ''}` : null },
-    { label: 'Bank', value: m.bank_name ? `${m.bank_name}${m.bank_account_number ? ` — ${m.bank_account_number}` : ''}${m.bank_account_name ? ` (${m.bank_account_name})` : ''}` : null },
-  ].filter((r) => r.value)
+    {
+      label: 'bKash',
+      value: m.bkash_number
+        ? `${m.bkash_number}${m.bkash_account_name ? ` (${m.bkash_account_name})` : ''}`
+        : null,
+    },
+    {
+      label: 'Nagad',
+      value: m.nagad_number
+        ? `${m.nagad_number}${m.nagad_account_name ? ` (${m.nagad_account_name})` : ''}`
+        : null,
+    },
+    {
+      label: 'Rocket',
+      value: m.rocket_number
+        ? `${m.rocket_number}${m.rocket_account_name ? ` (${m.rocket_account_name})` : ''}`
+        : null,
+    },
+    {
+      label: 'Bank',
+      value: m.bank_name
+        ? `${m.bank_name}${m.bank_account_number ? ` — ${m.bank_account_number}` : ''}${m.bank_account_name ? ` (${m.bank_account_name})` : ''}`
+        : null,
+    },
+  ].filter(r => r.value)
 
   return (
     <div className="space-y-3">
@@ -162,21 +203,29 @@ function DonationMethods({ methods }: { methods: PublicCampaign['donation_method
           href={m.donation_url}
           target="_blank"
           rel="noreferrer"
-          className="inline-block bg-indigo-600 text-white px-6 py-3 rounded-md hover:bg-indigo-700 font-medium"
+          className="inline-block rounded-md bg-indigo-600 px-6 py-3 font-medium text-white hover:bg-indigo-700"
         >
           Donate via {m.donation_url.replace(/^https?:\/\//, '')}
         </a>
       )}
-      {rows.map((r) => (
+      {rows.map(r => (
         <div key={r.label} className="flex justify-between border-b pb-2">
           <span className="text-gray-500">{r.label}</span>
-          <span className="font-medium text-gray-900 text-right">{r.value}</span>
+          <span className="text-right font-medium text-gray-900">
+            {r.value}
+          </span>
         </div>
       ))}
-      {m.instructions && <p className="text-sm text-gray-600">{m.instructions}</p>}
+      {m.instructions && (
+        <p className="text-sm text-gray-600">{m.instructions}</p>
+      )}
       {m.qr_image_url && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={m.qr_image_url} alt="Donation QR code" className="w-40 h-40 object-contain border rounded" />
+        <img
+          src={m.qr_image_url}
+          alt="Donation QR code"
+          className="h-40 w-40 rounded border object-contain"
+        />
       )}
     </div>
   )
@@ -184,7 +233,13 @@ function DonationMethods({ methods }: { methods: PublicCampaign['donation_method
 
 export default function CampaignDetailPage() {
   return (
-    <Suspense fallback={<AppLayout><div className="text-center py-12 text-gray-500">Loading...</div></AppLayout>}>
+    <Suspense
+      fallback={
+        <AppLayout>
+          <div className="py-12 text-center text-gray-500">Loading...</div>
+        </AppLayout>
+      }
+    >
       <CampaignDetailContent />
     </Suspense>
   )

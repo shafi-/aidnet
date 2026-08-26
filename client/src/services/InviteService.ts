@@ -1,4 +1,4 @@
-import type { ServiceData, Invite, InviteValidation } from '@/types'
+import type { ServiceData, Invite } from '@/types'
 import { InviteRepository } from '@/repositories/InviteRepository'
 
 export class InviteService {
@@ -16,8 +16,11 @@ export class InviteService {
     return this.inviteRepo.getInvites(orgId)
   }
 
-  async validateInvite(token: string): ServiceData<InviteValidation[]> {
-    return this.inviteRepo.validateInvite(token)
+  async validateInvite(
+    token: string,
+    email: string
+  ): ServiceData<string | null> {
+    return this.inviteRepo.validateInvite(token, email)
   }
 
   async acceptInvite(token: string): ServiceData<boolean> {

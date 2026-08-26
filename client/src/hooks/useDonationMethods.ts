@@ -17,7 +17,8 @@ export function useDonationMethods(orgId: string | null | undefined) {
     }
     setLoading(true)
     try {
-      const { data, error: err } = await donationMethodService.getDonationMethods(orgId)
+      const { data, error: err } =
+        await donationMethodService.getDonationMethods(orgId)
       if (err) {
         setError(err)
         setMethods([])
@@ -40,10 +41,8 @@ export function useDonationMethods(orgId: string | null | undefined) {
   const upsert = useCallback(
     async (dto: DonationMethodDto) => {
       if (!orgId) return { error: 'No organization selected' }
-      const { data, error: err } = await donationMethodService.upsertDonationMethods(
-        orgId,
-        dto
-      )
+      const { data, error: err } =
+        await donationMethodService.upsertDonationMethods(orgId, dto)
       if (err) return { error: err }
       await load()
       return { error: null, data }

@@ -12,14 +12,17 @@ function AdminCampaignsContent() {
   const { isSystemAdmin, loading: adminLoading } = useSystemAdmin()
   const searchParams = useSearchParams()
   const slug = searchParams.get('slug')
-  const { pending, loading, actionLoading, error, verify, reject } = useCampaignAdmin()
+  const { pending, loading, actionLoading, error, verify, reject } =
+    useCampaignAdmin()
   const [notes, setNotes] = useState('')
   const [feedback, setFeedback] = useState<string | null>(null)
 
   if (adminLoading) {
     return (
       <AppLayout>
-        <div className="text-center py-12 text-gray-500">Checking permissions...</div>
+        <div className="py-12 text-center text-gray-500">
+          Checking permissions...
+        </div>
       </AppLayout>
     )
   }
@@ -27,17 +30,19 @@ function AdminCampaignsContent() {
   if (!isSystemAdmin) {
     return (
       <AppLayout>
-        <div className="max-w-3xl mx-auto px-4 py-12 text-center space-y-4">
+        <div className="mx-auto max-w-3xl space-y-4 px-4 py-12 text-center">
           <h1 className="text-2xl font-bold text-gray-900">Access Denied</h1>
           <p className="text-gray-600">System admin access required.</p>
-          <Link href="/" className="text-indigo-600 hover:underline">Go home</Link>
+          <Link href="/" className="text-indigo-600 hover:underline">
+            Go home
+          </Link>
         </div>
       </AppLayout>
     )
   }
 
   const selected: Campaign | undefined = slug
-    ? pending.find((c) => c.slug === slug)
+    ? pending.find(c => c.slug === slug)
     : undefined
 
   const handleVerify = async (id: string) => {
@@ -56,35 +61,45 @@ function AdminCampaignsContent() {
 
   return (
     <AppLayout>
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <div className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">Campaign Review Queue</h1>
-          <Link href="/admin" className="text-indigo-600 hover:underline">Admin Home</Link>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Campaign Review Queue
+          </h1>
+          <Link href="/admin" className="text-indigo-600 hover:underline">
+            Admin Home
+          </Link>
         </div>
 
-        {loading && <div className="text-gray-500 py-8">Loading pending campaigns...</div>}
-        {error && <div className="text-red-600 py-8">{error}</div>}
-        {feedback && <div className="bg-blue-50 text-blue-800 p-3 rounded-md">{feedback}</div>}
+        {loading && (
+          <div className="py-8 text-gray-500">Loading pending campaigns...</div>
+        )}
+        {error && <div className="py-8 text-red-600">{error}</div>}
+        {feedback && (
+          <div className="rounded-md bg-blue-50 p-3 text-blue-800">
+            {feedback}
+          </div>
+        )}
 
         {!loading && !selected && (
           <div className="space-y-3">
             {pending.length === 0 ? (
-              <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+              <div className="rounded-lg bg-white p-8 text-center text-gray-500 shadow">
                 No campaigns pending review.
               </div>
             ) : (
-              pending.map((c) => (
+              pending.map(c => (
                 <Link
                   key={c.id}
                   href={`/admin/campaigns?slug=${encodeURIComponent(c.slug)}`}
-                  className="block bg-white rounded-lg shadow p-4 hover:shadow-md"
+                  className="block rounded-lg bg-white p-4 shadow hover:shadow-md"
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-medium text-gray-900">{c.title}</span>
                     <span className="text-sm text-gray-500">/{c.slug}</span>
                   </div>
                   {c.is_zakat_eligible && (
-                    <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
+                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-800">
                       Zakat
                     </span>
                   )}
@@ -95,9 +110,11 @@ function AdminCampaignsContent() {
         )}
 
         {selected && (
-          <div className="bg-white rounded-lg shadow p-6 space-y-4">
+          <div className="space-y-4 rounded-lg bg-white p-6 shadow">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">{selected.title}</h2>
+              <h2 className="text-2xl font-bold text-gray-900">
+                {selected.title}
+              </h2>
               <Link
                 href="/admin/campaigns"
                 className="text-sm text-indigo-600 hover:underline"
@@ -107,26 +124,33 @@ function AdminCampaignsContent() {
             </div>
             <p className="text-sm text-gray-500">/{selected.slug}</p>
             {selected.description && (
-              <p className="text-gray-700 whitespace-pre-line">{selected.description}</p>
+              <p className="whitespace-pre-line text-gray-700">
+                {selected.description}
+              </p>
             )}
             <div className="flex flex-wrap gap-3 text-sm text-gray-600">
               {selected.goal_amount != null && (
-                <span className="bg-gray-100 px-3 py-1 rounded-md">
-                  Goal: {selected.goal_amount.toLocaleString()} {selected.currency}
+                <span className="rounded-md bg-gray-100 px-3 py-1">
+                  Goal: {selected.goal_amount.toLocaleString()}{' '}
+                  {selected.currency}
                 </span>
               )}
               {selected.is_zakat_eligible && (
-                <span className="bg-green-100 text-green-800 px-3 py-1 rounded-md">Zakat</span>
+                <span className="rounded-md bg-green-100 px-3 py-1 text-green-800">
+                  Zakat
+                </span>
               )}
             </div>
 
             <label className="block space-y-1">
-              <span className="text-sm font-medium text-gray-700">Verification Notes</span>
+              <span className="text-sm font-medium text-gray-700">
+                Verification Notes
+              </span>
               <textarea
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 rows={3}
                 value={notes}
-                onChange={(e) => setNotes(e.target.value)}
+                onChange={e => setNotes(e.target.value)}
                 placeholder="Optional notes for the organization"
               />
             </label>
@@ -135,14 +159,14 @@ function AdminCampaignsContent() {
               <button
                 disabled={actionLoading}
                 onClick={() => handleVerify(selected.id)}
-                className="bg-green-600 text-white px-5 py-2 rounded-md hover:bg-green-700 disabled:opacity-50"
+                className="rounded-md bg-green-600 px-5 py-2 text-white hover:bg-green-700 disabled:opacity-50"
               >
                 Verify & Publish
               </button>
               <button
                 disabled={actionLoading}
                 onClick={() => handleReject(selected.id)}
-                className="bg-red-600 text-white px-5 py-2 rounded-md hover:bg-red-700 disabled:opacity-50"
+                className="rounded-md bg-red-600 px-5 py-2 text-white hover:bg-red-700 disabled:opacity-50"
               >
                 Reject
               </button>
@@ -156,7 +180,13 @@ function AdminCampaignsContent() {
 
 export default function AdminCampaignsPage() {
   return (
-    <Suspense fallback={<AppLayout><div className="text-center py-12 text-gray-500">Loading...</div></AppLayout>}>
+    <Suspense
+      fallback={
+        <AppLayout>
+          <div className="py-12 text-center text-gray-500">Loading...</div>
+        </AppLayout>
+      }
+    >
       <AdminCampaignsContent />
     </Suspense>
   )

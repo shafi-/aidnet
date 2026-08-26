@@ -57,14 +57,14 @@ export function useCampaigns(orgId: string | null | undefined) {
     [load]
   )
 
-  const setTags = useCallback(
-    async (campaignId: string, tagIds: string[]) => {
-      const { error: err } = await campaignService.setCampaignTags(campaignId, tagIds)
-      if (err) return { error: err }
-      return { error: null }
-    },
-    []
-  )
+  const setTags = useCallback(async (campaignId: string, tagIds: string[]) => {
+    const { error: err } = await campaignService.setCampaignTags(
+      campaignId,
+      tagIds
+    )
+    if (err) return { error: err }
+    return { error: null }
+  }, [])
 
   return { campaigns, loading, error, refetch: load, submit, remove, setTags }
 }

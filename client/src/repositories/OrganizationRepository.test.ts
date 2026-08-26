@@ -45,20 +45,33 @@ describe('OrganizationRepository', () => {
     })
   })
 
-  it('updateOrganization maps partial updates', async () => {
+  it('updateOrganization maps slug updates', async () => {
     const gw = createMockRpcGateway({
       update_organization: { data: anOrganizationView() },
     })
     await new OrganizationRepository(gw).updateOrganization('org-1', {
-      name: 'New',
+      slug: 'new-slug',
     })
 
     expect(gw.callsTo('update_organization')[0].params).toEqual({
       target_org_id: 'org-1',
-      new_name: 'New',
-      new_slug: undefined,
-      new_description: undefined,
-      new_settings: undefined,
+      new_slug: 'new-slug',
+    })
+  })
+
+  it('setOrgStatus maps status updates', async () => {
+    const gw = createMockRpcGateway({
+      set_org_status: { data: true },
+    })
+    const res = await new OrganizationRepository(gw).setOrgStatus(
+      'org-1',
+      'suspended'
+    )
+
+    expect(res.data).toBe(true)
+    expect(gw.callsTo('set_org_status')[0].params).toEqual({
+      p_org_id: 'org-1',
+      p_status: 'suspended',
     })
   })
 

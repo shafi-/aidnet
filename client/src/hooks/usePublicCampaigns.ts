@@ -16,11 +16,12 @@ export function usePublicCampaigns(filters: PublicCampaignFilters = {}) {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const { data, error: err } = await publicCampaignService.getPublicCampaigns({
-        zakat,
-        org,
-        limit,
-      })
+      const { data, error: err } =
+        await publicCampaignService.getPublicCampaigns({
+          zakat,
+          org,
+          limit,
+        })
       if (err) {
         setError(err)
         setCampaigns([])

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { InviteRepository } from './InviteRepository'
 import { createMockRpcGateway } from '@/testing/mockRpcClient'
-import { anInvite, anInviteValidation } from '@/testing/fixtures'
+import { anInvite } from '@/testing/fixtures'
 
 describe('InviteRepository', () => {
   it('generateInvite maps args and defaults role to member', async () => {
@@ -31,15 +31,25 @@ describe('InviteRepository', () => {
     })
   })
 
-  it('validateInvite passes token and returns raw rows', async () => {
-    const rows = [anInviteValidation()]
-    const gw = createMockRpcGateway({ validate_invite: { data: rows } })
-    const res = await new InviteRepository(gw).validateInvite('tok-123')
+  it('validateInvite passes token and email, returns org name or null', async () => {
+    const gw = createMockRpcGateway({ validate_invite: { data: 'Demo Org' } })
+    const res = await new InviteRepository(gw).validateInvite(
+      'tok-123',
+      'new@example.com'
+    )
 
-    expect(res.data).toEqual(rows)
+    expect(res.data).toBe('Demo Org')
     expect(gw.callsTo('validate_invite')[0].params).toEqual({
       p_token: 'tok-123',
+      p_email: 'new@example.com',
     })
+
+    const miss = createMockRpcGateway({ validate_invite: { data: null } })
+    const noMatch = await new InviteRepository(miss).validateInvite(
+      'tok-123',
+      'wrong@example.com'
+    )
+    expect(noMatch.data).toBeNull()
   })
 
   it('acceptInvite passes token', async () => {

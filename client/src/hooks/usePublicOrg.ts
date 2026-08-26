@@ -17,7 +17,8 @@ export function usePublicOrg(slug: string | null) {
     }
 
     try {
-      const { data, error: rpcError } = await publicOrgService.getPublicOrg(slug)
+      const { data, error: rpcError } =
+        await publicOrgService.getPublicOrg(slug)
       if (rpcError) {
         setError(rpcError)
         setOrg(null)

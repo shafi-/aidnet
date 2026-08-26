@@ -34,6 +34,15 @@ export const Rpc = {
     UpdateRole: 'update_member_role' satisfies DbFunction,
     GetMembership: 'get_membership' satisfies DbFunction,
   },
+  OrgRequest: {
+    Submit: 'submit_org_request' satisfies DbFunction,
+    GetMy: 'get_my_org_requests' satisfies DbFunction,
+    GetAll: 'get_all_org_requests' satisfies DbFunction,
+  },
+  OrgMeta: {
+    Get: 'get_org_meta' satisfies DbFunction,
+    Update: 'update_org_meta' satisfies DbFunction,
+  },
   Todo: {
     Create: 'create_todo' satisfies DbFunction,
     GetMany: 'get_todos' satisfies DbFunction,
@@ -51,6 +60,9 @@ export const Rpc = {
     GetStats: 'get_system_stats' satisfies DbFunction,
     GetAllOrgs: 'get_all_organizations' satisfies DbFunction,
     IsSystemAdmin: 'is_system_admin' satisfies DbFunction,
+    ApproveOrgRequest: 'approve_org_request' satisfies DbFunction,
+    RejectOrgRequest: 'reject_org_request' satisfies DbFunction,
+    SetOrgStatus: 'set_org_status' satisfies DbFunction,
   },
   Subscription: {
     // Org-facing reads & actions (pricing page, billing tab)
@@ -104,6 +116,8 @@ export type RpcFunction =
   | (typeof Rpc.Profile)[keyof typeof Rpc.Profile]
   | (typeof Rpc.Org)[keyof typeof Rpc.Org]
   | (typeof Rpc.Member)[keyof typeof Rpc.Member]
+  | (typeof Rpc.OrgRequest)[keyof typeof Rpc.OrgRequest]
+  | (typeof Rpc.OrgMeta)[keyof typeof Rpc.OrgMeta]
   | (typeof Rpc.Todo)[keyof typeof Rpc.Todo]
   | (typeof Rpc.Invite)[keyof typeof Rpc.Invite]
   | (typeof Rpc.SystemAdmin)[keyof typeof Rpc.SystemAdmin]

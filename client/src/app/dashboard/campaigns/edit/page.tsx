@@ -41,19 +41,22 @@ function EditCampaignContent() {
 
   return (
     <AppLayout>
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <div className="mx-auto max-w-3xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-gray-900">Edit Campaign</h1>
-          <Link href="/dashboard/campaigns" className="text-indigo-600 hover:underline">
+          <Link
+            href="/dashboard/campaigns"
+            className="text-indigo-600 hover:underline"
+          >
             ← Back
           </Link>
         </div>
 
-        {loading && <div className="text-gray-500 py-8">Loading...</div>}
-        {error && <div className="text-red-600 py-8">{error}</div>}
+        {loading && <div className="py-8 text-gray-500">Loading...</div>}
+        {error && <div className="py-8 text-red-600">{error}</div>}
 
         {!loading && !error && campaign && currentOrg && (
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="rounded-lg bg-white p-6 shadow">
             <CampaignForm
               orgId={currentOrg.id}
               mode="edit"
@@ -69,7 +72,13 @@ function EditCampaignContent() {
 
 export default function EditCampaignPage() {
   return (
-    <Suspense fallback={<AppLayout><div className="text-center py-12 text-gray-500">Loading...</div></AppLayout>}>
+    <Suspense
+      fallback={
+        <AppLayout>
+          <div className="py-12 text-center text-gray-500">Loading...</div>
+        </AppLayout>
+      }
+    >
       <EditCampaignContent />
     </Suspense>
   )

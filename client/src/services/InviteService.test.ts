@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { InviteService } from './InviteService'
 import { InviteRepository } from '@/repositories/InviteRepository'
-import { anInvite, anInviteValidation } from '@/testing/fixtures'
+import { anInvite } from '@/testing/fixtures'
 import { mockRepository } from '@/testing/mockRpcClient'
 
 const ok = <T>(data: T) => ({ data, error: null })
@@ -35,19 +35,19 @@ describe('InviteService', () => {
     expect(res.data).toHaveLength(1)
   })
 
-  it('validateInvite and acceptInvite pass tokens through', async () => {
-    const validateInvite = vi.fn().mockResolvedValue(ok([anInviteValidation()]))
+  it('validateInvite passes token and email through; acceptInvite passes token', async () => {
+    const validateInvite = vi.fn().mockResolvedValue(ok('Demo Org'))
     const acceptInvite = vi.fn().mockResolvedValue(ok(true))
     const svc = new InviteService(
       mockRepository<InviteRepository>({ validateInvite, acceptInvite })
     )
 
-    const validated = await svc.validateInvite('tok-1')
+    const validated = await svc.validateInvite('tok-1', 'new@example.com')
     const accepted = await svc.acceptInvite('tok-1')
 
-    expect(validateInvite).toHaveBeenCalledWith('tok-1')
+    expect(validateInvite).toHaveBeenCalledWith('tok-1', 'new@example.com')
     expect(acceptInvite).toHaveBeenCalledWith('tok-1')
-    expect(validated.data?.[0].invite_email).toBe('new@example.com')
+    expect(validated).toEqual(ok('Demo Org'))
     expect(accepted).toEqual(ok(true))
   })
 

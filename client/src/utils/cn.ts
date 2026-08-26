@@ -106,8 +106,16 @@ export function isStrongPassword(password: string): boolean {
  */
 export function generateRandomColor(): string {
   const colors = [
-    '#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#6366F1',
-    '#8B5CF6', '#EC4899', '#F43F5E', '#14B8A6', '#84CC16'
+    '#EF4444',
+    '#F59E0B',
+    '#10B981',
+    '#3B82F6',
+    '#6366F1',
+    '#8B5CF6',
+    '#EC4899',
+    '#F43F5E',
+    '#14B8A6',
+    '#84CC16',
   ]
   return colors[Math.floor(Math.random() * colors.length)]
 }

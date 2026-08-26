@@ -106,7 +106,11 @@ export class SupabaseClientManager {
     return supabase.auth.signInWithPassword({ email, password })
   }
 
-  public async signUp(email: string, password: string, metadata?: Record<string, string>) {
+  public async signUp(
+    email: string,
+    password: string,
+    metadata?: Record<string, string>
+  ) {
     return supabase.auth.signUp({
       email,
       password,
@@ -133,7 +137,10 @@ export class SupabaseClientManager {
   ): Promise<{ data: T | null; error: string | null }> {
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await supabase.rpc(functionName as any, params as any)
+      const { data, error } = await supabase.rpc(
+        functionName as any,
+        params as any
+      )
 
       if (error) {
         console.error(`RPC error (${functionName}):`, error.message)
@@ -142,7 +149,8 @@ export class SupabaseClientManager {
 
       return { data: data as T, error: null }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error'
       console.error(`RPC catch error (${functionName}):`, errorMessage)
       return { data: null, error: errorMessage }
     }

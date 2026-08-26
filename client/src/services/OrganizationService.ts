@@ -10,6 +10,8 @@ export class OrganizationService {
     private orgRepo: OrganizationRepository = new OrganizationRepository()
   ) {}
 
+  // Note: This is now primarily used by system_admin during org request approval
+  // Regular users should use org_request flow instead
   async createOrganization(
     name: string,
     slug: string,
@@ -29,13 +31,14 @@ export class OrganizationService {
     return { data: data?.[0] ?? null, error: null }
   }
 
+  // Note: This now only handles org slug updates
+  // Name/description/logo updates should use orgRequestService.updateOrgMeta
   async updateOrganization(
     orgId: string,
     data: {
       name?: string
       slug?: string
       description?: string
-      settings?: Record<string, unknown>
     }
   ): ServiceData<OrganizationView> {
     return this.orgRepo.updateOrganization(orgId, data)
@@ -43,6 +46,14 @@ export class OrganizationService {
 
   async deleteOrganization(orgId: string): ServiceData<boolean> {
     return this.orgRepo.deleteOrganization(orgId)
+  }
+
+  // New method for system_admin to set org status
+  async setOrgStatus(
+    orgId: string,
+    status: 'active' | 'suspended'
+  ): ServiceData<boolean> {
+    return this.orgRepo.setOrgStatus(orgId, status)
   }
 }
 

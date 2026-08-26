@@ -4,15 +4,15 @@ import { useState, useEffect, useCallback } from 'react'
 import { useOrganization } from '@/hooks/useOrganization'
 import { usePermissions } from '@/hooks/usePermissions'
 import { useSubscription } from '@/hooks/useSubscription'
+import { orgRequestService } from '@/services/OrgRequestService'
 import type { Todo, MemberView, Invite } from '@/types'
 import { todoService } from '@/services/TodoService'
 import { memberService } from '@/services/MemberService'
 import { inviteService } from '@/services/InviteService'
-import { organizationService } from '@/services/OrganizationService'
 import { BillingTab } from '@/components/subscription/BillingTab'
 
 export function OrgDashboard() {
-  const { currentOrg, refreshOrg } = useOrganization()
+  const { currentOrg } = useOrganization()
   const { isOrgAdmin, isOrgOwner } = usePermissions()
   const { hasFeature } = useSubscription(currentOrg?.id ?? '')
   const [tab, setTab] = useState<'todos' | 'members' | 'settings' | 'billing'>(
@@ -379,9 +379,10 @@ function SettingsTab({ orgId }: { orgId: string }) {
     setSaving(true)
     setSaved(false)
     try {
-      const { error } = await organizationService.updateOrganization(orgId, {
+      // org_meta is the editable metadata source (see org_request_workflow);
+      // writing organizations directly gets masked by the COALESCE read.
+      const { error } = await orgRequestService.updateOrgMeta(orgId, {
         name: name.trim(),
-        slug: slug.trim(),
         description: description.trim() || undefined,
       })
       if (error) {

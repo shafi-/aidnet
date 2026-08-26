@@ -1,5 +1,5 @@
 import { BaseRepository } from './BaseRepository'
-import type { ServiceData, Invite, InviteValidation } from '@/types'
+import type { ServiceData, Invite } from '@/types'
 import { Rpc } from '@/types/rpc'
 
 export class InviteRepository extends BaseRepository {
@@ -21,9 +21,13 @@ export class InviteRepository extends BaseRepository {
     })
   }
 
-  async validateInvite(token: string): ServiceData<InviteValidation[]> {
-    return this.callRpc<InviteValidation[]>(Rpc.Invite.Validate, {
+  async validateInvite(
+    token: string,
+    email: string
+  ): ServiceData<string | null> {
+    return this.callRpc<string>(Rpc.Invite.Validate, {
       p_token: token,
+      p_email: email,
     })
   }
 

@@ -44,14 +44,23 @@ export const ROUTE_ACCESS: AccessRule[] = [
 
   // Authenticated org area
   { exact: '/orgs', level: 'authenticated' },
+  { exact: '/org/request', level: 'authenticated' },
   { exact: '/profile', level: 'authenticated' },
   { prefix: '/dashboard', level: 'authenticated' },
 ]
 
 export function resolveAccessLevel(pathname: string): AccessLevel {
+  // Static export runs with trailingSlash:true, so usePathname() reports
+  // '/about/' while rules declare '/about'. Normalize before matching,
+  // otherwise every exact public rule silently falls through to the
+  // fail-closed 'authenticated' default.
+  const normalized =
+    pathname.length > 1 && pathname.endsWith('/')
+      ? pathname.slice(0, -1)
+      : pathname
   for (const rule of ROUTE_ACCESS) {
-    if (rule.exact !== undefined && pathname === rule.exact) return rule.level
-    if (rule.prefix !== undefined && pathname.startsWith(rule.prefix))
+    if (rule.exact !== undefined && normalized === rule.exact) return rule.level
+    if (rule.prefix !== undefined && normalized.startsWith(rule.prefix))
       return rule.level
   }
   return 'authenticated'

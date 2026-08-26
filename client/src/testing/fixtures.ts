@@ -5,7 +5,6 @@ import type {
   CampaignTag,
   DonationMethod,
   Invite,
-  InviteValidation,
   MemberView,
   Membership,
   UserProfile,
@@ -128,17 +127,6 @@ export const anInvite = (over: Partial<Invite> = {}): Invite => ({
   ...over,
 })
 
-export const anInviteValidation = (
-  over: Partial<InviteValidation> = {}
-): InviteValidation => ({
-  invite_id: 'inv-1',
-  org_id: 'org-1',
-  org_name: 'Demo Org',
-  invite_email: 'new@example.com',
-  invite_role: 'member',
-  ...over,
-})
-
 export const aMemberView = (over: Partial<MemberView> = {}): MemberView => ({
   id: 'mem-1',
   organization_id: 'org-1',
@@ -181,8 +169,15 @@ export const anOrganizationView = (
   id: 'org-1',
   name: 'Demo Org',
   slug: 'demo-org',
+  status: 'active',
+  created_by: 'user-1',
   logo_url: null,
   description: null,
+  website_url: null,
+  contact_email: null,
+  contact_phone: null,
+  address: null,
+  social_links: {},
   settings: {},
   created_at: TS,
   updated_at: TS,

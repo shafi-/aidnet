@@ -1,11 +1,7 @@
 // Campaign domain types (mirrors generated database.ts row shapes)
 
 export type CampaignStatus =
-  | 'draft'
-  | 'pending_review'
-  | 'live'
-  | 'rejected'
-  | 'closed'
+  'draft' | 'pending_review' | 'live' | 'rejected' | 'closed'
 
 export type Campaign = {
   id: string
