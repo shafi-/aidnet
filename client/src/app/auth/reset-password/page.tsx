@@ -15,12 +15,9 @@ export default function ResetPasswordPage() {
     const result = await supabaseManager
       .getClient()
       .auth.resetPasswordForEmail(email)
-    console.log('[ResetPassword] resetPasswordForEmail result:', result)
     if (result.error) {
-      console.log('[ResetPassword] Error:', result.error)
       setError(result.error.message)
     } else {
-      console.log('[ResetPassword] Success, setting sent=true')
       setSent(true)
     }
   }
