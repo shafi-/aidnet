@@ -20,8 +20,8 @@ export interface OrganizationView extends Organization {
   contact_email: string | null
   contact_phone: string | null
   address: string | null
-  social_links: Record<string, any>
-  settings: Record<string, any>
+  social_links: Record<string, unknown>
+  settings: Record<string, unknown>
 }
 
 export interface OrganizationDetailView extends Organization {
@@ -34,8 +34,8 @@ export interface OrganizationDetailView extends Organization {
   contact_email: string | null
   contact_phone: string | null
   address: string | null
-  social_links: Record<string, any>
-  settings: Record<string, any>
+  social_links: Record<string, unknown>
+  settings: Record<string, unknown>
 }
 
 // Note: Organization creation is now done via org_request, not direct creation

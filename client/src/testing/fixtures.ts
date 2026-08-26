@@ -86,6 +86,7 @@ export const aCampaign = (over: Partial<Campaign> = {}): Campaign => ({
   is_active: true,
   created_at: TS,
   updated_at: TS,
+  tags: [],
   ...over,
 })
 

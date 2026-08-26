@@ -11,12 +11,17 @@ import {
 import { organizationService } from '@/services/OrganizationService'
 import { memberService } from '@/services/MemberService'
 import { useAuth } from './useAuth'
-import type { OrganizationDetailView, Membership } from '@/types'
+import { OrganizationSelector } from '@/components/org/OrganizationSelector'
+import type {
+  OrganizationDetailView,
+  OrganizationView,
+  Membership,
+} from '@/types'
 
 interface OrganizationContextType {
   currentOrg: OrganizationDetailView | null
   membership: Membership | null
-  organizations: OrganizationDetailView[]
+  organizations: OrganizationView[]
   loading: boolean
   error: string | null
   selectionRequired: boolean
@@ -40,9 +45,7 @@ export function OrganizationProvider({
   const [currentOrg, rawSetCurrentOrg] =
     useState<OrganizationDetailView | null>(null)
   const [membership, setMembership] = useState<Membership | null>(null)
-  const [organizations, setOrganizations] = useState<OrganizationDetailView[]>(
-    []
-  )
+  const [organizations, setOrganizations] = useState<OrganizationView[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   // Set when an explicitly attempted org turns out to be suspended: the
@@ -99,22 +102,32 @@ export function OrganizationProvider({
     } catch {
       // Ignore storage access errors
     }
-  }, [user?.id])
+  }, [user?.id, currentOrg])
 
   const loadOrganizations = useCallback(async () => {
     setLoading(true)
     setError(null)
     const { data, error: err } = await organizationService.getMyOrganizations()
     if (err) setError(err)
-    if (data) setOrganizations(data as unknown as OrganizationDetailView[])
+    if (data) setOrganizations(data)
     setLoading(false)
   }, [])
 
-  const loadMembership = useCallback(async (orgId: string) => {
-    const { data } = await memberService.getMembership(orgId)
-    if (data && data.length > 0) {
-      setMembership(data[0])
-    }
+  // Load membership for the active/selected org. Re-runs whenever currentOrg
+  // changes so permissions can never stick to a previous org. Clears on
+  // empty/error (and when no org is selected) so a stale role from another org
+  // can never drive usePermissions after a switch.
+
+  // Single source of truth for "this org is suspended": reflect it in the
+  // cached list (so the selector shows it disabled) and force the selector so
+  // the suspension is visible. Used by both refresh + select paths.
+  const markSuspended = useCallback((orgId: string) => {
+    setOrganizations(prev =>
+      prev.map(org =>
+        org.id === orgId ? { ...org, status: 'suspended' as const } : org
+      )
+    )
+    setForcedSelection(true)
   }, [])
 
   const refreshOrg = useCallback(async () => {
@@ -128,22 +141,13 @@ export function OrganizationProvider({
             currentOrg.id
           )
           setCurrentOrg(null)
-          // Reflect the suspension in the cached list so the selection
-          // effect does not immediately re-select the now-suspended org.
-          setOrganizations(prev =>
-            prev.map(org =>
-              org.id === data.id
-                ? { ...org, status: 'suspended' as const }
-                : org
-            )
-          )
-          setForcedSelection(true)
+          markSuspended(data.id)
         } else {
           setCurrentOrg(data)
         }
       }
     }
-  }, [currentOrg, setCurrentOrg, setOrganizations])
+  }, [currentOrg, setCurrentOrg, markSuspended])
 
   // Select an org by id from a URL param (e.g. invite links). Suspended or
   // unknown orgs never become current: suspended forces the selector so the
@@ -161,12 +165,7 @@ export function OrganizationProvider({
       }
       if (data.status === 'suspended') {
         console.warn('Cannot select suspended organization:', data.id)
-        setOrganizations(prev =>
-          prev.map(org =>
-            org.id === data.id ? { ...org, status: 'suspended' as const } : org
-          )
-        )
-        setForcedSelection(true)
+        markSuspended(data.id)
         return
       }
       try {
@@ -174,14 +173,10 @@ export function OrganizationProvider({
       } catch {
         // Ignore storage access errors
       }
-      setCurrentOrg(data as OrganizationDetailView)
+      setCurrentOrg(data)
     },
-    [setCurrentOrg]
+    [setCurrentOrg, markSuspended]
   )
-
-  useEffect(() => {
-    loadOrganizations()
-  }, [loadOrganizations])
 
   // Reload organizations once the auth session is available. On a full page
   // reload the session restores asynchronously, so the initial load can run
@@ -231,13 +226,33 @@ export function OrganizationProvider({
 
     if (currentOrg || forcedSelection) return
     const active = organizations.filter(org => org.status === 'active')
-    if (active.length === 1) setCurrentOrg(active[0])
-  }, [user, loading, organizations, currentOrg, forcedSelection, setCurrentOrg])
+    if (active.length === 1) void selectOrgById(active[0].id)
+  }, [
+    user,
+    loading,
+    organizations,
+    currentOrg,
+    forcedSelection,
+    setCurrentOrg,
+    selectOrgById,
+  ])
 
-  // Load membership whenever a current org exists
+  // Load membership whenever a current org exists (race-safe + self-clearing)
   useEffect(() => {
-    if (currentOrg) loadMembership(currentOrg.id)
-  }, [currentOrg, currentOrg?.id, loadMembership])
+    if (!currentOrg) {
+      setMembership(null)
+      return
+    }
+    let active = true
+    memberService.getMembership(currentOrg.id).then(({ data, error }) => {
+      if (!active) return
+      if (error || !data || data.length === 0) setMembership(null)
+      else setMembership(data[0])
+    })
+    return () => {
+      active = false
+    }
+  }, [currentOrg, currentOrg?.id])
 
   return (
     <OrganizationContext.Provider
@@ -255,46 +270,10 @@ export function OrganizationProvider({
     >
       {children}
       {selectionRequired && (forcedSelection || !currentOrg) && (
-        <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-          <div className="w-full max-w-2xl space-y-6 rounded-lg bg-white p-8 shadow">
-            <h1 className="text-center text-2xl font-bold">
-              Select an Organization
-            </h1>
-            <p className="text-center text-gray-600">
-              You belong to multiple organizations. Choose one to continue.
-            </p>
-            <div className="grid gap-4 md:grid-cols-2">
-              {organizations.map(org => {
-                const isSuspended = org.status === 'suspended'
-                return (
-                  <button
-                    key={org.id}
-                    onClick={() => setCurrentOrg(org)}
-                    disabled={isSuspended}
-                    className={`rounded-lg border p-6 text-left transition-colors ${
-                      isSuspended
-                        ? 'cursor-not-allowed border-gray-200 bg-gray-100 opacity-60'
-                        : 'hover:border-blue-500 hover:bg-blue-50'
-                    }`}
-                  >
-                    <h2 className="text-lg font-semibold">{org.name}</h2>
-                    <p className="mt-1 text-sm text-gray-600">
-                      {org.description ?? 'No description'}
-                    </p>
-                    <p className="mt-2 text-xs text-gray-500">
-                      {org.member_count} members
-                    </p>
-                    {isSuspended && (
-                      <p className="mt-1 text-xs font-medium text-red-600">
-                        Suspended
-                      </p>
-                    )}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        </div>
+        <OrganizationSelector
+          organizations={organizations}
+          onSelect={selectOrgById}
+        />
       )}
     </OrganizationContext.Provider>
   )

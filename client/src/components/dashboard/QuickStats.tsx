@@ -16,26 +16,12 @@ export function QuickStats() {
           <p className="text-sm text-gray-600">Organizations</p>
         </div>
         {currentOrg && (
-          <>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-green-600">
-                {currentOrg.member_count}
-              </p>
-              <p className="text-sm text-gray-600">Members</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-purple-600">
-                {(currentOrg as any).campaign_count || 0}
-              </p>
-              <p className="text-sm text-gray-600">Campaigns</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-orange-600">
-                {(currentOrg as any).todo_count || 0}
-              </p>
-              <p className="text-sm text-gray-600">Active Tasks</p>
-            </div>
-          </>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-green-600">
+              {currentOrg.member_count}
+            </p>
+            <p className="text-sm text-gray-600">Members</p>
+          </div>
         )}
       </div>
     </div>

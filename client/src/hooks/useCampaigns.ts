@@ -15,9 +15,11 @@ export function useCampaigns(orgId: string | null | undefined) {
       setLoading(false)
       return
     }
+    const active = true
     setLoading(true)
     try {
       const { data, error: err } = await campaignService.getCampaigns(orgId)
+      if (!active) return
       if (err) {
         setError(err)
         setCampaigns([])
@@ -26,10 +28,11 @@ export function useCampaigns(orgId: string | null | undefined) {
         setError(null)
       }
     } catch {
+      if (!active) return
       setError('Failed to load campaigns')
       setCampaigns([])
     } finally {
-      setLoading(false)
+      if (active) setLoading(false)
     }
   }, [orgId])
 

@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { BaseRepository } from './BaseRepository'
 import { createMockRpcGateway } from '@/testing/mockRpcClient'
-import { aMembership } from '@/testing/fixtures'
 
 class ProbeRepository extends BaseRepository {
   call<T>(
@@ -12,9 +11,6 @@ class ProbeRepository extends BaseRepository {
   }
   auth() {
     return this.requireAuth()
-  }
-  role(orgId: string, role: string) {
-    return this.hasRoleInOrganization(orgId, role)
   }
   oops(e: unknown) {
     return this.handleError(e)
@@ -45,32 +41,6 @@ describe('BaseRepository', () => {
     const probe = new ProbeRepository(gw)
 
     await expect(probe.auth()).rejects.toThrow('Authentication required')
-  })
-
-  it.each([
-    ['viewer', 'viewer', true],
-    ['member', 'member', true],
-    ['member', 'admin', false],
-    ['admin', 'admin', true],
-    ['admin', 'member', true],
-    ['unknown-role', 'member', false],
-  ] as const)(
-    'hasRoleInOrganization(%s membership) requires %s → %s',
-    async (membershipRole, requiredRole, expected) => {
-      const gw = createMockRpcGateway({
-        get_membership: { data: [aMembership({ role: membershipRole })] },
-      })
-      const res = await new ProbeRepository(gw).role('org-1', requiredRole)
-
-      expect(res).toBe(expected)
-    }
-  )
-
-  it('hasRoleInOrganization is false with empty membership rows', async () => {
-    const gw = createMockRpcGateway({ get_membership: { data: [] } })
-    const res = await new ProbeRepository(gw).role('org-1', 'viewer')
-
-    expect(res).toBe(false)
   })
 
   it('handleError normalizes Error objects and strings', () => {

@@ -145,4 +145,35 @@ BEGIN
 END \$\$;
 "
 
+# --- reference tags + a pre-tagged DRAFT campaign ---------------------
+# Tag persistence e2e needs an EDITABLE campaign (update_campaign blocks
+# editing live campaigns), so the tagged subject is a draft.
+echo "==> seeding campaign tags"
+psql -c "
+INSERT INTO campaigns (org_id, title, slug, description, goal_amount, currency, is_zakat_eligible, status, is_active, created_by)
+SELECT o.id, 'Demo Draft Tagged', 'demo-draft-tagged',
+       'Draft campaign for tag persistence e2e.', 50000, 'BDT', false,
+       'draft', true, p.id
+FROM organizations o, profiles p
+WHERE o.slug = 'demo-org' AND p.email = '${OWNER_EMAIL}'
+ON CONFLICT (slug) DO NOTHING;
+
+INSERT INTO campaign_tags (slug, label) VALUES
+  ('education', 'Education'),
+  ('health', 'Health')
+ON CONFLICT (slug) DO NOTHING;
+
+-- Reset (not just add): earlier e2e runs legitimately mutate this selection,
+-- and the seed must restore the exact expected state every run.
+DELETE FROM campaign_tag_map
+WHERE campaign_id = (SELECT id FROM campaigns WHERE slug = 'demo-draft-tagged');
+
+INSERT INTO campaign_tag_map (campaign_id, tag_id)
+SELECT c.id, t.id
+FROM campaigns c, campaign_tags t
+WHERE c.slug = 'demo-draft-tagged'
+  AND t.slug IN ('education', 'health')
+ON CONFLICT DO NOTHING;
+"
+
 echo "==> done."

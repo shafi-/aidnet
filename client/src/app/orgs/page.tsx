@@ -4,9 +4,8 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { useRequireAuth } from '@/hooks/useAuth'
 import { useOrganization } from '@/hooks/useOrganization'
 import { useRequiredParam } from '@/hooks/useQueryParam'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 
 export default function OrgsPage() {
   useRequireAuth()
@@ -36,7 +35,6 @@ export default function OrgsPage() {
 
 function OrgList() {
   const { organizations, loading } = useOrganization()
-  const { setCurrentOrg } = useOrganization()
 
   if (loading) return <div>Loading...</div>
 
@@ -79,7 +77,7 @@ function OrgList() {
                   {org.description ?? 'No description'}
                 </p>
                 <p className="mt-2 text-xs text-gray-500">
-                  {org.member_count} members
+                  Your role: {org.user_role}
                 </p>
               </div>
               {org.status === 'suspended' && (

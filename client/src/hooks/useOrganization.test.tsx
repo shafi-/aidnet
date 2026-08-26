@@ -169,6 +169,10 @@ describe('useOrganization with suspended organizations', () => {
       data: singleActiveOrg,
       error: null,
     })
+    mockGetOrganization.mockResolvedValue({
+      data: singleActiveOrg,
+      error: null,
+    })
 
     const wrapper = ({ children }: { children: React.ReactNode }) => (
       <OrganizationProvider>{children}</OrganizationProvider>
@@ -256,6 +260,11 @@ describe('useOrganization with suspended organizations', () => {
 
     mockGetMyOrganizations.mockResolvedValue({
       data: [activeOrg],
+      error: null,
+    })
+    // Auto-select fetches the single active org's detail via getOrganization.
+    mockGetOrganization.mockResolvedValue({
+      data: activeOrg,
       error: null,
     })
 

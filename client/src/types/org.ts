@@ -39,8 +39,8 @@ export interface OrgMeta {
   contact_email: string | null
   contact_phone: string | null
   address: string | null
-  social_links: Record<string, any>
-  settings: Record<string, any>
+  social_links: Record<string, unknown>
+  settings: Record<string, unknown>
   updated_by: string | null
   updated_at: string | null
 }
@@ -53,8 +53,8 @@ export interface UpdateOrgMetaDto {
   contact_email?: string
   contact_phone?: string
   address?: string
-  social_links?: Record<string, any>
-  settings?: Record<string, any>
+  social_links?: Record<string, unknown>
+  settings?: Record<string, unknown>
 }
 
 /**

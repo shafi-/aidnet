@@ -23,23 +23,18 @@ function CampaignDetailContent() {
     let active = true
     setLoading(true)
     publicCampaignService
-      .getPublicCampaigns({})
+      .getPublicCampaignBySlug(slug)
       .then(({ data, error: err }) => {
         if (!active) return
         if (err) {
           setError(err)
           setCampaign(null)
+        } else if (!data) {
+          setError('Campaign not found or not yet live')
+          setCampaign(null)
         } else {
-          const found = ((data as PublicCampaign[]) ?? []).find(
-            c => c.slug === slug
-          )
-          if (!found) {
-            setError('Campaign not found or not yet live')
-            setCampaign(null)
-          } else {
-            setCampaign(found)
-            setError(null)
-          }
+          setCampaign(data)
+          setError(null)
         }
       })
       .finally(() => active && setLoading(false))
@@ -168,65 +163,75 @@ function DonationMethods({
     return <p className="text-gray-500">No donation methods listed yet.</p>
   }
 
-  const m = methods[0]
-  const rows: { label: string; value: string | null }[] = [
-    {
-      label: 'bKash',
-      value: m.bkash_number
-        ? `${m.bkash_number}${m.bkash_account_name ? ` (${m.bkash_account_name})` : ''}`
-        : null,
-    },
-    {
-      label: 'Nagad',
-      value: m.nagad_number
-        ? `${m.nagad_number}${m.nagad_account_name ? ` (${m.nagad_account_name})` : ''}`
-        : null,
-    },
-    {
-      label: 'Rocket',
-      value: m.rocket_number
-        ? `${m.rocket_number}${m.rocket_account_name ? ` (${m.rocket_account_name})` : ''}`
-        : null,
-    },
-    {
-      label: 'Bank',
-      value: m.bank_name
-        ? `${m.bank_name}${m.bank_account_number ? ` — ${m.bank_account_number}` : ''}${m.bank_account_name ? ` (${m.bank_account_name})` : ''}`
-        : null,
-    },
-  ].filter(r => r.value)
-
   return (
-    <div className="space-y-3">
-      {m.donation_url && (
-        <a
-          href={m.donation_url}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-block rounded-md bg-indigo-600 px-6 py-3 font-medium text-white hover:bg-indigo-700"
-        >
-          Donate via {m.donation_url.replace(/^https?:\/\//, '')}
-        </a>
-      )}
-      {rows.map(r => (
-        <div key={r.label} className="flex justify-between border-b pb-2">
-          <span className="text-gray-500">{r.label}</span>
-          <span className="text-right font-medium text-gray-900">
-            {r.value}
-          </span>
-        </div>
-      ))}
-      {m.instructions && (
-        <p className="text-sm text-gray-600">{m.instructions}</p>
-      )}
-      {m.qr_image_url && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={m.qr_image_url}
-          alt="Donation QR code"
-          className="h-40 w-40 rounded border object-contain"
-        />
-      )}
+    <div className="space-y-6">
+      {methods.map((m, i) => {
+        const rows: { label: string; value: string | null }[] = [
+          {
+            label: 'bKash',
+            value: m.bkash_number
+              ? `${m.bkash_number}${m.bkash_account_name ? ` (${m.bkash_account_name})` : ''}`
+              : null,
+          },
+          {
+            label: 'Nagad',
+            value: m.nagad_number
+              ? `${m.nagad_number}${m.nagad_account_name ? ` (${m.nagad_account_name})` : ''}`
+              : null,
+          },
+          {
+            label: 'Rocket',
+            value: m.rocket_number
+              ? `${m.rocket_number}${m.rocket_account_name ? ` (${m.rocket_account_name})` : ''}`
+              : null,
+          },
+          {
+            label: 'Bank',
+            value: m.bank_name
+              ? `${m.bank_name}${m.bank_account_number ? ` — ${m.bank_account_number}` : ''}${m.bank_account_name ? ` (${m.bank_account_name})` : ''}`
+              : null,
+          },
+        ].filter(r => r.value)
+
+        return (
+          <div key={m.id ?? i} className="space-y-3 rounded-md border p-4">
+            {m.is_preferred && (
+              <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-800">
+                Preferred
+              </span>
+            )}
+            {m.donation_url && (
+              <a
+                href={m.donation_url}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-block rounded-md bg-indigo-600 px-6 py-3 font-medium text-white hover:bg-indigo-700"
+              >
+                Donate via {m.donation_url.replace(/^https?:\/\//, '')}
+              </a>
+            )}
+            {rows.map(r => (
+              <div key={r.label} className="flex justify-between border-b pb-2">
+                <span className="text-gray-500">{r.label}</span>
+                <span className="text-right font-medium text-gray-900">
+                  {r.value}
+                </span>
+              </div>
+            ))}
+            {m.instructions && (
+              <p className="text-sm text-gray-600">{m.instructions}</p>
+            )}
+            {m.qr_image_url && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={m.qr_image_url}
+                alt="Donation QR code"
+                className="h-40 w-40 rounded border object-contain"
+              />
+            )}
+          </div>
+        )
+      })}
     </div>
   )
 }

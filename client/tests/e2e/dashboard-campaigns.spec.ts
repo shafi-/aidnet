@@ -1,8 +1,27 @@
 import { test, expect } from '@playwright/test'
+import { SUPABASE_URL, rpc, signIn, USERS } from './lib/api'
 
 const OWNER_STATE = 'tests/e2e/.auth/orgOwner.json'
 
 test.use({ storageState: OWNER_STATE })
+
+/** Row-scoped Edit navigation: the list row shows the campaign slug as /slug.
+ *  Negative lookahead keeps /demo-campaign-1 from matching /demo-campaign-10+. */
+async function openEditForSlug(
+  page: import('@playwright/test').Page,
+  slug: string
+) {
+  await page.goto('/dashboard/campaigns')
+  const row = page
+    .locator('.divide-y > div')
+    .filter({ hasText: new RegExp(`/${slug}(?!\\d)`) })
+  await row.getByRole('link', { name: 'Edit' }).click()
+  await expect(page).toHaveURL(/\/dashboard\/campaigns\/edit/)
+}
+
+function tagChip(page: import('@playwright/test').Page, label: string) {
+  return page.getByRole('button', { name: label, exact: true })
+}
 
 test.describe('Dashboard Campaigns', () => {
   test('When owner loads /dashboard/campaigns, list and New Campaign link show', async ({
@@ -123,5 +142,121 @@ test.describe('Dashboard Campaigns', () => {
     await expect(checkbox).toBeVisible()
     await checkbox.click()
     await expect(checkbox).toBeChecked()
+  })
+
+  // Regression guard for the tag-wipe bug: set_campaign_tags is destructive
+  // (delete-all-then-insert), so an edit-save that never touched tags must
+  // still send the loaded current selection — not an empty one.
+  test('When owner saves a tagged campaign without touching tags, tags persist after reopen', async ({
+    page,
+  }) => {
+    await openEditForSlug(page, 'demo-draft-tagged')
+    await expect(tagChip(page, 'Education')).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+    await expect(tagChip(page, 'Health')).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+
+    await page.getByRole('button', { name: 'Save Changes' }).click()
+    await expect(page).toHaveURL(/\/dashboard\/campaigns\/?$/)
+
+    await openEditForSlug(page, 'demo-draft-tagged')
+    await expect(tagChip(page, 'Education')).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+    await expect(tagChip(page, 'Health')).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+  })
+
+  test('When owner changes tag selection and saves, the new selection persists and matches the database', async ({
+    page,
+    request,
+  }) => {
+    test.skip(!SUPABASE_URL, 'requires Supabase env for API-contract check')
+
+    await openEditForSlug(page, 'demo-draft-tagged')
+    await tagChip(page, 'Education').click() // deselect
+    await page.getByRole('button', { name: 'Save Changes' }).click()
+    await expect(page).toHaveURL(/\/dashboard\/campaigns\/?$/)
+
+    // UI outcome: reload shows Health only
+    await openEditForSlug(page, 'demo-draft-tagged')
+    await expect(tagChip(page, 'Health')).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+    await expect(tagChip(page, 'Education')).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    )
+
+    // API contract: server rows match exactly what the UI shows
+    const session = await signIn(
+      request,
+      USERS.orgOwner.email,
+      USERS.orgOwner.password
+    )
+    const orgs = await rpc<Array<{ id: string; slug: string }>>(
+      request,
+      session,
+      'get_my_organizations'
+    )
+    const demoOrg = orgs.find(o => o.slug === 'demo-org')
+    expect(demoOrg, 'seeded demo-org').toBeTruthy()
+    const campaigns = await rpc<Array<{ id: string; slug: string }>>(
+      request,
+      session,
+      'get_campaigns',
+      { p_org_id: demoOrg!.id }
+    )
+    const campaign = campaigns.find(c => c.slug === 'demo-draft-tagged')
+    expect(campaign, 'seeded demo-campaign-1').toBeTruthy()
+    const allTags = await rpc<Array<{ id: string; slug: string }>>(
+      request,
+      session,
+      'get_campaign_tags'
+    )
+    const expectedIds = allTags
+      .filter(t => t.slug === 'health')
+      .map(t => t.id)
+      .sort()
+    const storedIds = (
+      await rpc<string[]>(request, session, 'get_campaign_tag_ids', {
+        p_campaign_id: campaign!.id,
+      })
+    )
+      .slice()
+      .sort()
+
+    expect(storedIds).toEqual(expectedIds)
+  })
+
+  test('When owner creates a campaign with a tag selected, the tag persists on the created campaign', async ({
+    page,
+  }) => {
+    const title = `Tagged E2E ${Date.now()}`
+    const expectedSlug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+
+    await page.goto('/dashboard/campaigns/new')
+    await page.getByRole('textbox', { name: 'Title', exact: true }).fill(title)
+    await tagChip(page, 'Education').click()
+    await expect(tagChip(page, 'Education')).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+    await page.getByRole('button', { name: 'Create Campaign' }).click()
+    await expect(page).toHaveURL(/\/dashboard\/campaigns\/?$/)
+
+    await openEditForSlug(page, expectedSlug)
+    await expect(tagChip(page, 'Education')).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
   })
 })

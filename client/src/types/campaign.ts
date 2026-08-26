@@ -23,6 +23,10 @@ export type Campaign = {
   is_active: boolean | null
   created_at: string | null
   updated_at: string | null
+  // Populated only by single-read paths (campaignService.getCampaign), which
+  // compose tags from the dedicated tag RPC. List reads omit this field via
+  // CampaignRow to stay honest about what the database returns.
+  tags: string[]
 }
 
 export type DonationMethod = {

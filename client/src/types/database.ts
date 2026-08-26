@@ -1554,6 +1554,10 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_campaign_tag_ids: {
+        Args: { p_campaign_id: string }
+        Returns: string[]
+      }
       get_campaign_tags: {
         Args: never
         Returns: {
@@ -1842,61 +1846,54 @@ export type Database = {
           isSetofReturn: true
         }
       }
-      get_public_campaigns:
-        | {
-            Args: {
-              org_filter?: string
-              result_limit?: number
-              zakat_filter?: boolean
-            }
-            Returns: {
-              cover_image_url: string
-              currency: string
-              description: string
-              donation_methods: Json
-              end_date: string
-              goal_amount: number
-              id: string
-              is_zakat_eligible: boolean
-              org_description: string
-              org_id: string
-              org_logo_url: string
-              org_name: string
-              org_slug: string
-              slug: string
-              start_date: string
-              tags: Json
-              title: string
-            }[]
-          }
-        | {
-            Args: {
-              org_filter?: string
-              result_limit?: number
-              zakat_filter?: boolean
-            }
-            Returns: {
-              cover_image_url: string
-              created_at: string
-              currency: string
-              description: string
-              donation_methods: Json
-              end_date: string
-              goal_amount: number
-              id: string
-              is_zakat_eligible: boolean
-              org_description: string
-              org_id: string
-              org_logo_url: string
-              org_name: string
-              org_slug: string
-              slug: string
-              start_date: string
-              tags: Json
-              title: string
-              updated_at: string
-            }[]
-          }
+      get_public_campaign_by_slug: {
+        Args: { p_slug: string }
+        Returns: {
+          cover_image_url: string
+          currency: string
+          description: string
+          donation_methods: Json
+          end_date: string
+          goal_amount: number
+          id: string
+          is_zakat_eligible: boolean
+          org_description: string
+          org_id: string
+          org_logo_url: string
+          org_name: string
+          org_slug: string
+          slug: string
+          start_date: string
+          tags: Json
+          title: string
+        }[]
+      }
+      get_public_campaigns: {
+        Args: {
+          org_filter?: string
+          result_limit?: number
+          zakat_filter?: boolean
+        }
+        Returns: {
+          cover_image_url: string
+          currency: string
+          description: string
+          donation_methods: Json
+          end_date: string
+          goal_amount: number
+          id: string
+          is_zakat_eligible: boolean
+          org_description: string
+          org_id: string
+          org_logo_url: string
+          org_name: string
+          org_slug: string
+          slug: string
+          start_date: string
+          tags: Json
+          title: string
+        }[]
+      }
       get_public_org_by_slug: {
         Args: { org_slug: string }
         Returns: {

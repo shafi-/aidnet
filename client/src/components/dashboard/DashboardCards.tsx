@@ -23,9 +23,7 @@ export function DashboardCards() {
                 className={`rounded border p-2 ${currentOrg?.id === org.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
               >
                 <p className="text-sm font-medium">{org.name}</p>
-                <p className="text-xs text-gray-500">
-                  {org.member_count} members
-                </p>
+                <p className="text-xs text-gray-500">{org.user_role}</p>
               </div>
             ))}
           </div>

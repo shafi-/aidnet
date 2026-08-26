@@ -8,9 +8,18 @@ import type {
 } from '@/types'
 import { Rpc } from '@/types/rpc'
 
+/**
+ * Org-facing campaign reads never return the `tags` column (the campaigns table
+ * has none — tags live in a separate relation). This honest row type keeps the
+ * service layer from lying that `tags` is present on list/single reads; the
+ * single-read service composes tags from the dedicated tag RPC before returning
+ * a full Campaign.
+ */
+export type CampaignRow = Omit<Campaign, 'tags'>
+
 export class CampaignRepository extends BaseRepository {
-  async createCampaign(dto: CreateCampaignDto): ServiceData<Campaign> {
-    return this.callRpc<Campaign>(Rpc.Campaign.Create, {
+  async createCampaign(dto: CreateCampaignDto): ServiceData<CampaignRow[]> {
+    return this.callRpc<CampaignRow[]>(Rpc.Campaign.Create, {
       p_org_id: dto.orgId,
       p_title: dto.title,
       p_slug: dto.slug,
@@ -24,20 +33,20 @@ export class CampaignRepository extends BaseRepository {
     })
   }
 
-  async getCampaigns(orgId: string): ServiceData<Campaign[]> {
-    return this.callRpc<Campaign[]>(Rpc.Campaign.GetMany, {
+  async getCampaigns(orgId: string): ServiceData<CampaignRow[]> {
+    return this.callRpc<CampaignRow[]>(Rpc.Campaign.GetMany, {
       p_org_id: orgId,
     })
   }
 
-  async getCampaign(campaignId: string): ServiceData<Campaign[]> {
-    return this.callRpc<Campaign[]>(Rpc.Campaign.Get, {
+  async getCampaign(campaignId: string): ServiceData<CampaignRow[]> {
+    return this.callRpc<CampaignRow[]>(Rpc.Campaign.Get, {
       p_campaign_id: campaignId,
     })
   }
 
-  async getCampaignBySlug(slug: string): ServiceData<Campaign[]> {
-    return this.callRpc<Campaign[]>(Rpc.Campaign.GetBySlug, {
+  async getCampaignBySlug(slug: string): ServiceData<CampaignRow[]> {
+    return this.callRpc<CampaignRow[]>(Rpc.Campaign.GetBySlug, {
       p_slug: slug,
     })
   }
@@ -45,8 +54,8 @@ export class CampaignRepository extends BaseRepository {
   async updateCampaign(
     campaignId: string,
     dto: UpdateCampaignDto
-  ): ServiceData<Campaign> {
-    return this.callRpc<Campaign>(Rpc.Campaign.Update, {
+  ): ServiceData<CampaignRow[]> {
+    return this.callRpc<CampaignRow[]>(Rpc.Campaign.Update, {
       p_campaign_id: campaignId,
       p_title: dto.title,
       p_slug: dto.slug,
@@ -67,14 +76,20 @@ export class CampaignRepository extends BaseRepository {
     })
   }
 
-  async submitForReview(campaignId: string): ServiceData<Campaign> {
-    return this.callRpc<Campaign>(Rpc.Campaign.Submit, {
+  async submitForReview(campaignId: string): ServiceData<CampaignRow[]> {
+    return this.callRpc<CampaignRow[]>(Rpc.Campaign.Submit, {
       p_campaign_id: campaignId,
     })
   }
 
   async getCampaignTags(): ServiceData<CampaignTag[]> {
     return this.callRpc<CampaignTag[]>(Rpc.CampaignTag.GetMany)
+  }
+
+  async getCampaignTagIds(campaignId: string): ServiceData<string[]> {
+    return this.callRpc<string[]>(Rpc.Campaign.GetTagIds, {
+      p_campaign_id: campaignId,
+    })
   }
 
   async setCampaignTags(

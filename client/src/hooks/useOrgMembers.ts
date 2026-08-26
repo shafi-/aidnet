@@ -1,0 +1,99 @@
+'use client'
+
+import { useState, useEffect, useCallback } from 'react'
+import { memberService } from '@/services/MemberService'
+import { inviteService } from '@/services/InviteService'
+import { usePermissions } from '@/hooks/usePermissions'
+import type { Invite, MemberView } from '@/types'
+
+export function useOrgMembers(orgId: string) {
+  const { isOrgAdmin } = usePermissions()
+  const [members, setMembers] = useState<MemberView[]>([])
+  const [invites, setInvites] = useState<Invite[]>([])
+  const [loading, setLoading] = useState(true)
+  // One shared draft: the add-member and invite forms historically bind the
+  // same input state — preserved so switching sub-tabs keeps the text.
+  const [email, setEmail] = useState('')
+  const [inviteRole, setInviteRole] = useState('member')
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    const [{ data: memberData }, { data: inviteData }] = await Promise.all([
+      memberService.getMembers(orgId),
+      isOrgAdmin()
+        ? inviteService.getInvites(orgId)
+        : Promise.resolve({ data: [] }),
+    ])
+    if (memberData) setMembers(memberData)
+    if (inviteData) setInvites(inviteData)
+    setLoading(false)
+  }, [orgId, isOrgAdmin])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
+  const addMember = useCallback(
+    async (emailValue: string) => {
+      const val = emailValue.trim()
+      if (!val) return
+      await memberService.addMember(orgId, val)
+      setEmail('')
+      await load()
+    },
+    [orgId, load]
+  )
+
+  const invite = useCallback(
+    async (emailValue: string, role: string) => {
+      const val = emailValue.trim()
+      if (!val) return
+      await inviteService.generateInvite(orgId, val, role)
+      setEmail('')
+      await load()
+    },
+    [orgId, load]
+  )
+
+  const updateRole = useCallback(
+    async (userId: string, newRole: string) => {
+      await memberService.updateMemberRole(orgId, userId, newRole)
+      await load()
+    },
+    [orgId, load]
+  )
+
+  const removeMember = useCallback(
+    async (userId: string) => {
+      await memberService.removeMember(orgId, userId)
+      await load()
+    },
+    [load, orgId]
+  )
+
+  const revokeInvite = useCallback(
+    async (inviteId: string) => {
+      await inviteService.revokeInvite(inviteId)
+      await load()
+    },
+    [load]
+  )
+
+  return {
+    members,
+    invites,
+    loading,
+    isAdmin: isOrgAdmin,
+    email,
+    setEmail,
+    inviteRole,
+    setInviteRole,
+    addMember,
+    invite,
+    updateRole,
+    removeMember,
+    revokeInvite,
+  }
+}
+
+export type OrgMembersController = ReturnType<typeof useOrgMembers>

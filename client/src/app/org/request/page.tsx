@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRequireAuth, useAuth } from '@/hooks/useAuth'
+import { useRequireAuth } from '@/hooks/useAuth'
 import { useOrgRequests } from '@/hooks/useOrgRequests'
 import { AppLayout } from '@/components/layout/AppLayout'
 
@@ -16,7 +16,6 @@ function slugify(s: string) {
 
 export default function OrgRequestPage() {
   useRequireAuth()
-  const { user } = useAuth()
   const { requests, loading, submitRequest } = useOrgRequests()
 
   const [name, setName] = useState('')

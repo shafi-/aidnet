@@ -40,10 +40,7 @@ export function useSystemAdminOrgRequests() {
 
   const rejectRequest = async (requestId: string, reason?: string) => {
     setActionLoading(true)
-    const { data, error } = await orgRequestService.rejectRequest(
-      requestId,
-      reason
-    )
+    const { error } = await orgRequestService.rejectRequest(requestId, reason)
     setActionLoading(false)
 
     if (error) {
@@ -59,10 +56,7 @@ export function useSystemAdminOrgRequests() {
     status: 'active' | 'suspended'
   ) => {
     setActionLoading(true)
-    const { data, error } = await organizationService.setOrgStatus(
-      orgId,
-      status
-    )
+    const { error } = await organizationService.setOrgStatus(orgId, status)
     setActionLoading(false)
 
     if (error) {

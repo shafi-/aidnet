@@ -4,6 +4,7 @@ import { Suspense } from 'react'
 import Link from 'next/link'
 import { useOrganization } from '@/hooks/useOrganization'
 import { CampaignForm } from '@/components/campaign/CampaignForm'
+import { useCampaignForm } from '@/hooks/useCampaignForm'
 import { AppLayout } from '@/components/layout/AppLayout'
 
 function NewCampaignContent() {
@@ -37,11 +38,16 @@ function NewCampaignContent() {
           </Link>
         </div>
         <div className="rounded-lg bg-white p-6 shadow">
-          <CampaignForm orgId={currentOrg.id} mode="create" />
+          <NewCampaignForm orgId={currentOrg.id} />
         </div>
       </div>
     </AppLayout>
   )
+}
+
+function NewCampaignForm({ orgId }: { orgId: string }) {
+  const controller = useCampaignForm({ orgId, mode: 'create' })
+  return <CampaignForm controller={controller} />
 }
 
 export default function NewCampaignPage() {

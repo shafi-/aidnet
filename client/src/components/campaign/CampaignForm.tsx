@@ -1,149 +1,34 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { campaignService } from '@/services/CampaignService'
-import { useCampaignTags } from '@/hooks/useCampaigns'
-import type {
-  Campaign,
-  CampaignTag,
-  CreateCampaignDto,
-  UpdateCampaignDto,
-} from '@/types'
-
-type FormState = {
-  title: string
-  slug: string
-  description: string
-  coverImageUrl: string
-  goalAmount: string
-  currency: string
-  startDate: string
-  endDate: string
-  isZakatEligible: boolean
-}
-
-const empty: FormState = {
-  title: '',
-  slug: '',
-  description: '',
-  coverImageUrl: '',
-  goalAmount: '',
-  currency: 'BDT',
-  startDate: '',
-  endDate: '',
-  isZakatEligible: false,
-}
-
-function slugify(s: string) {
-  return s
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-}
+import type { CampaignFormController } from '@/hooks/useCampaignForm'
 
 export function CampaignForm({
-  orgId,
-  mode,
-  initial,
-  campaignId,
+  controller,
 }: {
-  orgId: string
-  mode: 'create' | 'edit'
-  initial?: Campaign
-  campaignId?: string
+  controller: CampaignFormController
 }) {
-  const router = useRouter()
-  const { tags, loading: tagsLoading } = useCampaignTags()
-  const [form, setForm] = useState<FormState>(
-    initial
-      ? {
-          title: initial.title,
-          slug: initial.slug,
-          description: initial.description ?? '',
-          coverImageUrl: initial.cover_image_url ?? '',
-          goalAmount:
-            initial.goal_amount != null ? String(initial.goal_amount) : '',
-          currency: initial.currency ?? 'BDT',
-          startDate: initial.start_date ?? '',
-          endDate: initial.end_date ?? '',
-          isZakatEligible: initial.is_zakat_eligible ?? false,
-        }
-      : empty
-  )
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
-    setForm(f => ({ ...f, [key]: value }))
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSaving(true)
-    setError(null)
-
-    const slug = form.slug || slugify(form.title)
-    const goal = form.goalAmount ? Number(form.goalAmount) : null
-
-    if (mode === 'create') {
-      const dto: CreateCampaignDto = {
-        orgId,
-        title: form.title,
-        slug,
-        description: form.description || null,
-        coverImageUrl: form.coverImageUrl || null,
-        goalAmount: goal,
-        currency: form.currency,
-        startDate: form.startDate || null,
-        endDate: form.endDate || null,
-        isZakatEligible: form.isZakatEligible,
-      }
-      const { data, error: err } = await campaignService.createCampaign(dto)
-      if (err) {
-        setError(err)
-        setSaving(false)
-        return
-      }
-      const created = data as Campaign
-      if (selectedTags.length && created?.id) {
-        await campaignService.setCampaignTags(created.id, selectedTags)
-      }
-      router.push('/dashboard/campaigns')
-    } else if (campaignId) {
-      const dto: UpdateCampaignDto = {
-        title: form.title,
-        slug,
-        description: form.description || null,
-        coverImageUrl: form.coverImageUrl || null,
-        goalAmount: goal,
-        currency: form.currency,
-        startDate: form.startDate || null,
-        endDate: form.endDate || null,
-        isZakatEligible: form.isZakatEligible,
-      }
-      const { error: err } = await campaignService.updateCampaign(
-        campaignId,
-        dto
-      )
-      if (err) {
-        setError(err)
-        setSaving(false)
-        return
-      }
-      await campaignService.setCampaignTags(campaignId, selectedTags)
-      router.push('/dashboard/campaigns')
-    }
-  }
-
-  const toggleTag = (id: string) =>
-    setSelectedTags(prev =>
-      prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id]
-    )
+  const {
+    mode,
+    form,
+    set,
+    tags,
+    tagsLoading,
+    selectedTags,
+    toggleTag,
+    saving,
+    error,
+    submit,
+    cancel,
+  } = controller
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form
+      onSubmit={e => {
+        e.preventDefault()
+        submit()
+      }}
+      className="space-y-4"
+    >
       {error && <div className="text-sm text-red-600">{error}</div>}
 
       <Field label="Title">
@@ -230,28 +115,34 @@ export function CampaignForm({
         <span className="text-sm text-gray-700">Zakat eligible</span>
       </label>
 
-      <Field label="Tags">
+      {/* Not a <Field>/<label>: labels must not wrap interactive chips —
+          doing so hijacks every chip's accessible name. */}
+      <div className="block space-y-1">
+        <span className="text-sm font-medium text-gray-700">Tags</span>
         {tagsLoading ? (
           <p className="text-sm text-gray-500">Loading tags...</p>
         ) : (
-          <div className="flex flex-wrap gap-2">
-            {(tags as CampaignTag[]).map(t => (
-              <button
-                type="button"
-                key={t.id}
-                onClick={() => toggleTag(t.id)}
-                className={`rounded-full border px-3 py-1 text-sm ${
-                  selectedTags.includes(t.id)
-                    ? 'border-indigo-600 bg-indigo-600 text-white'
-                    : 'border-gray-300 bg-white text-gray-700'
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
+          <div className="space-y-2">
+            <div className="flex flex-wrap gap-2">
+              {tags.map(t => (
+                <button
+                  type="button"
+                  key={t.id}
+                  onClick={() => toggleTag(t.id)}
+                  aria-pressed={selectedTags.includes(t.id)}
+                  className={`rounded-full border px-3 py-1 text-sm ${
+                    selectedTags.includes(t.id)
+                      ? 'border-indigo-600 bg-indigo-600 text-white'
+                      : 'border-gray-300 bg-white text-gray-700'
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
           </div>
         )}
-      </Field>
+      </div>
 
       <div className="flex gap-3 pt-2">
         <button
@@ -267,7 +158,7 @@ export function CampaignForm({
         </button>
         <button
           type="button"
-          onClick={() => router.push('/dashboard/campaigns')}
+          onClick={cancel}
           className="rounded-md border border-gray-300 px-5 py-2 hover:bg-gray-50"
         >
           Cancel

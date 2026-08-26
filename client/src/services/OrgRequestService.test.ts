@@ -3,24 +3,19 @@ import { OrgRequestService } from '../services/OrgRequestService'
 import {
   OrgRequestRepository,
   OrgMetaRepository,
-} from '../repositories/OrgRequestRepository'
+} from '@/repositories/OrgRequestRepository'
 import type { OrgRequest, OrgMeta } from '@/types'
+import { mockRepository } from '@/testing/mockRpcClient'
 
 describe('OrgRequestService', () => {
   describe('submitRequest', () => {
     it('submits org request through repository', async () => {
-      const mockRepo = {
-        submitRequest: vi.fn().mockResolvedValue({
-          data: 'request-id-123',
-          error: null,
-        }),
-        getMyRequests: vi.fn(),
-        getAllRequests: vi.fn(),
-        approveRequest: vi.fn(),
-        rejectRequest: vi.fn(),
-      } as any
-
-      const service = new OrgRequestService(mockRepo)
+      const submitRequest = vi
+        .fn()
+        .mockResolvedValue({ data: 'request-id-123', error: null })
+      const service = new OrgRequestService(
+        mockRepository<OrgRequestRepository>({ submitRequest })
+      )
 
       const result = await service.submitRequest(
         'Test Org',
@@ -28,7 +23,7 @@ describe('OrgRequestService', () => {
         'Description'
       )
 
-      expect(mockRepo.submitRequest).toHaveBeenCalledWith(
+      expect(submitRequest).toHaveBeenCalledWith(
         'Test Org',
         'test-org',
         'Description'
@@ -55,22 +50,16 @@ describe('OrgRequestService', () => {
         },
       ]
 
-      const mockRepo = {
-        submitRequest: vi.fn(),
-        getMyRequests: vi.fn().mockResolvedValue({
-          data: requests,
-          error: null,
-        }),
-        getAllRequests: vi.fn(),
-        approveRequest: vi.fn(),
-        rejectRequest: vi.fn(),
-      } as any
-
-      const service = new OrgRequestService(mockRepo)
+      const getMyRequests = vi
+        .fn()
+        .mockResolvedValue({ data: requests, error: null })
+      const service = new OrgRequestService(
+        mockRepository<OrgRequestRepository>({ getMyRequests })
+      )
 
       const result = await service.getMyRequests()
 
-      expect(mockRepo.getMyRequests).toHaveBeenCalled()
+      expect(getMyRequests).toHaveBeenCalled()
       expect(result.data).toEqual(requests)
     })
   })
@@ -79,111 +68,77 @@ describe('OrgRequestService', () => {
     it('gets all requests through repository', async () => {
       const requests: OrgRequest[] = []
 
-      const mockRepo = {
-        submitRequest: vi.fn(),
-        getMyRequests: vi.fn(),
-        getAllRequests: vi.fn().mockResolvedValue({
-          data: requests,
-          error: null,
-        }),
-        approveRequest: vi.fn(),
-        rejectRequest: vi.fn(),
-      } as any
-
-      const service = new OrgRequestService(mockRepo)
+      const getAllRequests = vi
+        .fn()
+        .mockResolvedValue({ data: requests, error: null })
+      const service = new OrgRequestService(
+        mockRepository<OrgRequestRepository>({ getAllRequests })
+      )
 
       const result = await service.getAllRequests()
 
-      expect(mockRepo.getAllRequests).toHaveBeenCalled()
+      expect(getAllRequests).toHaveBeenCalled()
       expect(result.data).toEqual(requests)
     })
   })
 
   describe('approveRequest', () => {
     it('approves request through repository', async () => {
-      const mockRepo = {
-        submitRequest: vi.fn(),
-        getMyRequests: vi.fn(),
-        getAllRequests: vi.fn(),
-        approveRequest: vi.fn().mockResolvedValue({
-          data: 'new-org-id',
-          error: null,
-        }),
-        rejectRequest: vi.fn(),
-      } as any
-
-      const service = new OrgRequestService(mockRepo)
+      const approveRequest = vi
+        .fn()
+        .mockResolvedValue({ data: 'new-org-id', error: null })
+      const service = new OrgRequestService(
+        mockRepository<OrgRequestRepository>({ approveRequest })
+      )
 
       const result = await service.approveRequest('req-123')
 
-      expect(mockRepo.approveRequest).toHaveBeenCalledWith('req-123')
+      expect(approveRequest).toHaveBeenCalledWith('req-123')
       expect(result.data).toBe('new-org-id')
     })
 
     it('handles approval errors', async () => {
-      const mockRepo = {
-        submitRequest: vi.fn(),
-        getMyRequests: vi.fn(),
-        getAllRequests: vi.fn(),
-        approveRequest: vi.fn().mockResolvedValue({
-          data: null,
-          error: 'Not authorized',
-        }),
-        rejectRequest: vi.fn(),
-      } as any
-
-      const service = new OrgRequestService(mockRepo)
+      const approveRequest = vi
+        .fn()
+        .mockResolvedValue({ data: null, error: 'Not authorized' })
+      const service = new OrgRequestService(
+        mockRepository<OrgRequestRepository>({ approveRequest })
+      )
 
       const result = await service.approveRequest('req-123')
 
       expect(result.data).toBeNull()
-      expect(result.error).toBe('Not authorized')
       expect(result.error).toBe('Not authorized')
     })
   })
 
   describe('rejectRequest', () => {
     it('rejects request with reason through repository', async () => {
-      const mockRepo = {
-        submitRequest: vi.fn(),
-        getMyRequests: vi.fn(),
-        getAllRequests: vi.fn(),
-        approveRequest: vi.fn(),
-        rejectRequest: vi.fn().mockResolvedValue({
-          data: true,
-          error: null,
-        }),
-      } as any
-
-      const service = new OrgRequestService(mockRepo)
+      const rejectRequest = vi
+        .fn()
+        .mockResolvedValue({ data: true, error: null })
+      const service = new OrgRequestService(
+        mockRepository<OrgRequestRepository>({ rejectRequest })
+      )
 
       const result = await service.rejectRequest('req-123', 'Not suitable')
 
-      expect(mockRepo.rejectRequest).toHaveBeenCalledWith(
-        'req-123',
-        'Not suitable'
-      )
+      expect(rejectRequest).toHaveBeenCalledWith('req-123', 'Not suitable')
       expect(result.data).toBe(true)
       expect(result.error).toBeNull()
     })
 
     it('rejects request without reason through repository', async () => {
-      const mockRepo = {
-        submitRequest: vi.fn(),
-        getMyRequests: vi.fn(),
-        getAllRequests: vi.fn(),
-        approveRequest: vi.fn(),
-        rejectRequest: vi.fn().mockResolvedValue({
-          data: true,
-          error: null,
-        }),
-      } as any
-
-      const service = new OrgRequestService(mockRepo)
+      const rejectRequest = vi
+        .fn()
+        .mockResolvedValue({ data: true, error: null })
+      const service = new OrgRequestService(
+        mockRepository<OrgRequestRepository>({ rejectRequest })
+      )
 
       const result = await service.rejectRequest('req-123')
 
-      expect(mockRepo.rejectRequest).toHaveBeenCalledWith('req-123', undefined)
+      expect(rejectRequest).toHaveBeenCalledWith('req-123', undefined)
       expect(result.data).toBe(true)
       expect(result.error).toBeNull()
     })
@@ -206,34 +161,28 @@ describe('OrgRequestService', () => {
         updated_at: '2024-01-01T00:00:00Z',
       }
 
-      const mockMetaRepo = {
-        getOrgMeta: vi.fn().mockResolvedValue({
-          data: meta,
-          error: null,
-        }),
-        updateOrgMeta: vi.fn(),
-      } as any
-
-      const service = new OrgRequestService({} as any, mockMetaRepo)
+      const getOrgMeta = vi.fn().mockResolvedValue({ data: meta, error: null })
+      const service = new OrgRequestService(
+        mockRepository<OrgRequestRepository>({}),
+        mockRepository<OrgMetaRepository>({ getOrgMeta })
+      )
 
       const result = await service.getOrgMeta('org-1')
 
-      expect(mockMetaRepo.getOrgMeta).toHaveBeenCalledWith('org-1')
+      expect(getOrgMeta).toHaveBeenCalledWith('org-1')
       expect(result.data).toEqual(meta)
     })
   })
 
   describe('updateOrgMeta', () => {
     it('updates org metadata through repository', async () => {
-      const mockMetaRepo = {
-        getOrgMeta: vi.fn(),
-        updateOrgMeta: vi.fn().mockResolvedValue({
-          data: true,
-          error: null,
-        }),
-      } as any
-
-      const service = new OrgRequestService({} as any, mockMetaRepo)
+      const updateOrgMeta = vi
+        .fn()
+        .mockResolvedValue({ data: true, error: null })
+      const service = new OrgRequestService(
+        mockRepository<OrgRequestRepository>({}),
+        mockRepository<OrgMetaRepository>({ updateOrgMeta })
+      )
 
       const updates: Partial<OrgMeta> = {
         name: 'Updated Name',
@@ -242,21 +191,19 @@ describe('OrgRequestService', () => {
 
       const result = await service.updateOrgMeta('org-1', updates)
 
-      expect(mockMetaRepo.updateOrgMeta).toHaveBeenCalledWith('org-1', updates)
+      expect(updateOrgMeta).toHaveBeenCalledWith('org-1', updates)
       expect(result.data).toBe(true)
       expect(result.error).toBeNull()
     })
 
     it('handles update errors', async () => {
-      const mockMetaRepo = {
-        getOrgMeta: vi.fn(),
-        updateOrgMeta: vi.fn().mockResolvedValue({
-          data: null,
-          error: 'Not authorized',
-        }),
-      } as any
-
-      const service = new OrgRequestService({} as any, mockMetaRepo)
+      const updateOrgMeta = vi
+        .fn()
+        .mockResolvedValue({ data: null, error: 'Not authorized' })
+      const service = new OrgRequestService(
+        mockRepository<OrgRequestRepository>({}),
+        mockRepository<OrgMetaRepository>({ updateOrgMeta })
+      )
 
       const result = await service.updateOrgMeta('org-1', {
         name: 'Updated Name',

@@ -93,6 +93,7 @@ export const Rpc = {
     Update: 'update_campaign' satisfies DbFunction,
     Delete: 'delete_campaign' satisfies DbFunction,
     Submit: 'submit_campaign_for_review' satisfies DbFunction,
+    GetTagIds: 'get_campaign_tag_ids' satisfies DbFunction,
   },
   SystemAdminCampaign: {
     Verify: 'verify_campaign' satisfies DbFunction,
@@ -109,6 +110,7 @@ export const Rpc = {
   },
   PublicCampaign: {
     GetMany: 'get_public_campaigns' satisfies DbFunction,
+    GetBySlug: 'get_public_campaign_by_slug' satisfies DbFunction,
   },
 } as const
 

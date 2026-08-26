@@ -12,10 +12,10 @@ const dto = {
 describe('CampaignRepository', () => {
   it('createCampaign maps DTO with defaults (currency BDT, zakat false, nulls)', async () => {
     const campaign = aCampaign()
-    const gw = createMockRpcGateway({ create_campaign: { data: campaign } })
+    const gw = createMockRpcGateway({ create_campaign: { data: [campaign] } })
     const res = await new CampaignRepository(gw).createCampaign(dto)
 
-    expect(res.data).toEqual(campaign)
+    expect(res.data).toEqual([campaign])
     expect(gw.callsTo('create_campaign')[0].params).toEqual({
       p_org_id: 'org-1',
       p_title: 'Build a school',
@@ -89,14 +89,14 @@ describe('CampaignRepository', () => {
     const gw = createMockRpcGateway({
       delete_campaign: { data: true },
       submit_campaign_for_review: {
-        data: aCampaign({ status: 'pending_review' }),
+        data: [aCampaign({ status: 'pending_review' })],
       },
     })
     const del = await new CampaignRepository(gw).deleteCampaign('camp-1')
     const sub = await new CampaignRepository(gw).submitForReview('camp-1')
 
     expect(del.data).toBe(true)
-    expect(sub.data?.status).toBe('pending_review')
+    expect(sub.data?.[0]?.status).toBe('pending_review')
     expect(gw.callsTo('delete_campaign')[0].params).toEqual({
       p_campaign_id: 'camp-1',
     })
@@ -121,6 +121,19 @@ describe('CampaignRepository', () => {
     expect(gw.callsTo('set_campaign_tags')[0].params).toEqual({
       p_campaign_id: 'camp-1',
       p_tag_ids: ['tag-1'],
+    })
+  })
+
+  it('getCampaignTagIds passes p_campaign_id to get_campaign_tag_ids', async () => {
+    const tagIds = ['tag-2', 'tag-1']
+    const gw = createMockRpcGateway({
+      get_campaign_tag_ids: { data: tagIds },
+    })
+    const res = await new CampaignRepository(gw).getCampaignTagIds('camp-1')
+
+    expect(res.data).toEqual(tagIds)
+    expect(gw.callsTo('get_campaign_tag_ids')[0].params).toEqual({
+      p_campaign_id: 'camp-1',
     })
   })
 })

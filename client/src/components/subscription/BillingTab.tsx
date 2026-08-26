@@ -1,90 +1,37 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { orgSubscriptionService } from '@/services/OrgSubscriptionService'
-import type {
-  CurrentSubscription,
-  SubscriptionPlan,
-  SubscriptionHistoryView,
-} from '@/types'
+import { useBilling, type BillingController } from '@/hooks/useBilling'
 
-import { normalizeFeatures } from '@/lib/normalizeFeatures'
-
-interface BillingTabProps {
+export function BillingTab({
+  orgId,
+  isOwner,
+}: {
   orgId: string
   isOwner: boolean
+}) {
+  const controller = useBilling(orgId)
+  return <BillingTabView controller={controller} isOwner={isOwner} />
 }
 
-export function BillingTab({ orgId, isOwner }: BillingTabProps) {
-  const [currentPlan, setCurrentPlan] = useState<CurrentSubscription | null>(
-    null
-  )
-  const [plans, setPlans] = useState<SubscriptionPlan[]>([])
-  const [history, setHistory] = useState<SubscriptionHistoryView[]>([])
-  const [loading, setLoading] = useState(true)
-  const [purchasing, setPurchasing] = useState<string | null>(null)
-  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>(
-    'monthly'
-  )
-
-  const loadData = useCallback(async () => {
-    const [currentResult, plansResult, historyResult] = await Promise.all([
-      orgSubscriptionService.getMySubscription(orgId),
-      orgSubscriptionService.getPlans(),
-      orgSubscriptionService.getHistory(orgId),
-    ])
-
-    if (currentResult.data) {
-      const cp = currentResult.data as unknown as Record<string, unknown>
-      cp.features = normalizeFeatures(cp.features)
-      setCurrentPlan(cp as unknown as CurrentSubscription)
-    }
-    if (plansResult.data) {
-      const raw = plansResult.data as unknown as Record<string, unknown>[]
-      setPlans(
-        raw.map(p => ({
-          ...p,
-          features: normalizeFeatures(p.features),
-        })) as SubscriptionPlan[]
-      )
-    }
-    if (historyResult.data)
-      setHistory(historyResult.data as unknown as SubscriptionHistoryView[])
-
-    setLoading(false)
-  }, [orgId])
-
-  useEffect(() => {
-    loadData()
-  }, [loadData])
-
-  const handleSubscribe = async (planId: string) => {
-    setPurchasing(planId)
-    const { error } = await orgSubscriptionService.subscribe(
-      orgId,
-      planId,
-      billingPeriod
-    )
-    if (!error) loadData()
-    setPurchasing(null)
-  }
-
-  const handleChangePlan = async (planId: string) => {
-    setPurchasing(planId)
-    const { error } = await orgSubscriptionService.changePlan(
-      orgId,
-      planId,
-      billingPeriod
-    )
-    if (!error) loadData()
-    setPurchasing(null)
-  }
-
-  const handleCancel = async () => {
-    if (!confirm('Are you sure you want to cancel your subscription?')) return
-    await orgSubscriptionService.cancel(orgId)
-    loadData()
-  }
+export function BillingTabView({
+  controller,
+  isOwner,
+}: {
+  controller: BillingController
+  isOwner: boolean
+}) {
+  const {
+    currentPlan,
+    plans,
+    history,
+    loading,
+    purchasing,
+    billingPeriod,
+    setBillingPeriod,
+    subscribe,
+    changePlan,
+    cancel,
+  } = controller
 
   if (loading)
     return <div className="py-8 text-center text-gray-500">Loading...</div>
@@ -136,7 +83,7 @@ export function BillingTab({ orgId, isOwner }: BillingTabProps) {
             </div>
             {isOwner && (
               <button
-                onClick={handleCancel}
+                onClick={cancel}
                 className="mt-4 text-sm text-red-600 hover:underline"
               >
                 Cancel Subscription
@@ -205,17 +152,13 @@ export function BillingTab({ orgId, isOwner }: BillingTabProps) {
                         <span className="text-sm text-blue-600">
                           Current Plan
                         </span>
-                      ) : currentPlan ? (
-                        <button
-                          onClick={() => handleChangePlan(plan.id)}
-                          disabled={purchasing === plan.id}
-                          className="w-full rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
-                        >
-                          {purchasing === plan.id ? 'Processing...' : 'Pay Now'}
-                        </button>
                       ) : (
                         <button
-                          onClick={() => handleSubscribe(plan.id)}
+                          onClick={() =>
+                            currentPlan
+                              ? changePlan(plan.id)
+                              : subscribe(plan.id)
+                          }
                           disabled={purchasing === plan.id}
                           className="w-full rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
                         >

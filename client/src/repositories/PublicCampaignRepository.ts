@@ -16,4 +16,10 @@ export class PublicCampaignRepository extends BaseRepository {
       result_limit: filters.limit ?? null,
     })
   }
+
+  async getPublicCampaignBySlug(slug: string): ServiceData<PublicCampaign[]> {
+    return this.callRpc<PublicCampaign[]>(Rpc.PublicCampaign.GetBySlug, {
+      p_slug: slug,
+    })
+  }
 }

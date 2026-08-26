@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import { useOrganization } from '@/hooks/useOrganization'
 import { campaignService } from '@/services/CampaignService'
 import { CampaignForm } from '@/components/campaign/CampaignForm'
+import { useCampaignForm } from '@/hooks/useCampaignForm'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { isUuid } from '@/hooks/useQueryParam'
 import type { Campaign } from '@/types'
@@ -24,7 +25,9 @@ function EditCampaignContent() {
       setLoading(false)
       return
     }
+    let active = true
     campaignService.getCampaign(id).then(({ data, error: err }) => {
+      if (!active) return
       if (err) {
         setError(err)
         setCampaign(null)
@@ -37,6 +40,9 @@ function EditCampaignContent() {
       }
       setLoading(false)
     })
+    return () => {
+      active = false
+    }
   }, [id])
 
   return (
@@ -57,17 +63,28 @@ function EditCampaignContent() {
 
         {!loading && !error && campaign && currentOrg && (
           <div className="rounded-lg bg-white p-6 shadow">
-            <CampaignForm
-              orgId={currentOrg.id}
-              mode="edit"
-              campaignId={campaign.id}
-              initial={campaign}
-            />
+            <EditCampaignForm campaign={campaign} orgId={currentOrg.id} />
           </div>
         )}
       </div>
     </AppLayout>
   )
+}
+
+function EditCampaignForm({
+  campaign,
+  orgId,
+}: {
+  campaign: Campaign
+  orgId: string
+}) {
+  const controller = useCampaignForm({
+    orgId,
+    mode: 'edit',
+    campaignId: campaign.id,
+    initial: campaign,
+  })
+  return <CampaignForm controller={controller} />
 }
 
 export default function EditCampaignPage() {

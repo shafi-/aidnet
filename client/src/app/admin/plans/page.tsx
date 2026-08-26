@@ -27,12 +27,11 @@ export default function AdminPlansPage() {
   const loadPlans = useCallback(async () => {
     const { data } = await orgSubscriptionService.getPlans()
     if (data) {
-      const raw = data as unknown as Record<string, unknown>[]
       setPlans(
-        raw.map(p => ({
+        data.map(p => ({
           ...p,
           features: normalizeFeatures(p.features),
-        })) as SubscriptionPlan[]
+        }))
       )
     }
     setLoading(false)

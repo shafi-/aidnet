@@ -25,20 +25,21 @@ export function useSubscription(orgId: string | null) {
       return
     }
 
+    const active = true
     try {
       const { data, error } =
         await orgSubscriptionService.getMySubscription(orgId)
+      if (!active) return
       if (error || !data) {
         setCurrentPlan(null)
       } else {
-        const sub = data as unknown as Record<string, unknown>
-        sub.features = normalizeFeatures(sub.features)
-        setCurrentPlan(sub as unknown as CurrentSubscription)
+        setCurrentPlan({ ...data, features: normalizeFeatures(data.features) })
       }
     } catch {
+      if (!active) return
       setCurrentPlan(null)
     } finally {
-      setLoading(false)
+      if (active) setLoading(false)
     }
   }, [orgId])
 

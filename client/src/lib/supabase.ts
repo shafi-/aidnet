@@ -131,15 +131,14 @@ export class SupabaseClientManager {
   }
 
   // Database function wrapper
-  public async rpc<T = any>(
+  public async rpc<T = unknown>(
     functionName: string,
     params?: Record<string, unknown>
   ): Promise<{ data: T | null; error: string | null }> {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await supabase.rpc(
-        functionName as any,
-        params as any
+        functionName as keyof Database['public']['Functions'],
+        (params ?? {}) as never
       )
 
       if (error) {

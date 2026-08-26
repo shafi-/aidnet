@@ -136,13 +136,13 @@ export function formatFileSize(bytes: number): string {
 /**
  * Debounce function
  */
-export function debounce<T extends (...args: any[]) => any>(
-  func: T,
+export function debounce<A extends unknown[]>(
+  func: (...args: A) => void,
   wait: number
-): (...args: Parameters<T>) => void {
+): (...args: A) => void {
   let timeout: NodeJS.Timeout | null = null
 
-  return function executedFunction(...args: Parameters<T>) {
+  return function executedFunction(...args: A) {
     const later = () => {
       timeout = null
       func(...args)
@@ -165,6 +165,6 @@ export function deepClone<T>(obj: T): T {
 /**
  * Check if two objects are equal
  */
-export function isEqual(obj1: any, obj2: any): boolean {
+export function isEqual(obj1: unknown, obj2: unknown): boolean {
   return JSON.stringify(obj1) === JSON.stringify(obj2)
 }

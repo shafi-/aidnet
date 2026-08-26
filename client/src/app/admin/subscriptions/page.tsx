@@ -23,8 +23,7 @@ export default function AdminSubscriptionsPage() {
 
   const loadSubscriptions = useCallback(async () => {
     const { data } = await systemAdminSubscriptionService.getOrgSubscriptions()
-    if (data)
-      setSubscriptions(data as unknown as OrganizationSubscriptionView[])
+    if (data) setSubscriptions(data)
     setLoading(false)
   }, [])
 
@@ -36,7 +35,7 @@ export default function AdminSubscriptionsPage() {
     setSelectedOrg(orgId)
     setHistoryLoading(true)
     const { data } = await orgSubscriptionService.getHistory(orgId)
-    if (data) setHistory(data as unknown as SubscriptionHistoryView[])
+    if (data) setHistory(data)
     setHistoryLoading(false)
   }
 

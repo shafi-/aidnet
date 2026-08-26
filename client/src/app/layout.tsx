@@ -8,9 +8,9 @@ import { RouteAccessGuard } from '@/components/auth/RouteAccessGuard'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'SupaNext - NextJS + Supabase Starter',
+  title: 'Donate',
   description:
-    'A production-ready NextJS + Supabase starter template with function-first database architecture',
+    'Launch verified charity campaigns and donate directly to organizations.',
 }
 
 export default function RootLayout({
