@@ -4,29 +4,39 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { systemAdminService } from '@/services/SystemAdminService'
 import { organizationService } from '@/services/OrganizationService'
 import { useSystemAdmin } from '@/hooks/useSystemAdmin'
-import { useState, useEffect, useCallback } from 'react'
+import { usePaginatedList } from '@/hooks/usePaginatedList'
+import { useState, useCallback } from 'react'
 import type { OrganizationDetailView } from '@/types'
 import Link from 'next/link'
 
 export default function AdminOrgsPage() {
   const { isSystemAdmin, loading: adminLoading } = useSystemAdmin()
-  const [orgs, setOrgs] = useState<OrganizationDetailView[]>([])
-  const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
   const [feedback, setFeedback] = useState<{
     type: 'success' | 'error'
     message: string
   } | null>(null)
 
-  const loadOrgs = useCallback(async () => {
-    const { data } = await systemAdminService.getAllOrgs()
-    if (data) setOrgs(data)
-    setLoading(false)
-  }, [])
+  const fetcher = useCallback(
+    async (params: { limit?: number; cursor?: string | null }) => {
+      return systemAdminService.getAllOrgs(params)
+    },
+    []
+  )
 
-  useEffect(() => {
-    if (isSystemAdmin) loadOrgs()
-  }, [isSystemAdmin, loadOrgs])
+  const {
+    items: orgs,
+    loading,
+    loadingMore,
+    error,
+    hasMore,
+    loadMore,
+    refresh,
+  } = usePaginatedList<OrganizationDetailView>({
+    fetcher,
+    limit: 50,
+    enabled: !!isSystemAdmin,
+  })
 
   const handleSetStatus = async (
     orgId: string,
@@ -46,7 +56,7 @@ export default function AdminOrgsPage() {
         type: 'success',
         message: `Organization status updated to ${status}.`,
       })
-      await loadOrgs()
+      await refresh()
     }
   }
 
@@ -91,6 +101,7 @@ export default function AdminOrgsPage() {
             {feedback.message}
           </div>
         )}
+        {error && <p className="text-red-600">{error}</p>}
         {loading ? (
           <div>Loading...</div>
         ) : (
@@ -161,6 +172,19 @@ export default function AdminOrgsPage() {
                     </tr>
                   )
                 })}
+                {hasMore && (
+                  <tr>
+                    <td colSpan={5} className="py-4 text-center">
+                      <button
+                        onClick={loadMore}
+                        disabled={loadingMore}
+                        className="text-blue-600 hover:text-blue-800 disabled:opacity-50"
+                      >
+                        {loadingMore ? 'Loading...' : 'Load More'}
+                      </button>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
