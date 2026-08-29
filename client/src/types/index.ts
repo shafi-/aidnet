@@ -55,4 +55,5 @@ export type {
   CardProps,
   ToastProps,
 } from './components'
+export type { PaginationParams, PaginationCursor } from './pagination'
 export { Rpc, type RpcFunction } from './rpc'

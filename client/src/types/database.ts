@@ -1474,7 +1474,7 @@ export type Database = {
         }[]
       }
       get_all_organizations: {
-        Args: never
+        Args: { p_cursor?: string; p_limit?: number }
         Returns: {
           address: string
           contact_email: string
@@ -1677,7 +1677,7 @@ export type Database = {
         }[]
       }
       get_my_organizations: {
-        Args: never
+        Args: { p_cursor?: string; p_limit?: number }
         Returns: {
           address: string
           contact_email: string
