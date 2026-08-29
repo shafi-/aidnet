@@ -1,4 +1,5 @@
 import type { ServiceData, SystemStats, OrganizationDetailView } from '@/types'
+import type { PaginationParams } from '@/types/pagination'
 import { SystemAdminRepository } from '@/repositories/SystemAdminRepository'
 
 export class SystemAdminService {
@@ -6,8 +7,10 @@ export class SystemAdminService {
     private systemAdminRepo: SystemAdminRepository = new SystemAdminRepository()
   ) {}
 
-  async getAllOrgs(): ServiceData<OrganizationDetailView[]> {
-    return this.systemAdminRepo.getAllOrgs()
+  async getAllOrgs(
+    params?: PaginationParams
+  ): ServiceData<OrganizationDetailView[]> {
+    return this.systemAdminRepo.getAllOrgs(params)
   }
 
   async getSystemStats(): ServiceData<SystemStats> {

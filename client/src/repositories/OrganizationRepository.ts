@@ -6,6 +6,11 @@ import type {
 } from '@/types'
 import { Rpc } from '@/types/rpc'
 
+export interface CursorPaginationParams {
+  limit?: number
+  cursor?: string | null
+}
+
 export class OrganizationRepository extends BaseRepository {
   // Note: This is now used primarily by system_admin during org request approval
   // Regular users should use org_request flow instead
@@ -23,8 +28,13 @@ export class OrganizationRepository extends BaseRepository {
     })
   }
 
-  async getMyOrganizations(): ServiceData<OrganizationView[]> {
-    return this.callRpc<OrganizationView[]>(Rpc.Org.GetMy)
+  async getMyOrganizations(
+    params?: CursorPaginationParams
+  ): ServiceData<OrganizationView[]> {
+    return this.callRpc<OrganizationView[]>(Rpc.Org.GetMy, {
+      p_limit: params?.limit ?? 20,
+      p_cursor: params?.cursor,
+    })
   }
 
   async getOrganization(orgId: string): ServiceData<OrganizationDetailView[]> {

@@ -2,9 +2,19 @@ import { BaseRepository } from './BaseRepository'
 import type { ServiceData, SystemStats, OrganizationDetailView } from '@/types'
 import { Rpc } from '@/types/rpc'
 
+export interface CursorPaginationParams {
+  limit?: number
+  cursor?: string | null
+}
+
 export class SystemAdminRepository extends BaseRepository {
-  async getAllOrgs(): ServiceData<OrganizationDetailView[]> {
-    return this.callRpc<OrganizationDetailView[]>(Rpc.SystemAdmin.GetAllOrgs)
+  async getAllOrgs(
+    params?: CursorPaginationParams
+  ): ServiceData<OrganizationDetailView[]> {
+    return this.callRpc<OrganizationDetailView[]>(Rpc.SystemAdmin.GetAllOrgs, {
+      p_limit: params?.limit ?? 20,
+      p_cursor: params?.cursor,
+    })
   }
 
   async getSystemStats(): ServiceData<SystemStats> {

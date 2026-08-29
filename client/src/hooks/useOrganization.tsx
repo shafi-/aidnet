@@ -5,12 +5,14 @@ import {
   useMemo,
   useEffect,
   useCallback,
+  useRef,
   createContext,
   useContext,
 } from 'react'
 import { organizationService } from '@/services/OrganizationService'
 import { memberService } from '@/services/MemberService'
 import { useAuth } from './useAuth'
+import { useSystemAdmin } from './useSystemAdmin'
 import { OrganizationSelector } from '@/components/org/OrganizationSelector'
 import type {
   OrganizationDetailView,
@@ -25,9 +27,11 @@ interface OrganizationContextType {
   loading: boolean
   error: string | null
   selectionRequired: boolean
+  suspensionMessage: string | null
   setCurrentOrg: (org: OrganizationDetailView | null) => void
   selectOrgById: (orgId: string) => Promise<void>
   refreshOrg: () => Promise<void>
+  clearSuspensionMessage: () => void
 }
 
 const OrganizationContext = createContext<OrganizationContextType | undefined>(
@@ -36,22 +40,64 @@ const OrganizationContext = createContext<OrganizationContextType | undefined>(
 
 const CURRENT_ORG_STORAGE_KEY = 'supanext.currentOrgId'
 
+function readPersistedOrgId(): string | null {
+  if (typeof window === 'undefined') return null
+  try {
+    return localStorage.getItem(CURRENT_ORG_STORAGE_KEY)
+  } catch {
+    return null
+  }
+}
+
 export function OrganizationProvider({
   children,
 }: {
   children: React.ReactNode
 }) {
   const { user } = useAuth()
+  const { isSystemAdmin } = useSystemAdmin()
   const [currentOrg, rawSetCurrentOrg] =
-    useState<OrganizationDetailView | null>(null)
+    useState<OrganizationDetailView | null>(() => {
+      const id = readPersistedOrgId()
+      if (!id) return null
+      // Minimal stub — enough to prevent the selector from flashing while the
+      // background verify fills in the real data. If the org turns out to be
+      // suspended, the verify clears it.
+      return {
+        id,
+        slug: '',
+        status: 'active',
+        created_by: '',
+        created_at: '',
+        updated_at: '',
+        member_count: 0,
+        name: '',
+        description: null,
+        logo_url: null,
+        website_url: null,
+        contact_email: null,
+        contact_phone: null,
+        address: null,
+        social_links: {},
+        settings: {},
+      } as OrganizationDetailView
+    })
   const [membership, setMembership] = useState<Membership | null>(null)
   const [organizations, setOrganizations] = useState<OrganizationView[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  // Tracks whether the persisted currentOrg has been restored from localStorage.
+  // data-org-ready waits on this so tests never race the async restoration.
+  const [restored, setRestored] = useState(false)
   // Set when an explicitly attempted org turns out to be suspended: the
   // selector must stay up (with the suspended org disabled) even though a
   // single other active org could be auto-selected.
   const [forcedSelection, setForcedSelection] = useState(false)
+  // Message shown to the user when their current org was suspended by an
+  // admin while they were using it. Cleared when the user selects a new org.
+  const [suspensionMessage, setSuspensionMessage] = useState<string | null>(
+    null
+  )
 
   const setCurrentOrg = useCallback((org: OrganizationDetailView | null) => {
     // Security check: prevent setting suspended orgs as current
@@ -59,7 +105,10 @@ export function OrganizationProvider({
       console.warn('Cannot select suspended organization:', org.id)
       return
     }
-    if (org) setForcedSelection(false)
+    if (org) {
+      setForcedSelection(false)
+      setSuspensionMessage(null)
+    }
 
     rawSetCurrentOrg(org)
     try {
@@ -73,41 +122,59 @@ export function OrganizationProvider({
   // Restore persisted org selection once the auth session is available.
   // Running before hydration would call get_organization unauthenticated
   // and silently drop the selection on every cold page load.
+  // Sets `restored` when done so data-org-ready can wait on the full state.
+  // Restore persisted org selection once per user session. The effect runs
+  // when user?.id becomes available (auth session restored). It must NOT
+  // depend on currentOrg — that would cause it to re-fire when currentOrg is
+  // set (by auto-select or selectOrgById), resetting `restored` to false and
+  // re-triggering the async restore, creating an infinite loop.
+  //
+  // currentOrg is already initialised synchronously from localStorage (see
+  // readPersistedOrg above), so the selector hides instantly. This effect
+  // only needs to verify the persisted id is still valid (org not suspended /
+  // deleted) and mark `restored` for data-org-ready.
+  const restoreRanRef = useRef(false)
   useEffect(() => {
-    if (!user?.id) return
+    if (!user?.id || restoreRanRef.current) return
+    restoreRanRef.current = true
     try {
       const persistedId = localStorage.getItem(CURRENT_ORG_STORAGE_KEY)
-      if (persistedId && !currentOrg) {
+      if (persistedId) {
+        // Verify in background: fetch fresh data, correct if suspended/stale
         organizationService.getOrganization(persistedId).then(({ data }) => {
           if (data) {
             const org = data as OrganizationDetailView
-            // Security check: only restore if org is still active
             if (org.status === 'active') {
               rawSetCurrentOrg(org)
             } else {
-              // Clear persisted selection if org is suspended
               console.warn(
                 'Persisted organization is suspended, clearing selection:',
                 persistedId
               )
+              rawSetCurrentOrg(null)
               localStorage.removeItem(CURRENT_ORG_STORAGE_KEY)
             }
           } else {
-            // Persisted id is stale or invalid — clear it so a tampered or
-            // deleted org reference cannot linger across sessions.
             localStorage.removeItem(CURRENT_ORG_STORAGE_KEY)
+            rawSetCurrentOrg(null)
           }
+          setRestored(true)
         })
+      } else {
+        setRestored(true)
       }
     } catch {
-      // Ignore storage access errors
+      setRestored(true)
     }
-  }, [user?.id, currentOrg])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id])
 
   const loadOrganizations = useCallback(async () => {
     setLoading(true)
     setError(null)
-    const { data, error: err } = await organizationService.getMyOrganizations()
+    const { data, error: err } = await organizationService.getMyOrganizations({
+      limit: 100,
+    })
     if (err) setError(err)
     if (data) setOrganizations(data)
     setLoading(false)
@@ -128,6 +195,10 @@ export function OrganizationProvider({
       )
     )
     setForcedSelection(true)
+  }, [])
+
+  const clearSuspensionMessage = useCallback(() => {
+    setSuspensionMessage(null)
   }, [])
 
   const refreshOrg = useCallback(async () => {
@@ -185,6 +256,40 @@ export function OrganizationProvider({
     if (user?.id) loadOrganizations()
   }, [user?.id, loadOrganizations])
 
+  // Listen for suspension events emitted by the RPC client when a DB
+  // function returns "Not authorized" (can_perform denied because the org
+  // was suspended by a system admin since the user's last check).
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const { orgId } = (event as CustomEvent).detail
+      if (!orgId) return
+
+      // Mark suspended in the cached list so the selector disables it
+      setOrganizations(prev =>
+        prev.map(org =>
+          org.id === orgId ? { ...org, status: 'suspended' as const } : org
+        )
+      )
+
+      // If this was the active org, clear it and force selector
+      if (currentOrg?.id === orgId) {
+        rawSetCurrentOrg(null)
+        try {
+          localStorage.removeItem(CURRENT_ORG_STORAGE_KEY)
+        } catch {
+          // Ignore storage access errors
+        }
+        setForcedSelection(true)
+        setSuspensionMessage(
+          'Your organization has been suspended. Please select another organization or contact your system admin.'
+        )
+      }
+    }
+
+    window.addEventListener('organization-suspended', handler)
+    return () => window.removeEventListener('organization-suspended', handler)
+  }, [currentOrg?.id])
+
   // Selection requirement is DERIVED, never synced imperatively: scattered
   // setSelectionRequired(...) calls raced each other (e.g. an unconditional
   // clear-on-rerun wiped an explicit forced-selection from a suspended-org
@@ -196,18 +301,21 @@ export function OrganizationProvider({
   const selectionRequired =
     !loading &&
     !!user &&
+    !isSystemAdmin &&
     (forcedSelection ||
       (!!currentOrg && currentOrg.status === 'suspended') ||
       (!currentOrg && activeOrgs.length !== 1))
 
   // Deterministic readiness marker for tests and shell UIs: the provider has
-  // session + org data settled and the selection decision is applied.
+  // session + org data settled AND the persisted currentOrg has been restored.
+  // Tests must wait for this — it only flips true once: loading is false,
+  // user exists, and the restore effect has completed.
   useEffect(() => {
     document.documentElement.setAttribute(
       'data-org-ready',
-      String(!loading && !!user)
+      String(!loading && !!user && restored)
     )
-  }, [loading, user])
+  }, [loading, user, restored])
 
   // Side-effects that remain imperative (they WRITE state): security-clear a
   // suspended current org, and auto-select when exactly one active org exists.
@@ -237,7 +345,12 @@ export function OrganizationProvider({
     selectOrgById,
   ])
 
-  // Load membership whenever a current org exists (race-safe + self-clearing)
+  // Load membership whenever a current org exists.
+  // Race condition guard: prevent state updates on unmounted components.
+  // If the component unmounts while the async operation is in flight, the
+  // cleanup function sets active=false, preventing setState calls on an
+  // unmounted component. This avoids memory leaks and React warnings.
+  // DO NOT REMOVE - this is a critical safety pattern for async operations.
   useEffect(() => {
     if (!currentOrg) {
       setMembership(null)
@@ -263,9 +376,11 @@ export function OrganizationProvider({
         loading,
         error,
         selectionRequired,
+        suspensionMessage,
         setCurrentOrg,
         selectOrgById,
         refreshOrg,
+        clearSuspensionMessage,
       }}
     >
       {children}
@@ -273,6 +388,7 @@ export function OrganizationProvider({
         <OrganizationSelector
           organizations={organizations}
           onSelect={selectOrgById}
+          message={suspensionMessage}
         />
       )}
     </OrganizationContext.Provider>

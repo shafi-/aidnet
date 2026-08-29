@@ -3,6 +3,7 @@ import type {
   OrganizationView,
   OrganizationDetailView,
 } from '@/types'
+import type { PaginationParams } from '@/types/pagination'
 import { OrganizationRepository } from '@/repositories/OrganizationRepository'
 
 export class OrganizationService {
@@ -21,8 +22,10 @@ export class OrganizationService {
     return this.orgRepo.createOrganization(name, slug, description, settings)
   }
 
-  async getMyOrganizations(): ServiceData<OrganizationView[]> {
-    return this.orgRepo.getMyOrganizations()
+  async getMyOrganizations(
+    params?: PaginationParams
+  ): ServiceData<OrganizationView[]> {
+    return this.orgRepo.getMyOrganizations(params)
   }
 
   async getOrganization(orgId: string): ServiceData<OrganizationDetailView> {
