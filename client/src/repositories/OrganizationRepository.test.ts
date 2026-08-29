@@ -23,15 +23,35 @@ describe('OrganizationRepository', () => {
     })
   })
 
-  it('getMyOrganizations calls get_my_organizations without params', async () => {
+  it('getMyOrganizations calls get_my_organizations with pagination params', async () => {
     const orgs = [anOrganizationView()]
-    const gw = createMockRpcGateway({ get_my_organizations: { data: orgs } })
+    const gw = createMockRpcGateway({
+      get_my_organizations: { data: orgs },
+    })
     const res = await new OrganizationRepository(gw).getMyOrganizations()
 
     expect(res.data).toEqual(orgs)
-    expect(gw.callsTo('get_my_organizations')).toEqual([
-      { functionName: 'get_my_organizations', params: undefined },
-    ])
+    expect(gw.callsTo('get_my_organizations')[0].params).toEqual({
+      p_limit: 20,
+      p_cursor: undefined,
+    })
+  })
+
+  it('getMyOrganizations passes custom pagination params', async () => {
+    const orgs = [anOrganizationView()]
+    const gw = createMockRpcGateway({
+      get_my_organizations: { data: orgs },
+    })
+    const res = await new OrganizationRepository(gw).getMyOrganizations({
+      limit: 5,
+      cursor: 'next-cursor',
+    })
+
+    expect(res.data).toEqual(orgs)
+    expect(gw.callsTo('get_my_organizations')[0].params).toEqual({
+      p_limit: 5,
+      p_cursor: 'next-cursor',
+    })
   })
 
   it('getOrganization scopes by target_org_id and returns raw table rows', async () => {
@@ -89,7 +109,9 @@ describe('OrganizationRepository', () => {
     const gw = createMockRpcGateway({
       get_my_organizations: { error: 'jwt expired' },
     })
-    const res = await new OrganizationRepository(gw).getMyOrganizations()
+    const res = await new OrganizationRepository(gw).getMyOrganizations({
+      limit: 20,
+    })
 
     expect(res).toEqual({ data: null, error: 'jwt expired' })
   })

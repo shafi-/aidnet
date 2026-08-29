@@ -4,15 +4,35 @@ import { createMockRpcGateway } from '@/testing/mockRpcClient'
 import { anOrgDetail, systemStats } from '@/testing/fixtures'
 
 describe('SystemAdminRepository', () => {
-  it('getAllOrgs calls get_all_organizations without params', async () => {
+  it('getAllOrgs calls get_all_organizations with pagination params', async () => {
     const orgs = [anOrgDetail()]
-    const gw = createMockRpcGateway({ get_all_organizations: { data: orgs } })
+    const gw = createMockRpcGateway({
+      get_all_organizations: { data: orgs },
+    })
     const res = await new SystemAdminRepository(gw).getAllOrgs()
 
     expect(res.data).toEqual(orgs)
-    expect(gw.callsTo('get_all_organizations')).toEqual([
-      { functionName: 'get_all_organizations', params: undefined },
-    ])
+    expect(gw.callsTo('get_all_organizations')[0].params).toEqual({
+      p_limit: 20,
+      p_cursor: undefined,
+    })
+  })
+
+  it('getAllOrgs passes custom pagination params', async () => {
+    const orgs = [anOrgDetail()]
+    const gw = createMockRpcGateway({
+      get_all_organizations: { data: orgs },
+    })
+    const res = await new SystemAdminRepository(gw).getAllOrgs({
+      limit: 10,
+      cursor: 'abc-123',
+    })
+
+    expect(res.data).toEqual(orgs)
+    expect(gw.callsTo('get_all_organizations')[0].params).toEqual({
+      p_limit: 10,
+      p_cursor: 'abc-123',
+    })
   })
 
   it('getSystemStats calls get_system_stats without params', async () => {
