@@ -60,6 +60,27 @@ create_user "$ADMIN_EMAIL"
 create_user "$OWNER_EMAIL"
 create_user "$MEMBER_EMAIL"
 
+# --- clean up orgs created by previous e2e runs -----------------------
+# Tests create orgs via the request flow (random names + timestamps). Without
+# cleanup they accumulate across runs, eventually exceeding the admin page's
+# pagination limit and breaking locator-based tests. Keep only orgs owned by
+# the three seeded users (admin has none; owner/member share demo-org).
+# The audit trigger would otherwise try to log the deletion with a dangling
+# organization_id FK, so disable it for the cleanup window.
+echo "==> cleaning up orgs from previous e2e runs"
+psql -c "
+ALTER TABLE organizations DISABLE TRIGGER audit_organizations_changes;
+ALTER TABLE organization_members DISABLE TRIGGER audit_organization_members_changes;
+DELETE FROM organizations
+WHERE created_by IS NULL
+   OR created_by NOT IN (
+     SELECT id FROM profiles
+     WHERE email IN ('${ADMIN_EMAIL}', '${OWNER_EMAIL}', '${MEMBER_EMAIL}')
+   );
+ALTER TABLE organizations ENABLE TRIGGER audit_organizations_changes;
+ALTER TABLE organization_members ENABLE TRIGGER audit_organization_members_changes;
+" || echo "  (cleanup skipped — no orgs to delete or db not ready)"
+
 # --- promote admin to system admin -----------------------------------
 echo "==> promoting ${ADMIN_EMAIL} to system admin"
 psql -c "UPDATE profiles SET is_system_admin = true WHERE email = '${ADMIN_EMAIL}';"

@@ -54,8 +54,15 @@ export default defineConfig({
       use: { ...devices['Desktop Safari'] },
     },
     {
+      // Mobile coverage is scoped to genuinely mobile-specific behavior
+      // (responsive layout). The 20 other specs are viewport-agnostic user
+      // journeys already exercised on chromium; re-running all of them under
+      // Chrome mobile emulation exhausts machine memory ~test 140 and silently
+      // drops the tail as "did not run" (dead tests). Scoping to responsive
+      // keeps every scheduled mobile test runnable and meaningful.
       name: 'Mobile Chrome',
       dependencies: ['setup'],
+      testMatch: /tests\/e2e\/responsive\.spec\.ts/,
       use: { ...devices['Pixel 5'] },
     },
     {

@@ -12,6 +12,14 @@ changing anything. Canonical companions:
 
 ## 1. Hard laws (violating these breaks the project)
 
+### Workspace hygiene
+- **NEVER use `/tmp` for any file.** All scratch/diagnostic/temp files go in
+  `.temp/` at the repo root (create with `mkdir -p .temp` if missing). `/tmp`
+  is OFF-LIMITS — agents that reach for it cause cross-session file leakage and
+  confuse the user. Add `.temp/` to `.gitignore` (already done).
+- Diagnostic Playwright specs, throwaway scripts, curl output captures, etc. all
+  live in `.temp/`. If a tool call would write to `/tmp`, STOP and use `.temp/`.
+
 ### Data access
 - **Function-first**: ALL reads/writes go through PostgreSQL functions called via
   RPC (`this.callRpc(Rpc.X.Y, params)`). NEVER query tables with `.from()` from
@@ -144,6 +152,8 @@ so run e2e manually before merging UI changes.
   spec collection (module-load throw from `lib/supabase`).
 - After editing seeds, `supabase db reset` wipes data — re-run
   `./supabase/seed-auth.sh` (global-setup does this automatically per run).
+- Temp files go in `.temp/` (repo root), NOT `/tmp` — see Hard Law above.
+  Create it if missing: `mkdir -p .temp`. Add `.temp/` to `.gitignore`.
 
 ## 5. Change discipline
 
