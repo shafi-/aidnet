@@ -30,6 +30,51 @@ export async function signIn(
   return (await res.json()) as Session
 }
 
+/**
+ * API-level signup — creates a user via GoTrue REST without touching the
+ * browser. Use this instead of UI registration when the test needs a fresh
+ * user but the signup flow itself is NOT under test.
+ *
+ * Returns a session (access_token + refresh_token) on success.  The caller
+ * must set these tokens in the page's localStorage and reload to authenticate
+ * the browser context.
+ */
+export async function signUp(
+  request: APIRequestContext,
+  email: string,
+  password: string,
+  fullName: string
+): Promise<Session> {
+  const res = await request.post(`${SUPABASE_URL}/auth/v1/signup`, {
+    data: { email, password, data: { full_name: fullName } },
+    headers: { apikey: SUPABASE_ANON_KEY },
+  })
+  if (!res.ok())
+    throw new Error(
+      `signUp failed for ${email}: ${res.status()} ${await res.text()}`
+    )
+  const body = await res.json()
+  if (!body.access_token)
+    throw new Error(
+      `signUp returned no access_token for ${email}: ${JSON.stringify(body)}`
+    )
+  return body as Session
+}
+
+/**
+ * Register a new user via the GoTrue REST API (no browser UI).
+ * Does NOT authenticate the browser — the caller must do that separately
+ * via a login helper (e.g. loginAsUser) after this returns.
+ */
+export async function registerViaApi(
+  _page: import('@playwright/test').Page,
+  email: string,
+  password: string,
+  fullName: string
+): Promise<void> {
+  await signUp(_page.request, email, password, fullName)
+}
+
 export async function rpc<T>(
   request: APIRequestContext,
   session: Session,
