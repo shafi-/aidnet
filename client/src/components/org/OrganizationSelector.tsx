@@ -10,9 +10,11 @@ import type { OrganizationView } from '@/types'
 export function OrganizationSelector({
   organizations,
   onSelect,
+  message,
 }: {
   organizations: OrganizationView[]
   onSelect: (orgId: string) => void
+  message?: string | null
 }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
@@ -20,6 +22,11 @@ export function OrganizationSelector({
         <h1 className="text-center text-2xl font-bold">
           Select an Organization
         </h1>
+        {message && (
+          <div className="rounded-md bg-amber-50 p-4 text-sm text-amber-800">
+            {message}
+          </div>
+        )}
         <p className="text-center text-gray-600">
           You belong to multiple organizations. Choose one to continue.
         </p>

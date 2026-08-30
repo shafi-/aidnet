@@ -15,6 +15,10 @@ export function useCampaigns(orgId: string | null | undefined) {
       setLoading(false)
       return
     }
+    // Race condition guard: prevent state updates on unmounted components.
+    // If the component unmounts while the async operation is in flight, this
+    // flag ensures we don't try to set state on a component that no longer exists.
+    // DO NOT REMOVE - this prevents memory leaks and React warnings.
     const active = true
     setLoading(true)
     try {

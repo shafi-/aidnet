@@ -143,6 +143,24 @@ export class SupabaseClientManager {
 
       if (error) {
         console.error(`RPC error (${functionName}):`, error.message)
+
+        // When a DB function raises "Not authorized" (can_perform returned
+        // FALSE), the current org may have been suspended by a system admin
+        // since the user's last check. Emit a global event so the
+        // OrganizationProvider can clear the stale selection and show the
+        // selector with a suspension notice.
+        if (error.message?.includes('Not authorized')) {
+          const orgId = (params?.p_org_id ?? params?.target_org_id) as
+            string | undefined
+          if (orgId) {
+            window.dispatchEvent(
+              new CustomEvent('organization-suspended', {
+                detail: { orgId },
+              })
+            )
+          }
+        }
+
         return { data: null, error: error.message }
       }
 
