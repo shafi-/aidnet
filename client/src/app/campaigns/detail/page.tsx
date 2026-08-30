@@ -17,6 +17,11 @@ function CampaignDetailContent() {
 
   usePageTitle(campaign ? campaign.title : 'Campaign')
 
+  const goal = campaign?.goal_amount
+  const raised = campaign?.raised_amount ?? 0
+  const pct =
+    goal && goal > 0 ? Math.min(100, Math.round((raised / goal) * 100)) : 0
+
   useEffect(() => {
     if (!slug) {
       setError('Missing campaign slug')
@@ -113,6 +118,29 @@ function CampaignDetailContent() {
               <p className="whitespace-pre-line leading-relaxed text-gray-700">
                 {campaign.description}
               </p>
+            )}
+
+            {campaign.goal_amount != null && (
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-sm text-gray-600">
+                  <span>
+                    {campaign.raised_amount != null
+                      ? campaign.raised_amount.toLocaleString()
+                      : 0}{' '}
+                    {campaign.currency} raised
+                  </span>
+                  <span>
+                    {pct}% of {campaign.goal_amount.toLocaleString()}{' '}
+                    {campaign.currency}
+                  </span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                  <div
+                    className="h-full rounded-full bg-indigo-600"
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+              </div>
             )}
 
             <div className="flex flex-wrap gap-4 text-sm text-gray-600">
