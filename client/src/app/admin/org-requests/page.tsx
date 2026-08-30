@@ -227,7 +227,25 @@ function OrgRequestContent() {
 
         {/* Request Review Modal */}
         {selectedRequestData && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Review organization request"
+            onClick={e => {
+              if (e.target === e.currentTarget) {
+                setSelectedRequest(null)
+                setRejectionReason('')
+              }
+            }}
+            onKeyDown={e => {
+              if (e.key === 'Escape') {
+                setSelectedRequest(null)
+                setRejectionReason('')
+              }
+            }}
+            tabIndex={-1}
+          >
             <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
               <div className="mb-4 flex items-start justify-between">
                 <h3 className="text-xl font-semibold text-gray-900">
@@ -238,6 +256,7 @@ function OrgRequestContent() {
                     setSelectedRequest(null)
                     setRejectionReason('')
                   }}
+                  aria-label="Close dialog"
                   className="text-gray-400 hover:text-gray-600"
                 >
                   ✕
