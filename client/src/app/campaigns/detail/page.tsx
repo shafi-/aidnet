@@ -7,6 +7,9 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { publicCampaignService } from '@/services/PublicCampaignService'
 import type { PublicCampaign } from '@/types'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { useAuth } from '@/hooks/useAuth'
+import { useOrganization } from '@/hooks/useOrganization'
+import { usePermissions } from '@/hooks/usePermissions'
 
 function CampaignDetailContent() {
   const searchParams = useSearchParams()
@@ -16,6 +19,15 @@ function CampaignDetailContent() {
   const [error, setError] = useState<string | null>(null)
 
   usePageTitle(campaign ? campaign.title : 'Campaign')
+
+  const { user } = useAuth()
+  const { currentOrg } = useOrganization()
+  const { hasPermission } = usePermissions()
+  const canEditCampaign =
+    !!user &&
+    !!campaign &&
+    currentOrg?.id === campaign.org_id &&
+    hasPermission('campaigns:update')
 
   const goal = campaign?.goal_amount
   const raised = campaign?.raised_amount ?? 0
@@ -102,6 +114,14 @@ function CampaignDetailContent() {
                   {campaign.org_name}
                 </Link>
               </p>
+              {canEditCampaign && (
+                <Link
+                  href={`/dashboard/campaigns/edit?id=${campaign.id}`}
+                  className="inline-block rounded-md bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200"
+                >
+                  Edit campaign
+                </Link>
+              )}
             </header>
 
             {campaign.cover_image_url && (
