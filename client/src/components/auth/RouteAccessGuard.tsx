@@ -26,7 +26,7 @@ export function RouteAccessGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!needsAuth) return
     if (!auth.loading && !auth.user) {
-      router.push('/auth/login/')
+      router.push('/auth/login')
     }
   }, [needsAuth, auth.loading, auth.user, router])
 
@@ -71,7 +71,7 @@ function SystemAdminGate({ children }: { children: React.ReactNode }) {
           </p>
           <Link
             href="/"
-            className="mt-4 inline-block text-blue-600 hover:underline"
+            className="mt-4 inline-block text-indigo-600 hover:underline"
           >
             Back to home
           </Link>

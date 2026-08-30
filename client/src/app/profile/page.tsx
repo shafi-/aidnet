@@ -4,10 +4,12 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { ProfileComponent } from '@/components/profile/ProfileComponent'
 import { useProfile } from '@/hooks/useProfile'
 import { useRequireAuth } from '@/hooks/useAuth'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 export default function ProfilePage() {
   useRequireAuth()
   const controller = useProfile()
+  usePageTitle('Profile')
 
   return (
     <AppLayout>

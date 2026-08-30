@@ -1,3 +1,5 @@
+export const metadata = { title: 'Privacy Policy' }
+
 export default function PrivacyPage() {
   return (
     <div className="prose max-w-none">

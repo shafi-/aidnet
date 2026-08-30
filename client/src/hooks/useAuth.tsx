@@ -115,7 +115,7 @@ export function useRequireAuth() {
 
   useEffect(() => {
     if (!auth.loading && !auth.user) {
-      router.push('/auth/login/')
+      router.push('/auth/login')
     }
   }, [auth.loading, auth.user, router])
 

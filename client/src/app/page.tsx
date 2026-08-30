@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { usePublicCampaigns } from '@/hooks/usePublicCampaigns'
 import { CampaignCard } from '@/components/campaign/CampaignCard'
 import { Nav } from '@/components/layout/Nav'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 function LandingCampaigns() {
   const { campaigns, loading } = usePublicCampaigns({ limit: 12 })
@@ -39,6 +40,7 @@ function LandingCampaigns() {
 }
 
 export default function HomePage() {
+  usePageTitle('Donate — Discover campaigns that matter')
   const { user, loading } = useAuth()
 
   if (loading) {

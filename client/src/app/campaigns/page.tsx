@@ -7,6 +7,7 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { usePublicCampaigns } from '@/hooks/usePublicCampaigns'
 import { CampaignCard } from '@/components/campaign/CampaignCard'
 import { isUuid } from '@/hooks/useQueryParam'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 function CampaignsContent() {
   const searchParams = useSearchParams()
@@ -16,6 +17,7 @@ function CampaignsContent() {
   const zakat = zakatParam === 'true'
   const org = orgParam && isUuid(orgParam) ? orgParam : null
 
+  usePageTitle('Discover Campaigns')
   const { campaigns, loading, error } = usePublicCampaigns({ zakat, org })
 
   const buildHref = (nextZakat: boolean) => {
@@ -79,8 +81,22 @@ function CampaignsContent() {
         )}
 
         {!loading && !error && campaigns.length === 0 && (
-          <div className="py-12 text-center text-gray-500">
-            No campaigns found.
+          <div className="space-y-3 py-12 text-center text-gray-500">
+            <p>
+              {zakat
+                ? 'No zakat-eligible campaigns found.'
+                : org
+                  ? 'No campaigns found for this organization.'
+                  : 'No campaigns found yet.'}
+            </p>
+            {(zakat || org) && (
+              <Link
+                href="/campaigns"
+                className="font-medium text-indigo-600 hover:text-indigo-700"
+              >
+                Clear filters
+              </Link>
+            )}
           </div>
         )}
 

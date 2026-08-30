@@ -1,19 +1,26 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
+import { useOrganization } from '@/hooks/useOrganization'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
-export default function RegisterPage() {
+function RegisterContent() {
   const { signUp } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const next = searchParams.get('next')
+  const { currentOrg } = useOrganization()
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  usePageTitle('Create Account')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -40,7 +47,8 @@ export default function RegisterPage() {
       if (error) {
         setError(error)
       } else {
-        router.push('/dashboard')
+        const dest = next || (currentOrg ? '/dashboard' : '/orgs')
+        router.push(dest)
       }
     } catch (error) {
       setError(
@@ -56,11 +64,14 @@ export default function RegisterPage() {
       <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-gray-900">Create Account</h1>
-          <p className="mt-2 text-gray-600">Join SupaNext today</p>
+          <p className="mt-2 text-gray-600">Join Donate today</p>
         </div>
 
         {error && (
-          <div className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+          <div
+            className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-red-700"
+            role="alert"
+          >
             {error}
           </div>
         )}
@@ -172,5 +183,19 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+          <div className="text-center text-gray-600">Loading...</div>
+        </div>
+      }
+    >
+      <RegisterContent />
+    </Suspense>
   )
 }

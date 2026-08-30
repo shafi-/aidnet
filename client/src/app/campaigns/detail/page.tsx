@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { publicCampaignService } from '@/services/PublicCampaignService'
 import type { PublicCampaign } from '@/types'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 function CampaignDetailContent() {
   const searchParams = useSearchParams()
@@ -13,6 +14,8 @@ function CampaignDetailContent() {
   const [campaign, setCampaign] = useState<PublicCampaign | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  usePageTitle(campaign ? campaign.title : 'Campaign')
 
   useEffect(() => {
     if (!slug) {

@@ -6,19 +6,27 @@ import { OrgDashboard } from '@/components/org/OrgDashboard'
 import { DashboardCards } from '@/components/dashboard/DashboardCards'
 import { QuickStats } from '@/components/dashboard/QuickStats'
 import { AppLayout } from '@/components/layout/AppLayout'
+import { useProfile } from '@/hooks/useProfile'
+import { usePageTitle } from '@/hooks/usePageTitle'
 import Link from 'next/link'
 
 export default function DashboardPage() {
   useRequireAuth()
   const { user } = useAuth()
   const { currentOrg } = useOrganization()
+  const { fullName } = useProfile()
+  usePageTitle('Dashboard')
 
   return (
     <AppLayout>
       <div className="space-y-6">
         <div className="rounded-lg bg-white p-6 shadow">
           <h1 className="text-2xl font-bold">Dashboard</h1>
-          {user && <p className="text-gray-600">Welcome back, {user.email}!</p>}
+          {user && (
+            <p className="text-gray-600">
+              Welcome back, {fullName || user.email}!
+            </p>
+          )}
         </div>
 
         {/* Security: Show message if no active org is selected */}

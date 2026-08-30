@@ -6,9 +6,11 @@ import { useOrganization } from '@/hooks/useOrganization'
 import { useRequiredParam } from '@/hooks/useQueryParam'
 import { useEffect } from 'react'
 import Link from 'next/link'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 export default function OrgsPage() {
   useRequireAuth()
+  usePageTitle('Organizations')
   const orgId = useRequiredParam('id')
   const { selectOrgById } = useOrganization()
 

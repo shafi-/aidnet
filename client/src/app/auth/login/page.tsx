@@ -1,17 +1,24 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
+import { useOrganization } from '@/hooks/useOrganization'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
-export default function LoginPage() {
+function LoginContent() {
   const { signIn } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const next = searchParams.get('next')
+  const { currentOrg } = useOrganization()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  usePageTitle('Sign In')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,7 +35,8 @@ export default function LoginPage() {
       if (error) {
         setError(error)
       } else {
-        router.push('/dashboard')
+        const dest = next || (currentOrg ? '/dashboard' : '/orgs')
+        router.push(dest)
       }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to sign in')
@@ -128,5 +136,19 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+          <div className="text-center text-gray-600">Loading...</div>
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   )
 }

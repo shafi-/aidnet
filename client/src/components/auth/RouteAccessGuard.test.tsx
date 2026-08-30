@@ -59,7 +59,7 @@ describe('RouteAccessGuard', () => {
     mockPathname = '/orgs'
     renderGuard()
 
-    expect(push).toHaveBeenCalledWith('/auth/login/')
+    expect(push).toHaveBeenCalledWith('/auth/login')
     expect(screen.queryByText('protected-content')).not.toBeInTheDocument()
   })
 

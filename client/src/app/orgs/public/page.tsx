@@ -7,6 +7,7 @@ import { usePublicOrg } from '@/hooks/usePublicOrg'
 import { usePublicCampaigns } from '@/hooks/usePublicCampaigns'
 import { useAuth } from '@/hooks/useAuth'
 import { CampaignCard } from '@/components/campaign/CampaignCard'
+import { usePageTitle } from '@/hooks/usePageTitle'
 import Link from 'next/link'
 
 function OrgCampaignsSection({
@@ -70,6 +71,8 @@ function PublicOrgContent() {
         day: 'numeric',
       })
     : '—'
+
+  usePageTitle(org ? org.name : 'Organization')
 
   return (
     <AppLayout>

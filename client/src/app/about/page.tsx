@@ -1,3 +1,5 @@
+export const metadata = { title: 'About Donate' }
+
 export default function AboutPage() {
   return (
     <div className="prose max-w-none">
