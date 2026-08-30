@@ -89,11 +89,9 @@
 - Organization management
 - Member management
 
-### Edge Functions
-- Sign-up function
-- Sign-in function  
-- Password reset function
-- Email verification (optional)
+### Auth (client-side, Supabase JS)
+- User registration, login, password reset via the `useAuth` hook
+- No custom edge functions (`supabase/functions/` is empty)
 
 ### UI Components
 - shadcn/ui component integration

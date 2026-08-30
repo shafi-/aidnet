@@ -1,10 +1,10 @@
 # AGENTS.md — Operating Rules for AI Agents
 
 You are working on **donate**: a static-export NextJS client backed by Supabase
-(PostgreSQL functions + Auth + Edge Functions). Read this file fully before
+(PostgreSQL functions + Auth). Read this file fully before
 changing anything. Canonical companions:
 
-- `CLAUDE.md` — architecture overview and directory map
+- `CLAUDE.md` — pointer to this file (authoritative rules; do not duplicate content there)
 - `supabase/README.md` — database architecture philosophy
 - `client/tests/test-creation-guideline.md` — testing law (both tiers)
 
@@ -68,8 +68,8 @@ changing anything. Canonical companions:
   `isUuid()` / `isInviteToken()`.
 - Components are stateless: props in, callbacks out. Only containers touch
   services. All state lives in containers/hooks/providers.
-- Auth is edge-function-based (sign-up/sign-in/reset), centralized in the auth
-  provider — not NextJS auth.
+- Auth uses the Supabase JS client via the `useAuth` hook / auth provider — not
+  NextJS auth. There are no custom edge functions in `supabase/functions/`.
 
 ---
 
@@ -137,6 +137,22 @@ so run e2e manually before merging UI changes.
 2. Update the entity's repository + fixtures; adjust `RpcReturn` usage.
 3. If audience differs from current naming (System vs Org), split the
    repository/service — do not grow mixed-audience classes.
+
+**Deploy to production**
+- Backend: link the hosted project, then push migrations. No custom edge
+  functions exist (`supabase/functions/` is empty), so `supabase functions deploy`
+  is a no-op — do not rely on it.
+  ```sh
+  supabase link --project-ref <ref> --config-path supabase/config.production.toml
+  supabase db push --config-path supabase/config.production.toml
+  # regenerate types from the linked project if the schema diverged
+  supabase gen types typescript --linked > client/src/types/database.ts
+  ```
+- Frontend: static export. Set `NEXT_PUBLIC_SUPABASE_URL` and
+  `NEXT_PUBLIC_SUPABASE_ANON_KEY` to the hosted project, then build and ship
+  `client/out/` to any static host (Vercel/Netlify/etc.). No deploy config is
+  committed yet — add `vercel.json` / `netlify.toml` when wiring CI.
+- After any seed change, re-run `./supabase/seed-auth.sh` against the target.
 
 ---
 

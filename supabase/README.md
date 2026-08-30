@@ -1,6 +1,6 @@
 # Supabase Database Architecture
 
-This directory contains the database migrations, edge functions, and configuration for the Supabase backend following a **function-first architecture**.
+This directory contains the database migrations and configuration for the Supabase backend following a **function-first architecture**. (No custom edge functions are used — `functions/` is empty.)
 
 ## Architecture Overview
 
