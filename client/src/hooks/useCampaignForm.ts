@@ -89,9 +89,30 @@ export function useCampaignForm({
 
   const cancel = () => router.push('/dashboard/campaigns')
 
+  const validate = (): string | null => {
+    if (!form.title.trim()) return 'Title is required'
+    if (form.goalAmount && isNaN(Number(form.goalAmount)))
+      return 'Goal amount must be a number'
+    if (form.goalAmount && Number(form.goalAmount) <= 0)
+      return 'Goal amount must be greater than zero'
+    if (form.startDate && form.endDate) {
+      const start = new Date(form.startDate)
+      const end = new Date(form.endDate)
+      if (end < start) return 'End date must be on or after the start date'
+    }
+    return null
+  }
+
   const submit = async () => {
     setSaving(true)
     setError(null)
+
+    const validationError = validate()
+    if (validationError) {
+      setError(validationError)
+      setSaving(false)
+      return
+    }
 
     const slug = form.slug || slugify(form.title)
     const goal = form.goalAmount ? Number(form.goalAmount) : null
