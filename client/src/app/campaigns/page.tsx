@@ -63,13 +63,17 @@ function CampaignsContent() {
         </div>
 
         {loading && (
-          <div className="py-12 text-center text-gray-500">
+          <div
+            className="py-12 text-center text-gray-500"
+            role="status"
+            aria-live="polite"
+          >
             Loading campaigns...
           </div>
         )}
 
         {error && (
-          <div className="py-12 text-center text-red-600">
+          <div className="py-12 text-center text-red-600" role="alert">
             Failed to load campaigns: {error}
           </div>
         )}

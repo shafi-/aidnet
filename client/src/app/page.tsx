@@ -11,7 +11,13 @@ function LandingCampaigns() {
 
   if (loading) {
     return (
-      <div className="py-8 text-center text-gray-500">Loading campaigns...</div>
+      <div
+        className="py-8 text-center text-gray-500"
+        role="status"
+        aria-live="polite"
+      >
+        Loading campaigns...
+      </div>
     )
   }
 
@@ -37,7 +43,11 @@ export default function HomePage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div
+        className="flex min-h-screen items-center justify-center"
+        role="status"
+        aria-live="polite"
+      >
         <div className="text-center">
           <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-gray-900"></div>
           <p className="mt-4 text-gray-600">Loading...</p>

@@ -75,13 +75,13 @@ function PublicOrgContent() {
     <AppLayout>
       <div className="mx-auto max-w-2xl space-y-8">
         {loading && (
-          <div className="py-12 text-center">
+          <div className="py-12 text-center" role="status" aria-live="polite">
             <div className="text-gray-500">Loading organization...</div>
           </div>
         )}
 
         {error && (
-          <div className="space-y-4 py-12 text-center">
+          <div className="space-y-4 py-12 text-center" role="alert">
             <h1 className="text-2xl font-bold text-gray-900">
               Organization Not Found
             </h1>

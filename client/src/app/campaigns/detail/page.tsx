@@ -54,11 +54,17 @@ function CampaignDetailContent() {
         </Link>
 
         {loading && (
-          <div className="py-12 text-center text-gray-500">Loading...</div>
+          <div
+            className="py-12 text-center text-gray-500"
+            role="status"
+            aria-live="polite"
+          >
+            Loading...
+          </div>
         )}
 
         {error && (
-          <div className="space-y-4 py-12 text-center">
+          <div className="space-y-4 py-12 text-center" role="alert">
             <h1 className="text-2xl font-bold text-gray-900">
               Campaign Not Available
             </h1>
@@ -95,6 +101,7 @@ function CampaignDetailContent() {
               <img
                 src={campaign.cover_image_url}
                 alt={campaign.title}
+                loading="lazy"
                 className="w-full rounded-lg shadow"
               />
             )}
@@ -226,6 +233,7 @@ function DonationMethods({
               <img
                 src={m.qr_image_url}
                 alt="Donation QR code"
+                loading="lazy"
                 className="h-40 w-40 rounded border object-contain"
               />
             )}
@@ -241,7 +249,13 @@ export default function CampaignDetailPage() {
     <Suspense
       fallback={
         <AppLayout>
-          <div className="py-12 text-center text-gray-500">Loading...</div>
+          <div
+            className="py-12 text-center text-gray-500"
+            role="status"
+            aria-live="polite"
+          >
+            Loading...
+          </div>
         </AppLayout>
       }
     >

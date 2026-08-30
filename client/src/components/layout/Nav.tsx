@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { useOrganization } from '@/hooks/useOrganization'
 import { useSystemAdmin } from '@/hooks/useSystemAdmin'
@@ -47,7 +47,13 @@ export function Nav() {
   const { isSystemAdmin } = useSystemAdmin()
   const [mobileOpen, setMobileOpen] = useState(false)
   const router = useRouter()
+  const pathname = usePathname()
   const links = buildNavLinks(user, currentOrg, isSystemAdmin)
+
+  const isActive = (href: string) =>
+    href === '/'
+      ? pathname === '/'
+      : pathname === href || pathname.startsWith(`${href}/`)
 
   const handleSignOut = () => {
     setMobileOpen(false)
@@ -59,15 +65,27 @@ export function Nav() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 justify-between">
           <div className="flex items-center gap-8">
-            <Link href="/" className="text-xl font-bold">
+            <Link
+              href="/"
+              aria-current={isActive('/') ? 'page' : undefined}
+              className="text-xl font-bold"
+            >
               Donate
             </Link>
             <div className="hidden gap-4 md:flex">
-              {links.map(link => (
-                <Link key={link.href} href={link.href} className={linkClass}>
-                  {link.label}
-                </Link>
-              ))}
+              {links.map(link => {
+                const active = isActive(link.href)
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    aria-current={active ? 'page' : undefined}
+                    className={`${linkClass} ${active ? 'font-semibold text-gray-900' : ''}`}
+                  >
+                    {link.label}
+                  </Link>
+                )
+              })}
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -143,16 +161,20 @@ export function Nav() {
                 >
                   Profile
                 </Link>
-                {links.map(link => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={`block py-2 ${linkClass}`}
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
+                {links.map(link => {
+                  const active = isActive(link.href)
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      aria-current={active ? 'page' : undefined}
+                      className={`block py-2 ${linkClass} ${active ? 'font-semibold text-gray-900' : ''}`}
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      {link.label}
+                    </Link>
+                  )
+                })}
                 <button
                   type="button"
                   onClick={handleSignOut}

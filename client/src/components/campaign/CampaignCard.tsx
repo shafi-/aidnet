@@ -12,6 +12,7 @@ export function CampaignCard({ campaign }: { campaign: PublicCampaign }) {
         <img
           src={campaign.cover_image_url}
           alt={campaign.title}
+          loading="lazy"
           className="h-40 w-full object-cover"
         />
       ) : (
