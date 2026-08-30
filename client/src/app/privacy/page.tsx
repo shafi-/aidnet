@@ -3,12 +3,24 @@ export default function PrivacyPage() {
     <div className="prose max-w-none">
       <h1>Privacy Policy</h1>
       <p>
-        This is a template privacy policy page. Replace with your actual policy.
+        Your privacy matters. This policy explains what data we collect and how
+        we use it.
       </p>
-      <h2>Data Collection</h2>
-      <p>We collect only the information necessary to provide our services.</p>
-      <h2>Data Usage</h2>
-      <p>Your data is used solely for providing and improving our services.</p>
+      <h2>Data We Collect</h2>
+      <p>
+        Account information (email, name) provided during sign-up. Donation
+        history and campaign interactions.
+      </p>
+      <h2>How We Use Your Data</h2>
+      <p>
+        To operate the platform, process donations, and communicate about your
+        account. We do not sell or share personal data with third parties.
+      </p>
+      <h2>Data Security</h2>
+      <p>
+        All data is encrypted in transit and at rest. Access is restricted by
+        role-based authorization at the database level.
+      </p>
     </div>
   )
 }

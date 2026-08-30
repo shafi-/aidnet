@@ -20,7 +20,7 @@ export function Nav() {
         <div className="flex h-16 justify-between">
           <div className="flex items-center gap-8">
             <Link href="/" className="text-xl font-bold">
-              SupaNext
+              Donate
             </Link>
             <div className="hidden gap-4 md:flex">
               <Link
@@ -52,18 +52,6 @@ export function Nav() {
                         className="text-gray-600 hover:text-gray-900"
                       >
                         Dashboard
-                      </Link>
-                      <Link
-                        href="/dashboard/todos"
-                        className="text-gray-600 hover:text-gray-900"
-                      >
-                        Todos
-                      </Link>
-                      <Link
-                        href="/dashboard/members"
-                        className="text-gray-600 hover:text-gray-900"
-                      >
-                        Members
                       </Link>
                       <Link
                         href="/dashboard/campaigns"

@@ -51,7 +51,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 justify-between">
             <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">SupaNext</h1>
+              <h1 className="text-xl font-bold text-gray-900">Donate</h1>
             </div>
             <div className="flex items-center space-x-4">
               {user ? (
@@ -93,11 +93,10 @@ export default function HomePage() {
       <main className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="text-center">
           <h2 className="text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl">
-            Welcome to SupaNext
+            Welcome to Donate
           </h2>
           <p className="mx-auto mt-5 max-w-md text-xl text-gray-500">
-            A production-ready NextJS + Supabase starter template with
-            function-first database architecture
+            Discover campaigns that matter and support the causes you care about
           </p>
 
           <div className="mt-10">
@@ -166,11 +165,11 @@ export default function HomePage() {
               </svg>
             </div>
             <h3 className="mb-2 text-lg font-semibold text-gray-900">
-              Secure Authentication
+              Trusted Organizations
             </h3>
             <p className="text-gray-600">
-              Multi-factor authentication with role-based access control and
-              organization management.
+              Every organization is reviewed and approved before they can launch
+              campaigns.
             </p>
           </div>
 
@@ -191,11 +190,11 @@ export default function HomePage() {
               </svg>
             </div>
             <h3 className="mb-2 text-lg font-semibold text-gray-900">
-              Function-First Database
+              Transparent Campaigns
             </h3>
             <p className="text-gray-600">
-              All operations through secure PostgreSQL functions with built-in
-              authorization and audit logging.
+              Browse live campaigns with clear goals, descriptions, and donation
+              methods.
             </p>
           </div>
 
@@ -216,11 +215,11 @@ export default function HomePage() {
               </svg>
             </div>
             <h3 className="mb-2 text-lg font-semibold text-gray-900">
-              Modern UI Components
+              Easy Donations
             </h3>
             <p className="text-gray-600">
-              Beautiful, accessible components built with shadcn/ui and
-              TailwindCSS.
+              Multiple payment methods and a streamlined flow to get your
+              support where it matters.
             </p>
           </div>
         </div>

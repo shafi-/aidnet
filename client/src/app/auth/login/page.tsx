@@ -42,7 +42,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-gray-900">Sign In</h1>
-          <p className="mt-2 text-gray-600">Welcome back to SupaNext</p>
+          <p className="mt-2 text-gray-600">Welcome back</p>
         </div>
 
         {error && (
@@ -88,21 +88,7 @@ export default function LoginPage() {
             />
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <input
-                id="remember"
-                type="checkbox"
-                className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-              />
-              <label
-                htmlFor="remember"
-                className="ml-2 block text-sm text-gray-700"
-              >
-                Remember me
-              </label>
-            </div>
-
+          <div className="flex items-center justify-end">
             <Link
               href="/auth/reset-password/"
               className="text-sm text-indigo-600 hover:text-indigo-500"
