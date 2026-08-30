@@ -4,6 +4,7 @@ import './globals.css'
 import { AuthProvider } from '@/hooks/useAuth'
 import { OrganizationProvider } from '@/hooks/useOrganization'
 import { RouteAccessGuard } from '@/components/auth/RouteAccessGuard'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -23,7 +24,9 @@ export default function RootLayout({
       <body className={inter.className}>
         <AuthProvider>
           <RouteAccessGuard>
-            <OrganizationProvider>{children}</OrganizationProvider>
+            <ErrorBoundary>
+              <OrganizationProvider>{children}</OrganizationProvider>
+            </ErrorBoundary>
           </RouteAccessGuard>
         </AuthProvider>
       </body>
