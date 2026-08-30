@@ -1,44 +1,29 @@
 import { test, expect } from '@playwright/test'
 
-const TEST_EMAIL = `dash-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`
-const TEST_PASSWORD = 'DashPassword123!'
+const OWNER = { email: 'owner@donate.app', password: 'Password123!' }
 
 test.describe('Dashboard', () => {
-  test.beforeAll(async ({ browser }) => {
-    const page = await browser.newPage()
-    await page.goto('/auth/register/')
-    await page.locator('#fullName').fill('Dashboard Test User')
-    await page.locator('#email').fill(TEST_EMAIL)
-    await page.locator('#password').fill(TEST_PASSWORD)
-    await page.locator('#confirmPassword').fill(TEST_PASSWORD)
-    await page.getByRole('button', { name: 'Create Account' }).click()
-    // Registration must succeed and land on the dashboard; surface any failure
-    // (including a parallel-worker collision) instead of silently continuing.
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
-    await page.close()
-  })
-
   test('When not authenticated, /dashboard redirects to login', async ({
     page,
   }) => {
     await page.goto('/dashboard/')
-    await expect(page).toHaveURL(/\/auth\/login/, { timeout: 10000 })
+    await expect(page).toHaveURL(/\/auth\/login/)
   })
 
   test('When authenticated, dashboard shows welcome and heading', async ({
     page,
   }) => {
     await page.goto('/auth/login/')
-    await page.locator('#email').fill(TEST_EMAIL)
-    await page.locator('#password').fill(TEST_PASSWORD)
+    await page.locator('#email').fill(OWNER.email)
+    await page.locator('#password').fill(OWNER.password)
     await page.getByRole('button', { name: 'Sign In' }).click()
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+    await expect(page).toHaveURL(/\/dashboard/)
 
     await expect(
       page.getByRole('heading', { name: 'Dashboard', exact: true })
     ).toBeVisible()
     await expect(
-      page.locator(`text=Welcome back, ${TEST_EMAIL}!`)
+      page.locator(`text=Welcome back, ${OWNER.email}!`)
     ).toBeVisible()
   })
 
@@ -46,10 +31,10 @@ test.describe('Dashboard', () => {
     page,
   }) => {
     await page.goto('/auth/login/')
-    await page.locator('#email').fill(TEST_EMAIL)
-    await page.locator('#password').fill(TEST_PASSWORD)
+    await page.locator('#email').fill(OWNER.email)
+    await page.locator('#password').fill(OWNER.password)
     await page.getByRole('button', { name: 'Sign In' }).click()
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+    await expect(page).toHaveURL(/\/dashboard/)
 
     await expect(
       page.getByRole('heading', { name: 'Dashboard', exact: true })
@@ -66,10 +51,10 @@ test.describe('Dashboard', () => {
     page,
   }) => {
     await page.goto('/auth/login/')
-    await page.locator('#email').fill(TEST_EMAIL)
-    await page.locator('#password').fill(TEST_PASSWORD)
+    await page.locator('#email').fill(OWNER.email)
+    await page.locator('#password').fill(OWNER.password)
     await page.getByRole('button', { name: 'Sign In' }).click()
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+    await expect(page).toHaveURL(/\/dashboard/)
 
     await expect(
       page.getByRole('heading', { name: 'My Organizations' })
@@ -84,10 +69,10 @@ test.describe('Dashboard', () => {
     page,
   }) => {
     await page.goto('/auth/login/')
-    await page.locator('#email').fill(TEST_EMAIL)
-    await page.locator('#password').fill(TEST_PASSWORD)
+    await page.locator('#email').fill(OWNER.email)
+    await page.locator('#password').fill(OWNER.password)
     await page.getByRole('button', { name: 'Sign In' }).click()
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+    await expect(page).toHaveURL(/\/dashboard/)
 
     await expect(
       page.getByRole('heading', { name: 'Quick Stats' })
@@ -98,14 +83,14 @@ test.describe('Dashboard', () => {
     page,
   }) => {
     await page.goto('/auth/login/')
-    await page.locator('#email').fill(TEST_EMAIL)
-    await page.locator('#password').fill(TEST_PASSWORD)
+    await page.locator('#email').fill(OWNER.email)
+    await page.locator('#password').fill(OWNER.password)
     await page.getByRole('button', { name: 'Sign In' }).click()
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+    await expect(page).toHaveURL(/\/dashboard/)
 
     // Dashboard has no nav — use a page with AppLayout nav
     await page.goto('/campaigns/')
-    await page.locator('nav').getByText(TEST_EMAIL).click()
+    await page.locator('nav').getByText(OWNER.email).click()
     await expect(page).toHaveURL(/\/profile/)
   })
 
@@ -113,14 +98,14 @@ test.describe('Dashboard', () => {
     page,
   }) => {
     await page.goto('/auth/login/')
-    await page.locator('#email').fill(TEST_EMAIL)
-    await page.locator('#password').fill(TEST_PASSWORD)
+    await page.locator('#email').fill(OWNER.email)
+    await page.locator('#password').fill(OWNER.password)
     await page.getByRole('button', { name: 'Sign In' }).click()
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+    await expect(page).toHaveURL(/\/dashboard/)
 
     // Dashboard has no nav — use a page with AppLayout nav
     await page.goto('/campaigns/')
     await page.locator('button', { hasText: 'Sign out' }).click()
-    await expect(page).toHaveURL(/\/auth\/login\//, { timeout: 10000 })
+    await expect(page).toHaveURL(/\/auth\/login\//)
   })
 })

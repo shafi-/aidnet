@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test'
 
+const OWNER = { email: 'owner@donate.app', password: 'Password123!' }
+
 test.describe('Responsive Design', () => {
   test.describe('Mobile Layout', () => {
     test.use({ viewport: { width: 375, height: 812 } })
@@ -40,16 +42,11 @@ test.describe('Responsive Design', () => {
     test('When desktop viewport and authed, dashboard renders', async ({
       page,
     }) => {
-      const testEmail = `desktop-${Date.now()}@example.com`
-      const testPassword = 'DesktopPass123!'
-
-      await page.goto('/auth/register/')
-      await page.locator('#fullName').fill('Desktop Test User')
-      await page.locator('#email').fill(testEmail)
-      await page.locator('#password').fill(testPassword)
-      await page.locator('#confirmPassword').fill(testPassword)
-      await page.getByRole('button', { name: 'Create Account' }).click()
-      await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+      await page.goto('/auth/login/')
+      await page.locator('#email').fill(OWNER.email)
+      await page.locator('#password').fill(OWNER.password)
+      await page.getByRole('button', { name: 'Sign In' }).click()
+      await expect(page).toHaveURL(/\/dashboard/)
 
       await expect(page.locator('text=My Organizations')).toBeVisible()
       await expect(page.locator('text=Profile Settings')).toBeVisible()

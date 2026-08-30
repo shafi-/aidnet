@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test'
+import { registerViaApi } from './lib/api'
 
 const TEST_PASSWORD = 'SecurityTest123!'
 
-// Seeded admin (admin@donate.app) is guaranteed system admin by seed-auth.sh;
 const SEEDED_ADMIN = { email: 'admin@donate.app', password: 'Password123!' }
 
 async function loginAsSeededAdmin(page: import('@playwright/test').Page) {
@@ -10,62 +10,48 @@ async function loginAsSeededAdmin(page: import('@playwright/test').Page) {
   await page.locator('#email').fill(SEEDED_ADMIN.email)
   await page.locator('#password').fill(SEEDED_ADMIN.password)
   await page.getByRole('button', { name: 'Sign In' }).click()
-  await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+  await expect(page).toHaveURL(/\/dashboard/)
 }
-// bootstrap_system_admin() raises when any system admin already exists.
-async function registerUser(
+
+async function loginAsUser(
   page: import('@playwright/test').Page,
-  email: string
+  email: string,
+  password: string
 ) {
-  await page.goto('/auth/register/')
-  await page.locator('#fullName').fill(`User ${Date.now()}`)
+  await page.goto('/auth/login/')
   await page.locator('#email').fill(email)
-  await page.locator('#password').fill(TEST_PASSWORD)
-  await page.locator('#confirmPassword').fill(TEST_PASSWORD)
-  await page.getByRole('button', { name: 'Create Account' }).click()
-  await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+  await page.locator('#password').fill(password)
+  await page.getByRole('button', { name: 'Sign In' }).click()
+  await expect(page).toHaveURL(/\/dashboard/)
 }
 
 async function approveRequest(
   page: import('@playwright/test').Page,
   orgName: string
 ) {
-  await page.goto('/auth/login/')
-  await page.locator('#email').fill(SEEDED_ADMIN.email)
-  await page.locator('#password').fill(SEEDED_ADMIN.password)
-  await page.getByRole('button', { name: 'Sign In' }).click()
-  await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+  await loginAsSeededAdmin(page)
   await page.goto('/admin/org-requests/')
-  // Target THIS test's request card so parallel specs never cross-approve.
-  // If a parallel spec already approved it, skip.
-  // Wait for the card in ANY state first: a parallel/earlier approval may
-  // have landed between submission and this list load.
   const anyCard = page.locator('div.rounded-lg.bg-white', {
     hasText: orgName,
   })
-  await expect(anyCard).toBeVisible({ timeout: 15000 })
+  await expect(anyCard).toBeVisible()
   const reviewButton = anyCard.getByRole('button', { name: 'Review' })
   if (!(await reviewButton.count())) return // already reviewed
   await reviewButton.click()
   await page.getByRole('button', { name: 'Approve', exact: true }).click()
   await expect(
     page.getByText('Organization approved and created successfully!')
-  ).toBeVisible({ timeout: 15000 })
+  ).toBeVisible()
 }
 
 test.describe.serial('Security: Organization Selection Protection', () => {
   test('When localStorage contains invalid org, it gets cleared on load', async ({
     page,
   }) => {
-    // Setup user
+    // Register via API, login via UI
     const userEmail = `security-test-${Date.now()}@example.com`
-    await page.goto('/auth/register/')
-    await page.locator('#fullName').fill('Security Test User')
-    await page.locator('#email').fill(userEmail)
-    await page.locator('#password').fill(TEST_PASSWORD)
-    await page.locator('#confirmPassword').fill(TEST_PASSWORD)
-    await page.getByRole('button', { name: 'Create Account' }).click()
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+    await registerViaApi(page, userEmail, TEST_PASSWORD, 'Security Test User')
+    await loginAsUser(page, userEmail, TEST_PASSWORD)
 
     // Manually set invalid org in localStorage
     const invalidOrgId = 'malicious-org-id-12345'
@@ -76,17 +62,15 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     // Navigate to dashboard
     await page.goto('/dashboard')
 
-    // The tampered id must be gone. A fresh user's single personal org is
-    // auto-selected afterwards, so the stored value becomes a valid id (or
-    // null for a zero-org user) — never the injected one.
-    //
-    // Wait for the personal org's name heading to appear — it only renders
-    // AFTER currentOrg is restored from localStorage (async) and the
-    // invalid ID has been cleared. The "Dashboard" heading is always
-    // visible and doesn't signal that the restore effect has completed.
+    // The tampered id must be gone.  With no personal org (trigger no longer
+    // creates one), the user has 0 orgs — the provider clears the invalid
+    // id during restore.  Wait for either the user's name heading (1 org)
+    // or the org selector overlay (0 orgs) — both prove the restore ran.
     await expect(
-      page.getByRole('heading', { name: 'Security Test User' })
-    ).toBeVisible({ timeout: 15000 })
+      page.getByRole('heading', {
+        name: /Security Test User|Select an Organization/,
+      })
+    ).toBeVisible({ timeout: 10000 })
 
     const storedOrgId = await page.evaluate(() =>
       localStorage.getItem('supanext.currentOrgId')
@@ -97,13 +81,19 @@ test.describe.serial('Security: Organization Selection Protection', () => {
   test('When user tries to select suspended org via URL, it is blocked', async ({
     page,
   }) => {
-    // org_requests are never suspended; only an active org can be suspended.
     const requesterEmail = `suspend-user-${Date.now()}@example.com`
     const orgName = `Suspended Test Org ${Date.now()}`
     const orgSlug = `suspended-test-org-${Date.now()}`
 
-    // Requester submits a request
-    await registerUser(page, requesterEmail)
+    // Register via API, login via UI, submit request
+    await registerViaApi(
+      page,
+      requesterEmail,
+      TEST_PASSWORD,
+      `User ${Date.now()}`
+    )
+    await loginAsUser(page, requesterEmail, TEST_PASSWORD)
+
     await page.goto('/org/request')
     await page.getByPlaceholder('My Organization').fill(orgName)
     await page.getByPlaceholder('my-organization').fill(orgSlug)
@@ -114,11 +104,7 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     await approveRequest(page, orgName)
 
     // Requester reads the active org id
-    await page.goto('/auth/login/')
-    await page.locator('#email').fill(requesterEmail)
-    await page.locator('#password').fill(TEST_PASSWORD)
-    await page.getByRole('button', { name: 'Sign In' }).click()
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+    await loginAsUser(page, requesterEmail, TEST_PASSWORD)
 
     // Fresh load so the list reflects the just-approved org
     await page.goto('/orgs')
@@ -130,9 +116,6 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     expect(orgId).toBeTruthy()
 
     // Admin suspends the active org via the proper org-management page
-    // (/admin/orgs). org_requests are never suspended; only an active org can
-    // be suspended, and that control lives on the orgs admin page.
-    // Suspend via seeded admin
     await loginAsSeededAdmin(page)
     await page.goto('/admin/orgs')
     await page
@@ -144,11 +127,7 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     ).toBeVisible()
 
     // Requester attempts to open the suspended org directly via ?id=
-    await page.goto('/auth/login/')
-    await page.locator('#email').fill(requesterEmail)
-    await page.locator('#password').fill(TEST_PASSWORD)
-    await page.getByRole('button', { name: 'Sign In' }).click()
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+    await loginAsUser(page, requesterEmail, TEST_PASSWORD)
 
     await page.goto(`/orgs/?id=${orgId}`)
 
@@ -156,7 +135,7 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     // localStorage must NOT hold the suspended org id.
     await expect(
       page.getByRole('heading', { name: 'Organizations' })
-    ).toBeVisible({ timeout: 15000 })
+    ).toBeVisible()
     // Suspended badge confirms the org is listed but blocked
     await expect(
       page.locator('span:has-text("Suspended")').first()
@@ -171,13 +150,8 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     page,
   }) => {
     const userEmail = `xss-test-${Date.now()}@example.com`
-    await page.goto('/auth/register/')
-    await page.locator('#fullName').fill('XSS Test User')
-    await page.locator('#email').fill(userEmail)
-    await page.locator('#password').fill(TEST_PASSWORD)
-    await page.locator('#confirmPassword').fill(TEST_PASSWORD)
-    await page.getByRole('button', { name: 'Create Account' }).click()
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+    await registerViaApi(page, userEmail, TEST_PASSWORD, 'XSS Test User')
+    await loginAsUser(page, userEmail, TEST_PASSWORD)
 
     // Try to inject malicious HTML into localStorage
     const maliciousOrgId = '<script>alert("XSS")</script>'
@@ -208,8 +182,10 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     const user1Email = `user1-isolation-${Date.now()}@example.com`
     const user2Email = `user2-isolation-${Date.now()}@example.com`
 
-    // Requester (user1) submits a request
-    await registerUser(page, user1Email)
+    // Requester (user1) registers via API, login via UI, submits a request
+    await registerViaApi(page, user1Email, TEST_PASSWORD, `User1 ${Date.now()}`)
+    await loginAsUser(page, user1Email, TEST_PASSWORD)
+
     await page.goto('/org/request')
     await page.getByPlaceholder('My Organization').fill(orgName)
     await page.getByPlaceholder('my-organization').fill(orgSlug)
@@ -220,11 +196,7 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     await approveRequest(page, orgName)
 
     // user1 selects the org via ?id=
-    await page.goto('/auth/login/')
-    await page.locator('#email').fill(user1Email)
-    await page.locator('#password').fill(TEST_PASSWORD)
-    await page.getByRole('button', { name: 'Sign In' }).click()
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+    await loginAsUser(page, user1Email, TEST_PASSWORD)
 
     // The dashboard lists org names as plain text — the id link lives on /orgs
     await page.goto('/orgs')
@@ -239,10 +211,8 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     await page.goto(`/orgs/?id=${orgId}`)
     // selectOrgById persists asynchronously after its fetch — poll, don't race
     await expect
-      .poll(
-        async () =>
-          page.evaluate(() => localStorage.getItem('supanext.currentOrgId')),
-        { timeout: 10000 }
+      .poll(async () =>
+        page.evaluate(() => localStorage.getItem('supanext.currentOrgId'))
       )
       .toBe(orgId)
     const user1OrgId = await page.evaluate(() =>
@@ -255,7 +225,9 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     await page.getByRole('button', { name: 'Sign out' }).click()
 
     // user2 is a different, non-member user -> the org must NOT appear for them
-    await registerUser(page, user2Email)
+    await registerViaApi(page, user2Email, TEST_PASSWORD, `User2 ${Date.now()}`)
+    await loginAsUser(page, user2Email, TEST_PASSWORD)
+
     await page.goto('/orgs')
     const orgLinkForUser2 = page.locator(
       `a[href^="/orgs/?id="]:has-text("${orgName}")`

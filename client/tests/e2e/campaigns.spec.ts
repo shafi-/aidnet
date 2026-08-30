@@ -63,18 +63,18 @@ test.describe('Public discovery + filters', () => {
     // before asserting the API contract (isolates data-layer lag from UI bugs).
     let apiCampaigns: Awaited<ReturnType<typeof getPublicCampaigns>> = []
     await expect
-      .poll(
-        async () => {
-          apiCampaigns = await getPublicCampaigns(request)
-          return apiCampaigns.length
-        },
-        { timeout: 15000 }
-      )
+      .poll(async () => {
+        apiCampaigns = await getPublicCampaigns(request)
+        return apiCampaigns.length
+      })
       .toBeGreaterThan(0)
 
-    // At least one API campaign is reflected in the UI.
+    // At least one API campaign is reflected in the UI. The link accessible
+    // name includes extra text beyond the title (e.g. "Campaign 14 A"), so
+    // match by title substring and take first — the title is unique enough
+    // to narrow to one campaign.
     await expect(
-      page.getByRole('link', { name: apiCampaigns[0].title })
+      page.getByRole('link', { name: apiCampaigns[0].title }).first()
     ).toBeVisible()
   })
 

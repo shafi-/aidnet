@@ -4,6 +4,8 @@ import { signIn, SUPABASE_URL } from './lib/api'
 const TEST_EMAIL = `test-${Date.now()}@example.com`
 const TEST_PASSWORD = 'TestPassword123!'
 
+const OWNER = { email: 'owner@donate.app', password: 'Password123!' }
+
 test.describe('Auth Flow', () => {
   test.describe('Register Page', () => {
     test('When anon opens register, form fields render', async ({ page }) => {
@@ -58,7 +60,7 @@ test.describe('Auth Flow', () => {
       await page.locator('#confirmPassword').fill(TEST_PASSWORD)
       await page.getByRole('button', { name: 'Create Account' }).click()
 
-      await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+      await expect(page).toHaveURL(/\/dashboard/)
     })
   })
 
@@ -81,7 +83,7 @@ test.describe('Auth Flow', () => {
       await page.getByRole('button', { name: 'Sign In' }).click()
       await expect(
         page.getByText(/invalid|incorrect|credentials|could not/i)
-      ).toBeVisible({ timeout: 10000 })
+      ).toBeVisible()
     })
 
     test('When user clicks Sign up, navigates to register', async ({
@@ -110,35 +112,19 @@ test.describe('Auth Flow', () => {
       page,
       request,
     }) => {
-      const loginEmail = `login-${Date.now()}@example.com`
-
-      await page.goto('/auth/register/')
-      await page.locator('#fullName').fill('Login Test User')
-      await page.locator('#email').fill(loginEmail)
-      await page.locator('#password').fill(TEST_PASSWORD)
-      await page.locator('#confirmPassword').fill(TEST_PASSWORD)
-      await page.getByRole('button', { name: 'Create Account' }).click()
-      await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
-
-      // Dashboard has no nav — go to a page with AppLayout to sign out
-      await page.goto('/campaigns/')
-      await page.locator('button', { hasText: 'Sign out' }).click()
-      await expect(page).toHaveURL(/\/auth\/login\//, { timeout: 10000 })
-
       // API contract: the auth backend issues a session for valid creds.
-      // Asserting this before the UI flow isolates an auth-backend regression
-      // from a UI redirect bug.
       test.skip(
         !SUPABASE_URL,
         'NEXT_PUBLIC_SUPABASE_URL not set — skipping API check'
       )
-      const session = await signIn(request, loginEmail, TEST_PASSWORD)
+      const session = await signIn(request, OWNER.email, OWNER.password)
       expect(session.access_token).toBeTruthy()
 
-      await page.locator('#email').fill(loginEmail)
-      await page.locator('#password').fill(TEST_PASSWORD)
+      await page.goto('/auth/login/')
+      await page.locator('#email').fill(OWNER.email)
+      await page.locator('#password').fill(OWNER.password)
       await page.getByRole('button', { name: 'Sign In' }).click()
-      await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+      await expect(page).toHaveURL(/\/dashboard/)
     })
   })
 
@@ -166,9 +152,7 @@ test.describe('Auth Flow', () => {
 
         await expect(
           page.getByRole('heading', { name: 'Check your email' })
-        ).toBeVisible({
-          timeout: 10000,
-        })
+        ).toBeVisible()
         await expect(
           page.getByText('We sent a password reset link')
         ).toBeVisible()
@@ -193,7 +177,7 @@ test.describe('Auth Flow', () => {
           await page.getByRole('button', { name: 'Send reset link' }).click()
           await expect(
             page.getByText('We sent a password reset link')
-          ).toBeVisible({ timeout: 10000 })
+          ).toBeVisible()
         }
       })
     })

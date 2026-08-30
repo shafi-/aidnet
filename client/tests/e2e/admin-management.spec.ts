@@ -102,7 +102,7 @@ test.describe('System Admin - Plan Management', () => {
       const planName = `E2E Plan ${Date.now()}`
       await nameInput.fill(planName)
       await page.getByRole('button', { name: 'Create', exact: true }).click()
-      await expect(page.getByText(planName)).toBeVisible({ timeout: 10000 })
+      await expect(page.getByText(planName)).toBeVisible()
     })
 
     test('When admin opens /admin/campaigns, review queue loads', async ({

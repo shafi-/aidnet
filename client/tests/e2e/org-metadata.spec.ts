@@ -1,9 +1,8 @@
 import { test, expect } from '@playwright/test'
+import { registerViaApi } from './lib/api'
 
 const TEST_PASSWORD = 'UserTest123!'
 
-// Seeded admin (admin@donate.app) is guaranteed system admin by seed-auth.sh;
-// bootstrap_system_admin() raises when any system admin already exists.
 const ADMIN_EMAIL = 'admin@donate.app'
 const ADMIN_PASSWORD = 'Password123!'
 
@@ -12,7 +11,7 @@ async function loginAsSeededAdmin(page: import('@playwright/test').Page) {
   await page.locator('#email').fill(ADMIN_EMAIL)
   await page.locator('#password').fill(ADMIN_PASSWORD)
   await page.getByRole('button', { name: 'Sign In' }).click()
-  await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+  await expect(page).toHaveURL(/\/dashboard/)
 }
 
 async function approveRequest(
@@ -27,7 +26,19 @@ async function approveRequest(
   await page.getByRole('button', { name: 'Approve', exact: true }).click()
   await expect(
     page.getByText('Organization approved and created successfully!')
-  ).toBeVisible({ timeout: 15000 })
+  ).toBeVisible()
+}
+
+async function loginAsUser(
+  page: import('@playwright/test').Page,
+  email: string,
+  password: string
+) {
+  await page.goto('/auth/login/')
+  await page.locator('#email').fill(email)
+  await page.locator('#password').fill(password)
+  await page.getByRole('button', { name: 'Sign In' }).click()
+  await expect(page).toHaveURL(/\/dashboard/)
 }
 
 test.describe.serial('Organization Metadata Management', () => {
@@ -36,16 +47,11 @@ test.describe.serial('Organization Metadata Management', () => {
   }) => {
     const orgName = `Meta Test Org ${Date.now()}`
     const orgSlug = `meta-test-org-${Date.now()}`
-
-    // Setup user and submit request
     const userEmail = `meta-user-${Date.now()}@example.com`
-    await page.goto('/auth/register/')
-    await page.locator('#fullName').fill('Meta Test User')
-    await page.locator('#email').fill(userEmail)
-    await page.locator('#password').fill(TEST_PASSWORD)
-    await page.locator('#confirmPassword').fill(TEST_PASSWORD)
-    await page.getByRole('button', { name: 'Create Account' }).click()
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+
+    // Register via API, then login via UI
+    await registerViaApi(page, userEmail, TEST_PASSWORD, 'Meta Test User')
+    await loginAsUser(page, userEmail, TEST_PASSWORD)
 
     await page.goto('/org/request')
     await page.getByPlaceholder('My Organization').fill(orgName)
@@ -54,17 +60,9 @@ test.describe.serial('Organization Metadata Management', () => {
 
     // Seeded admin approves
     await approveRequest(page, orgName)
-    await expect(
-      page.getByText('Organization approved and created successfully!')
-    ).toBeVisible()
 
     // Login as user and verify org has metadata
-    await page.goto('/auth/login/')
-    await page.locator('#email').fill(userEmail)
-    await page.locator('#password').fill(TEST_PASSWORD)
-    await page.getByRole('button', { name: 'Sign In' }).click()
-    // Wait for the session swap to land before navigating anywhere else
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+    await loginAsUser(page, userEmail, TEST_PASSWORD)
     await page.goto('/orgs')
 
     // The org should be visible and accessible
@@ -76,16 +74,11 @@ test.describe.serial('Organization Metadata Management', () => {
   }) => {
     const orgName = `Update Meta Test Org ${Date.now()}`
     const orgSlug = `update-meta-org-${Date.now()}`
-
-    // Setup user and submit request
     const userEmail = `update-meta-user-${Date.now()}@example.com`
-    await page.goto('/auth/register/')
-    await page.locator('#fullName').fill('Update Meta User')
-    await page.locator('#email').fill(userEmail)
-    await page.locator('#password').fill(TEST_PASSWORD)
-    await page.locator('#confirmPassword').fill(TEST_PASSWORD)
-    await page.getByRole('button', { name: 'Create Account' }).click()
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+
+    // Register via API, then login via UI
+    await registerViaApi(page, userEmail, TEST_PASSWORD, 'Update Meta User')
+    await loginAsUser(page, userEmail, TEST_PASSWORD)
 
     await page.goto('/org/request')
     await page.getByPlaceholder('My Organization').fill(orgName)
@@ -96,12 +89,7 @@ test.describe.serial('Organization Metadata Management', () => {
     await approveRequest(page, orgName)
 
     // Login as user and get org ID
-    await page.goto('/auth/login/')
-    await page.locator('#email').fill(userEmail)
-    await page.locator('#password').fill(TEST_PASSWORD)
-    await page.getByRole('button', { name: 'Sign In' }).click()
-    // Wait for the session swap to land before navigating anywhere else
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+    await loginAsUser(page, userEmail, TEST_PASSWORD)
     await page.goto('/orgs')
 
     // Click on the org to select it, and WAIT until the choice is actually
@@ -110,28 +98,29 @@ test.describe.serial('Organization Metadata Management', () => {
     // Selection persists via localStorage currentOrgId; poll for it rather
     // than racing the overlay hide (which can flap under suite load).
     await expect
-      .poll(
-        async () =>
-          page.evaluate(() => localStorage.getItem('supanext.currentOrgId')),
-        { timeout: 15000 }
+      .poll(async () =>
+        page.evaluate(() => localStorage.getItem('supanext.currentOrgId'))
       )
       .toBeTruthy()
     await expect(
       page.getByRole('heading', { name: 'Select an Organization' })
-    ).toBeHidden({ timeout: 15000 })
+    ).toBeHidden()
 
     // Org metadata editing lives in the dashboard's Settings tab.
-    // The user has2 orgs, so the selector overlay shows until currentOrg is
-    // restored from localStorage. Wait for the overlay to disappear first,
-    // then waitFor the Settings button (which requires currentOrg + subscription
-    // features + admin role).
+    // Wait for the provider to finish loading (session + org data) before
+    // checking the overlay — otherwise the assertion races async hydration.
     await page.goto('/dashboard')
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-org-ready',
+      'true',
+      {
+        timeout: 15000,
+      }
+    )
     await expect(
       page.getByRole('heading', { name: 'Select an Organization' })
-    ).toBeHidden({ timeout: 15000 })
-    await page.getByRole('button', { name: 'Settings' }).waitFor({
-      timeout: 15000,
-    })
+    ).toBeHidden()
+    await page.getByRole('button', { name: 'Settings' }).waitFor()
     await page.getByRole('button', { name: 'Settings' }).click()
 
     // Update metadata and save
@@ -144,12 +133,17 @@ test.describe.serial('Organization Metadata Management', () => {
 
     // Changes persist across a full reload
     await page.reload()
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-org-ready',
+      'true',
+      {
+        timeout: 15000,
+      }
+    )
     await expect(
       page.getByRole('heading', { name: 'Select an Organization' })
-    ).toBeHidden({ timeout: 15000 })
-    await page.getByRole('button', { name: 'Settings' }).waitFor({
-      timeout: 15000,
-    })
+    ).toBeHidden()
+    await page.getByRole('button', { name: 'Settings' }).waitFor()
     await page.getByRole('button', { name: 'Settings' }).click()
     await expect(page.locator('#org-settings-name')).toHaveValue(
       orgName + ' Updated'
@@ -164,15 +158,10 @@ test.describe.serial('Organization Metadata Management', () => {
     const org1Slug = `org-1-${Date.now()}`
     const org2Slug = `org-2-${Date.now()}`
 
-    // Create and approve first org
+    // Create and approve first org (user1 via API signup)
     const user1Email = `org1-user-${Date.now()}@example.com`
-    await page.goto('/auth/register/')
-    await page.locator('#fullName').fill('Org 1 User')
-    await page.locator('#email').fill(user1Email)
-    await page.locator('#password').fill(TEST_PASSWORD)
-    await page.locator('#confirmPassword').fill(TEST_PASSWORD)
-    await page.getByRole('button', { name: 'Create Account' }).click()
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+    await registerViaApi(page, user1Email, TEST_PASSWORD, 'Org 1 User')
+    await loginAsUser(page, user1Email, TEST_PASSWORD)
 
     await page.goto('/org/request')
     await page.getByPlaceholder('My Organization').fill(org1Name)
@@ -181,15 +170,10 @@ test.describe.serial('Organization Metadata Management', () => {
 
     await approveRequest(page, org1Name)
 
-    // Create and approve second org
+    // Create and approve second org (user2 via API signup)
     const user2Email = `org2-user-${Date.now()}@example.com`
-    await page.goto('/auth/register/')
-    await page.locator('#fullName').fill('Org 2 User')
-    await page.locator('#email').fill(user2Email)
-    await page.locator('#password').fill(TEST_PASSWORD)
-    await page.locator('#confirmPassword').fill(TEST_PASSWORD)
-    await page.getByRole('button', { name: 'Create Account' }).click()
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+    await registerViaApi(page, user2Email, TEST_PASSWORD, 'Org 2 User')
+    await loginAsUser(page, user2Email, TEST_PASSWORD)
 
     await page.goto('/org/request')
     await page.getByPlaceholder('My Organization').fill(org2Name)
@@ -199,12 +183,7 @@ test.describe.serial('Organization Metadata Management', () => {
     await approveRequest(page, org2Name)
 
     // Login as first user and verify only their org appears
-    await page.goto('/auth/login/')
-    await page.locator('#email').fill(user1Email)
-    await page.locator('#password').fill(TEST_PASSWORD)
-    await page.getByRole('button', { name: 'Sign In' }).click()
-    // Wait for the session swap to land before navigating anywhere else
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+    await loginAsUser(page, user1Email, TEST_PASSWORD)
     await page.goto('/orgs')
 
     // Scope to the org-list link: the selection overlay (user1 has 2 orgs)
@@ -222,16 +201,11 @@ test.describe.serial('Organization Metadata Management', () => {
   }) => {
     const orgName = `Suspended Meta Org ${Date.now()}`
     const orgSlug = `suspended-meta-org-${Date.now()}`
-
-    // Setup user and submit request
     const userEmail = `suspended-meta-user-${Date.now()}@example.com`
-    await page.goto('/auth/register/')
-    await page.locator('#fullName').fill('Suspended Meta User')
-    await page.locator('#email').fill(userEmail)
-    await page.locator('#password').fill(TEST_PASSWORD)
-    await page.locator('#confirmPassword').fill(TEST_PASSWORD)
-    await page.getByRole('button', { name: 'Create Account' }).click()
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+
+    // Register via API, then login via UI
+    await registerViaApi(page, userEmail, TEST_PASSWORD, 'Suspended Meta User')
+    await loginAsUser(page, userEmail, TEST_PASSWORD)
 
     await page.goto('/org/request')
     await page.getByPlaceholder('My Organization').fill(orgName)
@@ -244,19 +218,14 @@ test.describe.serial('Organization Metadata Management', () => {
     // Suspend the org (suspend control lives on /admin/orgs)
     await page.goto('/admin/orgs')
     const row = page.locator('tr', { hasText: orgName })
-    await expect(row).toBeVisible({ timeout: 15000 })
+    await expect(row).toBeVisible()
     await row.getByRole('button', { name: 'Suspend' }).click()
     await expect(
       page.getByText('Organization status updated to suspended.')
-    ).toBeVisible({ timeout: 15000 })
+    ).toBeVisible()
 
     // Login as user and verify suspension status
-    await page.goto('/auth/login/')
-    await page.locator('#email').fill(userEmail)
-    await page.locator('#password').fill(TEST_PASSWORD)
-    await page.getByRole('button', { name: 'Sign In' }).click()
-    // Wait for the session swap to land before navigating anywhere else
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+    await loginAsUser(page, userEmail, TEST_PASSWORD)
     await page.goto('/orgs')
 
     // The suspended org should not be selectable or should show suspension status

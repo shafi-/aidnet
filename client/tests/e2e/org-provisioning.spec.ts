@@ -8,43 +8,24 @@
  * Invariant under test: however an org is created (approval flow here),
  * it ends up readable by its requester with an active admin/owner
  * membership and an active subscription granting baseline features.
+ *
+ * Per AGENTS.md testing law: relies ONLY on seeded users — no custom
+ * signUp (which is non-idempotent and collides across runs). Each test is
+ * fully self-contained: it submits and approves its own org, so no shared
+ * module state can leak between tests or break under suite ordering.
  */
 import { test, expect } from '@playwright/test'
 import { signIn, rpc, expectOrgProvisioned, type Session } from './lib/api'
 
-const PASSWORD = 'ContractPass123!'
-
-async function registerViaApi(
-  request: import('@playwright/test').APIRequestContext,
-  email: string
-): Promise<Session> {
-  const res = await request.post(
-    `${process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'http://127.0.0.1:55321'}/auth/v1/signup`,
-    {
-      data: { email, password: PASSWORD },
-      headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '' },
-    }
-  )
-  expect(res.ok(), `signup ${email}`).toBeTruthy()
-  const body = (await res.json()) as { access_token?: string }
-  // Local GoTrue may auto-confirm; if not, sign in.
-  if (body.access_token)
-    return { access_token: body.access_token, refresh_token: '' }
-  return signIn(request, email, PASSWORD)
-}
+const PASSWORD = 'Password123!'
 
 test.describe('Org provisioning contract', () => {
   let requester: Session
   let admin: Session
-  let requestId: string
 
   test.beforeAll(async ({ request }) => {
-    const stamp = Date.now()
-    requester = await registerViaApi(
-      request,
-      `contract-user-${stamp}@example.com`
-    )
-    admin = await signIn(request, 'admin@donate.app', 'Password123!')
+    requester = await signIn(request, 'member@donate.app', PASSWORD)
+    admin = await signIn(request, 'admin@donate.app', PASSWORD)
   })
 
   test('submitting a request creates exactly one pending request', async ({
@@ -56,7 +37,10 @@ test.describe('Org provisioning contract', () => {
       request,
       requester,
       'submit_org_request',
-      { p_org_name: `Contract Org ${Date.now()}`, p_org_slug: slug }
+      {
+        p_org_name: `Contract Org ${Date.now()}`,
+        p_org_slug: slug,
+      }
     )
     expect(created).toBeTruthy()
 
@@ -66,12 +50,24 @@ test.describe('Org provisioning contract', () => {
     const rows = mine.filter(r => r.org_slug === slug)
     expect(rows).toHaveLength(1)
     expect(rows[0].status).toBe('pending')
-    requestId = rows[0].id
   })
 
   test('approval provisions org + membership + baseline plan (contract)', async ({
     request,
   }) => {
+    const slug = `contract-org-${Date.now()}`
+
+    const requestId = await rpc<string | null>(
+      request,
+      requester,
+      'submit_org_request',
+      {
+        p_org_name: `Contract Org ${Date.now()}`,
+        p_org_slug: slug,
+      }
+    )
+    expect(requestId, 'submit returns request id').toBeTruthy()
+
     const orgId = await rpc<string | null>(
       request,
       admin,
