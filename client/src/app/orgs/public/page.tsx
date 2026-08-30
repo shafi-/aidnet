@@ -118,27 +118,25 @@ function PublicOrgContent() {
 
             <OrgCampaignsSection orgId={org.id} orgName={org.name} />
 
-            <div className="flex justify-center gap-4">
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link
+                href={`/campaigns?org=${encodeURIComponent(org.id)}`}
+                className="rounded-md bg-indigo-600 px-6 py-3 font-medium text-white hover:bg-indigo-700"
+              >
+                Browse campaigns
+              </Link>
               {user ? (
-                <>
-                  <Link
-                    href={`/campaigns?org=${encodeURIComponent(org.id)}`}
-                    className="rounded-md bg-indigo-600 px-6 py-3 font-medium text-white hover:bg-indigo-700"
-                  >
-                    Browse campaigns
-                  </Link>
-                  <Link
-                    href="/dashboard"
-                    className="rounded-md border border-gray-300 bg-white px-6 py-3 font-medium text-gray-900 hover:bg-gray-50"
-                  >
-                    Go to dashboard
-                  </Link>
-                </>
+                <Link
+                  href="/dashboard"
+                  className="rounded-md border border-gray-300 bg-white px-6 py-3 font-medium text-gray-900 hover:bg-gray-50"
+                >
+                  Go to dashboard
+                </Link>
               ) : (
                 <>
                   <Link
                     href="/auth/login"
-                    className="rounded-md bg-indigo-600 px-6 py-3 font-medium text-white hover:bg-indigo-700"
+                    className="rounded-md border border-gray-300 bg-white px-6 py-3 font-medium text-gray-900 hover:bg-gray-50"
                   >
                     Sign In
                   </Link>
