@@ -4,9 +4,11 @@ test.describe('Navigation', () => {
   test.describe('Static Pages', () => {
     test('When anon loads /about, about content renders', async ({ page }) => {
       await page.goto('/about/')
-      await expect(page.locator('h1')).toContainText('About SupaNext')
+      await expect(page.locator('h1')).toContainText('About Donate')
       await expect(
-        page.locator('text=NextJS + Supabase starter template')
+        page.locator(
+          'text=A donation platform that connects donors with organizations running campaigns for causes that matter.'
+        )
       ).toBeVisible()
     })
 

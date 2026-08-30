@@ -5,25 +5,27 @@ const ADMIN_STATE = 'tests/e2e/.auth/systemAdmin.json'
 test.describe('Landing Page', () => {
   test('When anon loads landing, welcome content renders', async ({ page }) => {
     await page.goto('/')
-    await expect(page.locator('h1')).toContainText('SupaNext')
+    await expect(page.locator('h1')).toContainText('Donate')
     await expect(
-      page.getByRole('heading', { name: 'Welcome to SupaNext' })
+      page.getByRole('heading', { name: 'Welcome to Donate' })
     ).toBeVisible()
     await expect(
-      page.locator('text=A production-ready NextJS + Supabase starter')
+      page.locator(
+        'text=Discover campaigns that matter and support the causes you care about'
+      )
     ).toBeVisible()
   })
 
   test('When anon loads landing, feature cards render', async ({ page }) => {
     await page.goto('/')
     await expect(
-      page.getByRole('heading', { name: 'Secure Authentication' })
+      page.getByRole('heading', { name: 'Trusted Organizations' })
     ).toBeVisible()
     await expect(
-      page.getByRole('heading', { name: 'Function-First Database' })
+      page.getByRole('heading', { name: 'Transparent Campaigns' })
     ).toBeVisible()
     await expect(
-      page.getByRole('heading', { name: 'Modern UI Components' })
+      page.getByRole('heading', { name: 'Easy Donations' })
     ).toBeVisible()
   })
 
@@ -69,7 +71,7 @@ test.describe('Landing Page', () => {
     }) => {
       await page.goto('/')
       const nav = page.locator('nav')
-      await expect(nav.locator('h1')).toContainText('SupaNext')
+      await expect(nav.locator('h1')).toContainText('Donate')
       await expect(nav.getByRole('link', { name: 'Sign In' })).toBeVisible()
       await expect(nav.getByRole('link', { name: 'Get Started' })).toBeVisible()
     })

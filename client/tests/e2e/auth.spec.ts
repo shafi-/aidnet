@@ -68,10 +68,9 @@ test.describe('Auth Flow', () => {
     test('When anon opens login, form fields render', async ({ page }) => {
       await page.goto('/auth/login/')
       await expect(page.locator('h1')).toContainText('Sign In')
-      await expect(page.locator('text=Welcome back to SupaNext')).toBeVisible()
+      await expect(page.locator('text=Welcome back')).toBeVisible()
       await expect(page.locator('#email')).toBeVisible()
       await expect(page.locator('#password')).toBeVisible()
-      await expect(page.locator('#remember')).toBeVisible()
     })
 
     test('When invalid credentials submitted, error message is shown', async ({

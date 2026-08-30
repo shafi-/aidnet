@@ -1,26 +1,26 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('About Page', () => {
-  test('When anon loads /about, heading and feature list render', async ({
+  test('When anon loads /about, heading and content render', async ({
     page,
   }) => {
     await page.goto('/about/')
     await expect(
-      page.getByRole('heading', { name: 'About SupaNext' })
+      page.getByRole('heading', { name: 'About Donate' })
     ).toBeVisible()
     await expect(
-      page.getByText('A NextJS + Supabase starter template')
+      page.getByText(
+        'A donation platform that connects donors with organizations running campaigns for causes that matter.'
+      )
     ).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Features' })).toBeVisible()
-    await expect(page.getByText('RLS-based authorization')).toBeVisible()
     await expect(
-      page.getByText('Multi-tenant organization management')
+      page.getByRole('heading', { name: 'How It Works' })
     ).toBeVisible()
-    await expect(page.getByText('Role-based access control')).toBeVisible()
     await expect(
-      page.getByText('Function-first database operations')
+      page.getByText(
+        'Organizations request to join and are reviewed by administrators'
+      )
     ).toBeVisible()
-    await expect(page.getByText('Static export compatible')).toBeVisible()
   })
 })
 
@@ -31,10 +31,10 @@ test.describe('Privacy Page', () => {
       page.getByRole('heading', { name: 'Privacy Policy' })
     ).toBeVisible()
     await expect(
-      page.getByRole('heading', { name: 'Data Collection' })
+      page.getByRole('heading', { name: 'Data We Collect' })
     ).toBeVisible()
     await expect(
-      page.getByRole('heading', { name: 'Data Usage' })
+      page.getByRole('heading', { name: 'How We Use Your Data' })
     ).toBeVisible()
   })
 })

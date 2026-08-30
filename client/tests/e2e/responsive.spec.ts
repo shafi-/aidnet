@@ -8,9 +8,9 @@ test.describe('Responsive Design', () => {
 
     test('When mobile viewport, landing page renders', async ({ page }) => {
       await page.goto('/')
-      await expect(page.locator('h1')).toContainText('SupaNext')
+      await expect(page.locator('h1')).toContainText('Donate')
       await expect(
-        page.getByRole('heading', { name: 'Welcome to SupaNext' })
+        page.getByRole('heading', { name: 'Welcome to Donate' })
       ).toBeVisible()
     })
 
@@ -34,7 +34,7 @@ test.describe('Responsive Design', () => {
       page,
     }) => {
       await page.goto('/')
-      await expect(page.locator('h1')).toContainText('SupaNext')
+      await expect(page.locator('h1')).toContainText('Donate')
       const cards = page.locator('.grid > div')
       await expect(cards).toHaveCount(3)
     })
