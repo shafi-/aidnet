@@ -11,6 +11,7 @@ export type Campaign = {
   description: string | null
   cover_image_url: string | null
   goal_amount: number | null
+  raised_amount: number
   currency: string | null
   start_date: string | null
   end_date: string | null
@@ -70,6 +71,7 @@ export type PublicCampaign = {
   description: string | null
   cover_image_url: string | null
   goal_amount: number | null
+  raised_amount: number
   currency: string | null
   start_date: string | null
   end_date: string | null

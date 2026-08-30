@@ -176,6 +176,7 @@ export type Database = {
           is_active: boolean | null
           is_zakat_eligible: boolean | null
           org_id: string
+          raised_amount: number
           slug: string
           start_date: string | null
           status: Database['public']['Enums']['campaign_status'] | null
@@ -197,6 +198,7 @@ export type Database = {
           is_active?: boolean | null
           is_zakat_eligible?: boolean | null
           org_id: string
+          raised_amount?: number
           slug: string
           start_date?: string | null
           status?: Database['public']['Enums']['campaign_status'] | null
@@ -218,6 +220,7 @@ export type Database = {
           is_active?: boolean | null
           is_zakat_eligible?: boolean | null
           org_id?: string
+          raised_amount?: number
           slug?: string
           start_date?: string | null
           status?: Database['public']['Enums']['campaign_status'] | null
@@ -1331,6 +1334,7 @@ export type Database = {
           is_active: boolean | null
           is_zakat_eligible: boolean | null
           org_id: string
+          raised_amount: number
           slug: string
           start_date: string | null
           status: Database['public']['Enums']['campaign_status'] | null
@@ -1421,14 +1425,6 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      create_test_user: {
-        Args: {
-          test_email: string
-          test_full_name?: string
-          test_org_name?: string
-        }
-        Returns: string
-      }
       create_todo: {
         Args: {
           p_description?: string
@@ -1508,6 +1504,7 @@ export type Database = {
           is_active: boolean | null
           is_zakat_eligible: boolean | null
           org_id: string
+          raised_amount: number
           slug: string
           start_date: string | null
           status: Database['public']['Enums']['campaign_status'] | null
@@ -1538,6 +1535,7 @@ export type Database = {
           is_active: boolean | null
           is_zakat_eligible: boolean | null
           org_id: string
+          raised_amount: number
           slug: string
           start_date: string | null
           status: Database['public']['Enums']['campaign_status'] | null
@@ -1587,6 +1585,7 @@ export type Database = {
           is_active: boolean | null
           is_zakat_eligible: boolean | null
           org_id: string
+          raised_amount: number
           slug: string
           start_date: string | null
           status: Database['public']['Enums']['campaign_status'] | null
@@ -1830,6 +1829,7 @@ export type Database = {
           is_active: boolean | null
           is_zakat_eligible: boolean | null
           org_id: string
+          raised_amount: number
           slug: string
           start_date: string | null
           status: Database['public']['Enums']['campaign_status'] | null
@@ -1862,6 +1862,7 @@ export type Database = {
           org_logo_url: string
           org_name: string
           org_slug: string
+          raised_amount: number
           slug: string
           start_date: string
           tags: Json
@@ -1888,6 +1889,7 @@ export type Database = {
           org_logo_url: string
           org_name: string
           org_slug: string
+          raised_amount: number
           slug: string
           start_date: string
           tags: Json
@@ -2024,6 +2026,7 @@ export type Database = {
           is_active: boolean | null
           is_zakat_eligible: boolean | null
           org_id: string
+          raised_amount: number
           slug: string
           start_date: string | null
           status: Database['public']['Enums']['campaign_status'] | null
@@ -2048,7 +2051,6 @@ export type Database = {
         Args: { target_org_id: string; target_user_id: string }
         Returns: boolean
       }
-      reset_development_data: { Args: never; Returns: undefined }
       revoke_invite: { Args: { p_invite_id: string }; Returns: boolean }
       revoke_system_admin: {
         Args: { target_user_id: string }
@@ -2077,6 +2079,7 @@ export type Database = {
           is_active: boolean | null
           is_zakat_eligible: boolean | null
           org_id: string
+          raised_amount: number
           slug: string
           start_date: string | null
           status: Database['public']['Enums']['campaign_status'] | null
@@ -2148,6 +2151,7 @@ export type Database = {
           is_active: boolean | null
           is_zakat_eligible: boolean | null
           org_id: string
+          raised_amount: number
           slug: string
           start_date: string | null
           status: Database['public']['Enums']['campaign_status'] | null
@@ -2372,6 +2376,7 @@ export type Database = {
           is_active: boolean | null
           is_zakat_eligible: boolean | null
           org_id: string
+          raised_amount: number
           slug: string
           start_date: string | null
           status: Database['public']['Enums']['campaign_status'] | null
