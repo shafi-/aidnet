@@ -359,7 +359,7 @@ RETURNS TABLE(
     requested_at, reviewed_at, created_org_id
   FROM org_requests
   WHERE user_id = auth.uid()
-  ORDER BY requested_at DESC;
+  ORDER BY requested_at DESC, id DESC;
 $$ LANGUAGE sql SECURITY INVOKER SET search_path = public;
 
 REVOKE EXECUTE ON FUNCTION get_my_org_requests() FROM PUBLIC, anon;
@@ -410,7 +410,8 @@ BEGIN
       WHEN 'approved' THEN 2
       WHEN 'rejected' THEN 3
     END,
-    r.requested_at DESC;
+    r.requested_at DESC,
+    r.id DESC;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 

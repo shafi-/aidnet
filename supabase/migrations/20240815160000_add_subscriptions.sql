@@ -235,7 +235,7 @@ RETURNS TABLE(
   FROM organization_subscriptions os
   JOIN organizations o ON os.organization_id = o.id
   JOIN subscription_plans sp ON os.plan_id = sp.id
-  ORDER BY os.created_at DESC;
+  ORDER BY os.created_at DESC, os.id DESC;
 $$ LANGUAGE sql SECURITY DEFINER SET search_path = public;
 
 -- Get subscription history for an org
@@ -267,7 +267,7 @@ RETURNS TABLE(
   JOIN organizations o ON sh.organization_id = o.id
   JOIN subscription_plans sp ON sh.plan_id = sp.id
   WHERE sh.organization_id = p_org_id
-  ORDER BY sh.created_at DESC;
+  ORDER BY sh.created_at DESC, sh.id DESC;
 $$ LANGUAGE sql SECURITY DEFINER SET search_path = public;
 
 -- Pause an org's subscription

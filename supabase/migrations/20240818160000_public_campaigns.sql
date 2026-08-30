@@ -100,7 +100,7 @@ AS $$
     )
     AND (zakat_filter IS NULL OR c.is_zakat_eligible = zakat_filter)
     AND (org_filter IS NULL OR c.org_id = org_filter)
-  ORDER BY c.updated_at DESC, c.created_at DESC
+  ORDER BY c.updated_at DESC, c.created_at DESC, c.id DESC
   LIMIT result_limit;
 $$;
 
