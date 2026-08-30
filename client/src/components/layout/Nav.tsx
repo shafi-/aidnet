@@ -20,11 +20,9 @@ function buildNavLinks(
   currentOrg: CurrentOrg,
   isSystemAdmin: boolean
 ): NavLink[] {
-  if (!user) return []
-  const links: NavLink[] = [
-    { href: '/campaigns', label: 'Campaigns' },
-    { href: '/orgs', label: 'Organizations' },
-  ]
+  const links: NavLink[] = [{ href: '/campaigns', label: 'Campaigns' }]
+  if (!user) return links
+  links.push({ href: '/orgs', label: 'Organizations' })
   if (!currentOrg) {
     links.push({ href: '/org/request', label: 'Request Org' })
   }
@@ -74,7 +72,11 @@ export function Nav() {
           </div>
           <div className="flex items-center gap-4">
             {user ? (
-              <Link href="/profile" className={`hidden md:block ${linkClass}`}>
+              <Link
+                href="/profile"
+                aria-label="Profile"
+                className={`hidden md:block ${linkClass}`}
+              >
                 {user.email}
               </Link>
             ) : (

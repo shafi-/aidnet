@@ -72,8 +72,8 @@ test.describe('Landing Page', () => {
       await page.goto('/')
       const nav = page.locator('nav')
       await expect(nav.locator('h1')).toContainText('Donate')
+      await expect(nav.getByRole('link', { name: 'Campaigns' })).toBeVisible()
       await expect(nav.getByRole('link', { name: 'Sign In' })).toBeVisible()
-      await expect(nav.getByRole('link', { name: 'Get Started' })).toBeVisible()
     })
 
     test('When anon clicks hero Sign In, navigates to login', async ({
@@ -102,15 +102,12 @@ test.describe('Landing Page', () => {
       await expect(page).toHaveURL(/\/auth\/login/)
     })
 
-    test('When anon clicks nav Get Started, navigates to register', async ({
+    test('When anon clicks nav Campaigns, navigates to browse', async ({
       page,
     }) => {
       await page.goto('/')
-      await page
-        .locator('nav')
-        .getByRole('link', { name: 'Get Started' })
-        .click()
-      await expect(page).toHaveURL(/\/auth\/register/)
+      await page.locator('nav').getByRole('link', { name: 'Campaigns' }).click()
+      await expect(page).toHaveURL(/\/campaigns/)
     })
   })
 

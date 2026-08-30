@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
 import { usePublicCampaigns } from '@/hooks/usePublicCampaigns'
 import { CampaignCard } from '@/components/campaign/CampaignCard'
+import { Nav } from '@/components/layout/Nav'
 
 function LandingCampaigns() {
   const { campaigns, loading } = usePublicCampaigns({ limit: 12 })
@@ -47,48 +48,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <nav className="bg-white shadow-sm">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 justify-between">
-            <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">Donate</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              {user ? (
-                <>
-                  <Link
-                    href="/dashboard"
-                    className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    href="/profile"
-                    className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
-                  >
-                    Profile
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <Link
-                    href="/auth/login"
-                    className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
-                  >
-                    Sign In
-                  </Link>
-                  <Link
-                    href="/auth/register"
-                    className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
-                  >
-                    Get Started
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Nav />
 
       <main className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="text-center">
