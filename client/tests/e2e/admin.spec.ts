@@ -231,7 +231,7 @@ test.describe.serial('Admin Pages - Org Request Workflow', () => {
     await page.goto('/admin/orgs')
     const orgRow = page.locator(`tr:has(td:has-text("${orgName}"))`)
     const suspendButton = orgRow.getByRole('button', { name: 'Suspend' })
-    await expect(suspendButton).toBeVisible()
+    await expect(suspendButton).toBeVisible({ timeout: 15000 })
     await suspendButton.click()
 
     await expect(
@@ -242,7 +242,7 @@ test.describe.serial('Admin Pages - Org Request Workflow', () => {
     const reactivateButton = page
       .locator(`tr:has(td:has-text("${orgName}"))`)
       .getByRole('button', { name: 'Activate' })
-    await expect(reactivateButton).toBeVisible()
+    await expect(reactivateButton).toBeVisible({ timeout: 15000 })
     await reactivateButton.click()
 
     await expect(

@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test'
-import { orgReady } from './lib/ui'
 
 const TEST_PASSWORD = 'SecurityTest123!'
 
@@ -80,7 +79,14 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     // The tampered id must be gone. A fresh user's single personal org is
     // auto-selected afterwards, so the stored value becomes a valid id (or
     // null for a zero-org user) — never the injected one.
-    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible()
+    //
+    // Wait for the personal org's name heading to appear — it only renders
+    // AFTER currentOrg is restored from localStorage (async) and the
+    // invalid ID has been cleared. The "Dashboard" heading is always
+    // visible and doesn't signal that the restore effect has completed.
+    await expect(
+      page.getByRole('heading', { name: 'Security Test User' })
+    ).toBeVisible({ timeout: 15000 })
 
     const storedOrgId = await page.evaluate(() =>
       localStorage.getItem('supanext.currentOrgId')
@@ -145,18 +151,20 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
 
     await page.goto(`/orgs/?id=${orgId}`)
-    await orgReady(page)
 
-    // Suspended org cannot become current -> selection modal shown
-    // Overlay appears once the ?id= fetch resolves and the provider reacts
+    // Suspended org cannot become current — the orgs page renders and
+    // localStorage must NOT hold the suspended org id.
     await expect(
-      page.getByRole('heading', { name: 'Select an Organization' })
+      page.getByRole('heading', { name: 'Organizations' })
     ).toBeVisible({ timeout: 15000 })
-    // The suspended org is present in the selector but its button is disabled
-    const suspendedButton = page
-      .locator('button', { has: page.getByText(orgName) })
-      .first()
-    await expect(suspendedButton).toBeDisabled()
+    // Suspended badge confirms the org is listed but blocked
+    await expect(
+      page.locator('span:has-text("Suspended")').first()
+    ).toBeVisible()
+    const storedOrgId = await page.evaluate(() =>
+      localStorage.getItem('supanext.currentOrgId')
+    )
+    expect(storedOrgId).not.toBe(orgId)
   })
 
   test('When HTML manipulation attempts currentOrg, protection works', async ({

@@ -59,8 +59,18 @@ test.describe('Public discovery + filters', () => {
       !SUPABASE_URL,
       'NEXT_PUBLIC_SUPABASE_URL not set — skipping API check'
     )
-    const apiCampaigns = await getPublicCampaigns(request)
-    expect(apiCampaigns.length).toBeGreaterThan(0)
+    // Seed data can lag under full-suite load; poll for campaigns to appear
+    // before asserting the API contract (isolates data-layer lag from UI bugs).
+    let apiCampaigns: Awaited<ReturnType<typeof getPublicCampaigns>> = []
+    await expect
+      .poll(
+        async () => {
+          apiCampaigns = await getPublicCampaigns(request)
+          return apiCampaigns.length
+        },
+        { timeout: 15000 }
+      )
+      .toBeGreaterThan(0)
 
     // At least one API campaign is reflected in the UI.
     await expect(

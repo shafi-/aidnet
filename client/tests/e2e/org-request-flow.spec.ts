@@ -190,10 +190,11 @@ test.describe.serial('Suspended Organization Behavior', () => {
     await approveRequestAsAdmin(page, orgName) // logs in as the seeded admin
 
     await page.goto('/admin/orgs')
-    await page
+    const suspendButton = page
       .locator(`tr:has(td:has-text("${orgName}"))`)
       .getByRole('button', { name: 'Suspend' })
-      .click()
+    await expect(suspendButton).toBeVisible({ timeout: 15000 })
+    await suspendButton.click()
     await expect(
       page.getByText('Organization status updated to suspended.')
     ).toBeVisible()

@@ -64,6 +64,9 @@ test.describe('System Admin - Plan Management', () => {
       const plans = new AdminPlansPage(page)
       await plans.open()
 
+      // Plans load asynchronously after the heading renders; wait for the
+      // table rows to appear before counting action buttons.
+      await page.getByRole('button', { name: 'Edit' }).first().waitFor()
       expect(
         await page.getByRole('button', { name: 'Edit' }).count()
       ).toBeGreaterThanOrEqual(3)

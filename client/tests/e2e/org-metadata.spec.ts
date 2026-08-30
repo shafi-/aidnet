@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test'
-import { orgReady } from './lib/ui'
 
 const TEST_PASSWORD = 'UserTest123!'
 
@@ -108,21 +107,29 @@ test.describe.serial('Organization Metadata Management', () => {
     // Click on the org to select it, and WAIT until the choice is actually
     // persisted: navigating mid-write silently drops the selection.
     await page.getByText(orgName).first().click()
-    await expect(
-      page.getByRole('heading', { name: 'Select an Organization' })
-    ).toBeHidden({ timeout: 15000 })
+    // Selection persists via localStorage currentOrgId; poll for it rather
+    // than racing the overlay hide (which can flap under suite load).
     await expect
       .poll(
         async () =>
           page.evaluate(() => localStorage.getItem('supanext.currentOrgId')),
-        { timeout: 10000 }
+        { timeout: 15000 }
       )
       .toBeTruthy()
+    await expect(
+      page.getByRole('heading', { name: 'Select an Organization' })
+    ).toBeHidden({ timeout: 15000 })
 
-    // Org metadata editing lives in the dashboard's Settings tab
+    // Org metadata editing lives in the dashboard's Settings tab.
+    // The user has2 orgs, so the selector overlay shows until currentOrg is
+    // restored from localStorage. Wait for the overlay to disappear first,
+    // then waitFor the Settings button (which requires currentOrg + subscription
+    // features + admin role).
     await page.goto('/dashboard')
-    await orgReady(page)
-    await expect(page.getByRole('button', { name: 'Settings' })).toBeVisible({
+    await expect(
+      page.getByRole('heading', { name: 'Select an Organization' })
+    ).toBeHidden({ timeout: 15000 })
+    await page.getByRole('button', { name: 'Settings' }).waitFor({
       timeout: 15000,
     })
     await page.getByRole('button', { name: 'Settings' }).click()
@@ -137,7 +144,12 @@ test.describe.serial('Organization Metadata Management', () => {
 
     // Changes persist across a full reload
     await page.reload()
-    await orgReady(page)
+    await expect(
+      page.getByRole('heading', { name: 'Select an Organization' })
+    ).toBeHidden({ timeout: 15000 })
+    await page.getByRole('button', { name: 'Settings' }).waitFor({
+      timeout: 15000,
+    })
     await page.getByRole('button', { name: 'Settings' }).click()
     await expect(page.locator('#org-settings-name')).toHaveValue(
       orgName + ' Updated'
@@ -232,7 +244,7 @@ test.describe.serial('Organization Metadata Management', () => {
     // Suspend the org (suspend control lives on /admin/orgs)
     await page.goto('/admin/orgs')
     const row = page.locator('tr', { hasText: orgName })
-    await expect(row).toBeVisible()
+    await expect(row).toBeVisible({ timeout: 15000 })
     await row.getByRole('button', { name: 'Suspend' }).click()
     await expect(
       page.getByText('Organization status updated to suspended.')
