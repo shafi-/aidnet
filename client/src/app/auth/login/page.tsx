@@ -4,7 +4,6 @@ import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
-import { useOrganization } from '@/hooks/useOrganization'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
 function LoginContent() {
@@ -12,7 +11,6 @@ function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const next = searchParams.get('next')
-  const { currentOrg } = useOrganization()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -35,7 +33,7 @@ function LoginContent() {
       if (error) {
         setError(error)
       } else {
-        const dest = next || (currentOrg ? '/dashboard' : '/orgs')
+        const dest = next || '/dashboard'
         router.push(dest)
       }
     } catch (error) {

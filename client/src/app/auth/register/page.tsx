@@ -4,7 +4,6 @@ import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
-import { useOrganization } from '@/hooks/useOrganization'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
 function RegisterContent() {
@@ -12,7 +11,6 @@ function RegisterContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const next = searchParams.get('next')
-  const { currentOrg } = useOrganization()
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -47,7 +45,7 @@ function RegisterContent() {
       if (error) {
         setError(error)
       } else {
-        const dest = next || (currentOrg ? '/dashboard' : '/orgs')
+        const dest = next || '/dashboard'
         router.push(dest)
       }
     } catch (error) {

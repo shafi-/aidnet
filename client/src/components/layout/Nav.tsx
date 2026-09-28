@@ -23,11 +23,11 @@ function buildNavLinks(
   const links: NavLink[] = [{ href: '/campaigns', label: 'Campaigns' }]
   if (!user) return links
   links.push({ href: '/orgs', label: 'Organizations' })
+  links.push({ href: '/dashboard', label: 'Dashboard' })
   if (!currentOrg) {
     links.push({ href: '/org/request', label: 'Request Org' })
   }
   if (currentOrg) {
-    links.push({ href: '/dashboard', label: 'Dashboard' })
     links.push({ href: '/dashboard/campaigns', label: 'Org Campaigns' })
   }
   if (isSystemAdmin) {
@@ -90,13 +90,22 @@ export function Nav() {
           </div>
           <div className="flex items-center gap-4">
             {user ? (
-              <Link
-                href="/profile"
-                aria-label="Profile"
-                className={`hidden md:block ${linkClass}`}
-              >
-                {user.email}
-              </Link>
+              <>
+                <Link
+                  href="/profile"
+                  aria-label="Profile"
+                  className={`hidden md:block ${linkClass}`}
+                >
+                  {user.email}
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className={`hidden md:block ${linkClass}`}
+                >
+                  Sign out
+                </button>
+              </>
             ) : (
               <Link
                 href="/auth/login"
