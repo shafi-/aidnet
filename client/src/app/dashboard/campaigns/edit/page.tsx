@@ -8,6 +8,7 @@ import { campaignService } from '@/services/CampaignService'
 import { CampaignForm } from '@/components/campaign/CampaignForm'
 import { useCampaignForm } from '@/hooks/useCampaignForm'
 import { AppLayout } from '@/components/layout/AppLayout'
+import { OrgGate } from '@/components/org/OrgGate'
 import { isUuid } from '@/hooks/useQueryParam'
 import type { Campaign } from '@/types'
 
@@ -47,26 +48,28 @@ function EditCampaignContent() {
 
   return (
     <AppLayout>
-      <div className="mx-auto max-w-3xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">Edit Campaign</h1>
-          <Link
-            href="/dashboard/campaigns"
-            className="text-indigo-600 hover:underline"
-          >
-            ← Back
-          </Link>
-        </div>
-
-        {loading && <div className="py-8 text-gray-500">Loading...</div>}
-        {error && <div className="py-8 text-red-600">{error}</div>}
-
-        {!loading && !error && campaign && currentOrg && (
-          <div className="rounded-lg bg-white p-6 shadow">
-            <EditCampaignForm campaign={campaign} orgId={currentOrg.id} />
+      <OrgGate>
+        <div className="mx-auto max-w-3xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold text-gray-900">Edit Campaign</h1>
+            <Link
+              href="/dashboard/campaigns"
+              className="text-indigo-600 hover:underline"
+            >
+              ← Back
+            </Link>
           </div>
-        )}
-      </div>
+
+          {loading && <div className="py-8 text-gray-500">Loading...</div>}
+          {error && <div className="py-8 text-red-600">{error}</div>}
+
+          {!loading && !error && campaign && currentOrg && (
+            <div className="rounded-lg bg-white p-6 shadow">
+              <EditCampaignForm campaign={campaign} orgId={currentOrg.id} />
+            </div>
+          )}
+        </div>
+      </OrgGate>
     </AppLayout>
   )
 }

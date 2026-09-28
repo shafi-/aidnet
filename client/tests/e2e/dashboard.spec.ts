@@ -22,9 +22,9 @@ test.describe('Dashboard', () => {
     await expect(
       page.getByRole('heading', { name: 'Dashboard', exact: true })
     ).toBeVisible()
-    await expect(
-      page.locator(`text=Welcome back, ${OWNER.email}!`)
-    ).toBeVisible()
+    // Greeting uses the profile full name when set and no raw-email
+    // fallback — the seeded owner has none, so the bare welcome renders.
+    await expect(page.locator('text=Welcome back!')).toBeVisible()
   })
 
   test('When authenticated, dashboard shows org and profile links', async ({

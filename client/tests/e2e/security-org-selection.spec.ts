@@ -64,11 +64,13 @@ test.describe.serial('Security: Organization Selection Protection', () => {
 
     // The tampered id must be gone.  With no personal org (trigger no longer
     // creates one), the user has 0 orgs — the provider clears the invalid
-    // id during restore.  Wait for either the user's name heading (1 org)
-    // or the org selector overlay (0 orgs) — both prove the restore ran.
+    // id during restore and the dashboard shows the onboarding state (the
+    // org selector only gates users who HAVE orgs to choose between).
+    // Wait for either the user's name heading (1 org) or the onboarding
+    // card (0 orgs) — both prove the restore ran.
     await expect(
       page.getByRole('heading', {
-        name: /Security Test User|Select an Organization/,
+        name: /Security Test User|Get started on Donate/,
       })
     ).toBeVisible({ timeout: 10000 })
 

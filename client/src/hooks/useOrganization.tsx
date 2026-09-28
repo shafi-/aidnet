@@ -13,7 +13,6 @@ import { organizationService } from '@/services/OrganizationService'
 import { memberService } from '@/services/MemberService'
 import { useAuth } from './useAuth'
 import { useSystemAdmin } from './useSystemAdmin'
-import { OrganizationSelector } from '@/components/org/OrganizationSelector'
 import type {
   OrganizationDetailView,
   OrganizationView,
@@ -304,7 +303,7 @@ export function OrganizationProvider({
     !isSystemAdmin &&
     (forcedSelection ||
       (!!currentOrg && currentOrg.status === 'suspended') ||
-      (!currentOrg && activeOrgs.length !== 1))
+      (!currentOrg && activeOrgs.length > 1))
 
   // Deterministic readiness marker for tests and shell UIs: the provider has
   // session + org data settled AND the persisted currentOrg has been restored.
@@ -384,13 +383,6 @@ export function OrganizationProvider({
       }}
     >
       {children}
-      {selectionRequired && (forcedSelection || !currentOrg) && (
-        <OrganizationSelector
-          organizations={organizations}
-          onSelect={selectOrgById}
-          message={suspensionMessage}
-        />
-      )}
     </OrganizationContext.Provider>
   )
 }

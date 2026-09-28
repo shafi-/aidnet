@@ -225,11 +225,15 @@ describe('useOrganization with suspended organizations', () => {
 
     const { result } = renderHook(() => useOrganization(), { wrapper })
 
+    // A user whose ONLY org is suspended has nothing selectable — the
+    // selector would be an unresolvable dead end (its single entry renders
+    // disabled). selectionRequired stays false; org pages fall back to
+    // their own "Go to Organizations" empty states. Forced selection still
+    // applies when an ACTIVE org is suspended mid-session (see below).
     await waitFor(() => {
-      expect(result.current.selectionRequired).toBe(true)
+      expect(result.current.selectionRequired).toBe(false)
     })
 
-    // Should require selection even though there's only one org (it's suspended)
     expect(result.current.currentOrg).toBeNull()
   })
 
