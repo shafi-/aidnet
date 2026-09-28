@@ -155,7 +155,7 @@ test.describe.serial('Founder + Admin lifecycle', () => {
     test('When admin verifies submitted campaign, it goes live publicly', async ({
       page,
     }) => {
-      test.fail(
+      test.skip(
         !slug,
         'Founder lifecycle step did not produce a campaign to verify'
       )
@@ -176,7 +176,7 @@ test.describe.serial('Founder + Admin lifecycle', () => {
         !process.env.NEXT_PUBLIC_SUPABASE_URL,
         'NEXT_PUBLIC_SUPABASE_URL not set — run against a local Supabase instance'
       )
-      const targetSlug = slug || `no-such-campaign-${Date.now()}`
+      const targetSlug = slug
 
       // Domain rule: get_campaign_by_slug must expose the published campaign
       // without any user session — call it with the anon key only.
@@ -191,15 +191,8 @@ test.describe.serial('Founder + Admin lifecycle', () => {
         }
       )
       const body = await res.json().catch(() => null)
-      if (slug) {
-        // Created+verified campaign must be visible to anon
-        expect(Array.isArray(body) ? body.length > 0 : !!body).toBeTruthy()
-      } else {
-        // Unknown slug must return no rows
-        expect(
-          Array.isArray(body) ? body.length === 0 : body === null
-        ).toBeTruthy()
-      }
+      // Created+verified campaign must be visible to anon
+      expect(Array.isArray(body) ? body.length > 0 : !!body).toBeTruthy()
     })
   })
 })

@@ -18,7 +18,7 @@ test.describe.serial('Subscription Management', () => {
     page,
   }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/', { waitUntil: 'networkidle' })
+    await page.goto('/admin/')
     await expect(
       page.getByRole('link', { name: 'Subscription Plans' })
     ).toBeVisible()
@@ -28,7 +28,7 @@ test.describe.serial('Subscription Management', () => {
     page,
   }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/', { waitUntil: 'networkidle' })
+    await page.goto('/admin/')
     await page.getByRole('link', { name: 'Subscription Plans' }).click()
     await expect(page).toHaveURL(/\/admin\/plans/)
   })
@@ -37,7 +37,7 @@ test.describe.serial('Subscription Management', () => {
     page,
   }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/plans/', { waitUntil: 'networkidle' })
+    await page.goto('/admin/plans/')
     await expect(page.locator('h1:has-text("Subscription Plans")')).toBeVisible(
       { timeout: 10000 }
     )
@@ -51,7 +51,7 @@ test.describe.serial('Subscription Management', () => {
     page,
   }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/plans/', { waitUntil: 'networkidle' })
+    await page.goto('/admin/plans/')
     await expect(page.getByRole('button', { name: 'Create Plan' })).toBeVisible(
       { timeout: 10000 }
     )
@@ -61,7 +61,7 @@ test.describe.serial('Subscription Management', () => {
     page,
   }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/plans/', { waitUntil: 'networkidle' })
+    await page.goto('/admin/plans/')
     await expect(page.locator('td:has-text("Free")')).toBeVisible()
     await expect(page.locator('td:has-text("Pro")')).toBeVisible()
     await expect(page.locator('td:has-text("Enterprise")')).toBeVisible()
@@ -69,7 +69,7 @@ test.describe.serial('Subscription Management', () => {
 
   test('When admin clicks Create Plan, form opens', async ({ page }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/plans/', { waitUntil: 'networkidle' })
+    await page.goto('/admin/plans/')
     await page.getByRole('button', { name: 'Create Plan' }).click()
     await expect(page.locator('h2:has-text("Create Plan")')).toBeVisible()
   })
@@ -78,7 +78,7 @@ test.describe.serial('Subscription Management', () => {
     page,
   }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/', { waitUntil: 'networkidle' })
+    await page.goto('/admin/')
     await expect(
       page.getByRole('link', { name: 'Organization Subscriptions' })
     ).toBeVisible()
@@ -88,7 +88,7 @@ test.describe.serial('Subscription Management', () => {
     page,
   }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/', { waitUntil: 'networkidle' })
+    await page.goto('/admin/')
     await page.getByRole('link', { name: 'Organization Subscriptions' }).click()
     await expect(page).toHaveURL(/\/admin\/subscriptions/)
   })
@@ -97,7 +97,7 @@ test.describe.serial('Subscription Management', () => {
     page,
   }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/subscriptions/', { waitUntil: 'networkidle' })
+    await page.goto('/admin/subscriptions/')
     await expect(
       page.locator('h1:has-text("Organization Subscriptions")')
     ).toBeVisible()
@@ -110,13 +110,13 @@ test.describe.serial('Subscription Management', () => {
     page,
   }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/subscriptions/', { waitUntil: 'networkidle' })
-    const hasData = await page.locator('table tbody tr').count()
-    if (hasData > 0) {
-      await expect(page.locator('table tbody tr').first()).toBeVisible()
-    } else {
-      await expect(page.locator('text=No subscriptions yet')).toBeVisible()
-    }
+    await page.goto('/admin/subscriptions/')
+    await expect(
+      page
+        .locator('table tbody tr')
+        .first()
+        .or(page.getByText('No subscriptions yet'))
+    ).toBeVisible()
   })
 
   test('When system admin promotes another user, grant_system_admin works', async ({
@@ -167,7 +167,7 @@ test.describe.serial('Subscription Management', () => {
     await page.getByRole('button', { name: 'Sign In' }).click()
     await expect(page).toHaveURL(/\/dashboard/)
 
-    await page.goto('/admin/', { waitUntil: 'networkidle' })
+    await page.goto('/admin/')
     await expect(page.locator('h1')).toContainText('System Admin')
   })
 })

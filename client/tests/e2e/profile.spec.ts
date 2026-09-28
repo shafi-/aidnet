@@ -93,7 +93,7 @@ test.describe('Profile Page', () => {
   }) => {
     // Use a page with AppLayout nav — dashboard has no nav
     await page.goto('/campaigns/')
-    await page.locator('nav').getByRole('link', { name: ADMIN_EMAIL }).click()
+    await page.locator('nav').getByRole('link', { name: 'Profile' }).click()
     await expect(page).toHaveURL(/\/profile/)
     await expect(page.getByText('Full Name')).toBeVisible()
   })

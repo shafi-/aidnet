@@ -11,7 +11,7 @@ test.describe('Auth Flow', () => {
     test('When anon opens register, form fields render', async ({ page }) => {
       await page.goto('/auth/register/')
       await expect(page.locator('h1')).toContainText('Create Account')
-      await expect(page.locator('text=Join SupaNext today')).toBeVisible()
+      await expect(page.locator('text=Join Donate today')).toBeVisible()
       await expect(page.locator('#fullName')).toBeVisible()
       await expect(page.locator('#email')).toBeVisible()
       await expect(page.locator('#password')).toBeVisible()

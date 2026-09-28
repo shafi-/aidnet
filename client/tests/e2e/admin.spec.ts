@@ -30,7 +30,7 @@ test.describe.serial('Admin Pages - Org Request Workflow', () => {
     page,
   }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/', { waitUntil: 'networkidle' })
+    await page.goto('/admin/')
 
     await expect(page.locator('h1')).toContainText('System Admin')
     await expect(page.locator('text=Organizations').first()).toBeVisible()
@@ -43,7 +43,7 @@ test.describe.serial('Admin Pages - Org Request Workflow', () => {
     page,
   }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/', { waitUntil: 'networkidle' })
+    await page.goto('/admin/')
     await expect(page.locator('h1')).toContainText('System Admin')
     await expect(page.getByRole('link', { name: 'Review Orgs' })).toBeVisible()
   })
@@ -52,7 +52,7 @@ test.describe.serial('Admin Pages - Org Request Workflow', () => {
     page,
   }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/', { waitUntil: 'networkidle' })
+    await page.goto('/admin/')
     await expect(page.locator('h1')).toContainText('System Admin')
     await page.getByRole('link', { name: 'Review Orgs' }).click()
     await expect(page).toHaveURL(/\/admin\/org-requests/)
@@ -62,7 +62,7 @@ test.describe.serial('Admin Pages - Org Request Workflow', () => {
     page,
   }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/org-requests/', { waitUntil: 'networkidle' })
+    await page.goto('/admin/org-requests/')
     await expect(page.locator('h1')).toContainText('Organization Requests')
     // Status filter renders as toggle buttons: All (n), Pending (n), ...
     await expect(

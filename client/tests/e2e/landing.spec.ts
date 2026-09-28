@@ -71,7 +71,7 @@ test.describe('Landing Page', () => {
     }) => {
       await page.goto('/')
       const nav = page.locator('nav')
-      await expect(nav.locator('h1')).toContainText('Donate')
+      await expect(nav.getByRole('link', { name: 'Donate' })).toBeVisible()
       await expect(nav.getByRole('link', { name: 'Campaigns' })).toBeVisible()
       await expect(nav.getByRole('link', { name: 'Sign In' })).toBeVisible()
     })

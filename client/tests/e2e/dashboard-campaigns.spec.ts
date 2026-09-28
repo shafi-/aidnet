@@ -84,9 +84,7 @@ test.describe('Dashboard Campaigns', () => {
   test('When campaigns exist, each shows an Edit link', async ({ page }) => {
     await page.goto('/dashboard/campaigns')
     const editLinks = page.locator('a[href*="/dashboard/campaigns/edit"]')
-    if ((await editLinks.count()) > 0) {
-      await expect(editLinks.first()).toBeVisible()
-    }
+    await expect(editLinks.first()).toBeVisible()
   })
 
   test('When owner clicks Edit, navigates to edit form', async ({ page }) => {
@@ -94,13 +92,11 @@ test.describe('Dashboard Campaigns', () => {
     const editLink = page
       .locator('a[href*="/dashboard/campaigns/edit"]')
       .first()
-    if ((await editLink.count()) > 0) {
-      await editLink.click()
-      await expect(page).toHaveURL(/\/dashboard\/campaigns\/edit/)
-      await expect(
-        page.getByRole('heading', { name: 'Edit Campaign' })
-      ).toBeVisible()
-    }
+    await editLink.click()
+    await expect(page).toHaveURL(/\/dashboard\/campaigns\/edit/)
+    await expect(
+      page.getByRole('heading', { name: 'Edit Campaign' })
+    ).toBeVisible()
   })
 
   test('When owner opens edit form, fields are pre-filled with Save Changes', async ({
@@ -110,17 +106,15 @@ test.describe('Dashboard Campaigns', () => {
     const editLink = page
       .locator('a[href*="/dashboard/campaigns/edit"]')
       .first()
-    if ((await editLink.count()) > 0) {
-      await editLink.click()
-      const titleInput = page.getByRole('textbox', {
-        name: 'Title',
-        exact: true,
-      })
-      await expect(titleInput).not.toHaveValue('')
-      await expect(
-        page.getByRole('button', { name: 'Save Changes' })
-      ).toBeVisible()
-    }
+    await editLink.click()
+    const titleInput = page.getByRole('textbox', {
+      name: 'Title',
+      exact: true,
+    })
+    await expect(titleInput).not.toHaveValue('')
+    await expect(
+      page.getByRole('button', { name: 'Save Changes' })
+    ).toBeVisible()
   })
 
   test('When draft campaigns exist, Submit for Review is shown', async ({
@@ -128,9 +122,7 @@ test.describe('Dashboard Campaigns', () => {
   }) => {
     await page.goto('/dashboard/campaigns')
     const submitBtn = page.getByRole('button', { name: 'Submit for Review' })
-    if ((await submitBtn.count()) > 0) {
-      await expect(submitBtn.first()).toBeVisible()
-    }
+    await expect(submitBtn.first()).toBeVisible()
   })
 
   test('When owner toggles Zakat eligible, checkbox becomes checked', async ({

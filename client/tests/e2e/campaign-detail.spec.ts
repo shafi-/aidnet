@@ -52,13 +52,11 @@ test.describe.serial('Campaign lifecycle - public visibility rules', () => {
     await expect(page).toHaveURL(/\/dashboard\/campaigns\/?$/)
 
     // Move to a known domain state: pending review
-    const submitBtn = page
+    await page
       .getByRole('button', { name: 'Submit for Review' })
       .first()
-    if ((await submitBtn.count()) > 0) {
-      await submitBtn.click()
-      await expect(page.getByText(/pending/).first()).toBeVisible()
-    }
+      .click()
+    await expect(page.getByText(/pending/).first()).toBeVisible()
 
     slug = title
       .toLowerCase()
@@ -69,7 +67,7 @@ test.describe.serial('Campaign lifecycle - public visibility rules', () => {
   test('When unpublished campaign slug opened publicly, page is unavailable', async ({
     page,
   }) => {
-    test.fail(
+    test.skip(
       !slug,
       'Owner lifecycle step did not produce a campaign to assert visibility on'
     )
