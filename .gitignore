@@ -12,6 +12,8 @@ build/
 .env
 .env.local
 .env.*.local
+# docker/.env is a committed, local-only demo config for the shared compose stack
+!docker/.env
 
 # IDE
 .vscode/
@@ -43,6 +45,12 @@ client/tests/e2e/.auth/
 
 # Temp
 .temp/
+
+# Shared local Supabase stack (docker/) — live database + uploaded files
+docker/volumes/db/data/
+docker/volumes/storage/
+docker/volumes/snippets/
+docker/volumes/functions/
 
 # Misc
 *.log
