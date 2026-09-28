@@ -7,32 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-  public: {
+  donate: {
     Tables: {
       audit_logs: {
         Row: {
@@ -98,13 +73,6 @@ export type Database = {
             columns: ['user_id']
             isOneToOne: false
             referencedRelation: 'profile_view'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'audit_logs_user_id_fkey'
-            columns: ['user_id']
-            isOneToOne: false
-            referencedRelation: 'profiles'
             referencedColumns: ['id']
           },
         ]
@@ -179,7 +147,7 @@ export type Database = {
           raised_amount: number
           slug: string
           start_date: string | null
-          status: Database['public']['Enums']['campaign_status'] | null
+          status: Database['donate']['Enums']['campaign_status'] | null
           title: string
           updated_at: string | null
           verification_notes: string | null
@@ -201,7 +169,7 @@ export type Database = {
           raised_amount?: number
           slug: string
           start_date?: string | null
-          status?: Database['public']['Enums']['campaign_status'] | null
+          status?: Database['donate']['Enums']['campaign_status'] | null
           title: string
           updated_at?: string | null
           verification_notes?: string | null
@@ -223,7 +191,7 @@ export type Database = {
           raised_amount?: number
           slug?: string
           start_date?: string | null
-          status?: Database['public']['Enums']['campaign_status'] | null
+          status?: Database['donate']['Enums']['campaign_status'] | null
           title?: string
           updated_at?: string | null
           verification_notes?: string | null
@@ -236,13 +204,6 @@ export type Database = {
             columns: ['created_by']
             isOneToOne: false
             referencedRelation: 'profile_view'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'campaigns_created_by_fkey'
-            columns: ['created_by']
-            isOneToOne: false
-            referencedRelation: 'profiles'
             referencedColumns: ['id']
           },
           {
@@ -271,13 +232,6 @@ export type Database = {
             columns: ['verified_by']
             isOneToOne: false
             referencedRelation: 'profile_view'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'campaigns_verified_by_fkey'
-            columns: ['verified_by']
-            isOneToOne: false
-            referencedRelation: 'profiles'
             referencedColumns: ['id']
           },
         ]
@@ -413,13 +367,6 @@ export type Database = {
             referencedColumns: ['id']
           },
           {
-            foreignKeyName: 'invites_invited_by_fkey'
-            columns: ['invited_by']
-            isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
-          },
-          {
             foreignKeyName: 'invites_organization_id_fkey'
             columns: ['organization_id']
             isOneToOne: false
@@ -514,13 +461,6 @@ export type Database = {
             referencedRelation: 'profile_view'
             referencedColumns: ['id']
           },
-          {
-            foreignKeyName: 'org_meta_updated_by_fkey'
-            columns: ['updated_by']
-            isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
-          },
         ]
       }
       org_requests: {
@@ -593,24 +533,10 @@ export type Database = {
             referencedColumns: ['id']
           },
           {
-            foreignKeyName: 'org_requests_reviewed_by_fkey'
-            columns: ['reviewed_by']
-            isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
-          },
-          {
             foreignKeyName: 'org_requests_user_id_fkey'
             columns: ['user_id']
             isOneToOne: false
             referencedRelation: 'profile_view'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'org_requests_user_id_fkey'
-            columns: ['user_id']
-            isOneToOne: false
-            referencedRelation: 'profiles'
             referencedColumns: ['id']
           },
         ]
@@ -661,13 +587,6 @@ export type Database = {
             referencedColumns: ['id']
           },
           {
-            foreignKeyName: 'organization_members_invited_by_fkey'
-            columns: ['invited_by']
-            isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
-          },
-          {
             foreignKeyName: 'organization_members_organization_id_fkey'
             columns: ['organization_id']
             isOneToOne: false
@@ -693,13 +612,6 @@ export type Database = {
             columns: ['user_id']
             isOneToOne: false
             referencedRelation: 'profile_view'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'organization_members_user_id_fkey'
-            columns: ['user_id']
-            isOneToOne: false
-            referencedRelation: 'profiles'
             referencedColumns: ['id']
           },
         ]
@@ -814,47 +726,7 @@ export type Database = {
             referencedRelation: 'profile_view'
             referencedColumns: ['id']
           },
-          {
-            foreignKeyName: 'organizations_created_by_fkey'
-            columns: ['created_by']
-            isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
-          },
         ]
-      }
-      profiles: {
-        Row: {
-          avatar_url: string | null
-          created_at: string | null
-          email: string
-          full_name: string | null
-          id: string
-          is_system_admin: boolean | null
-          metadata: Json | null
-          updated_at: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          created_at?: string | null
-          email: string
-          full_name?: string | null
-          id: string
-          is_system_admin?: boolean | null
-          metadata?: Json | null
-          updated_at?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          created_at?: string | null
-          email?: string
-          full_name?: string | null
-          id?: string
-          is_system_admin?: boolean | null
-          metadata?: Json | null
-          updated_at?: string | null
-        }
-        Relationships: []
       }
       role_permissions: {
         Row: {
@@ -1057,13 +929,6 @@ export type Database = {
             referencedColumns: ['id']
           },
           {
-            foreignKeyName: 'todos_created_by_fkey'
-            columns: ['created_by']
-            isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
-          },
-          {
             foreignKeyName: 'todos_organization_id_fkey'
             columns: ['organization_id']
             isOneToOne: false
@@ -1130,13 +995,6 @@ export type Database = {
             referencedRelation: 'profile_view'
             referencedColumns: ['id']
           },
-          {
-            foreignKeyName: 'organization_members_user_id_fkey'
-            columns: ['user_id']
-            isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
-          },
         ]
       }
       organization_detail_view: {
@@ -1174,13 +1032,6 @@ export type Database = {
             columns: ['user_id']
             isOneToOne: false
             referencedRelation: 'profile_view'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'organization_members_user_id_fkey'
-            columns: ['user_id']
-            isOneToOne: false
-            referencedRelation: 'profiles'
             referencedColumns: ['id']
           },
         ]
@@ -1337,7 +1188,7 @@ export type Database = {
           raised_amount: number
           slug: string
           start_date: string | null
-          status: Database['public']['Enums']['campaign_status'] | null
+          status: Database['donate']['Enums']['campaign_status'] | null
           title: string
           updated_at: string | null
           verification_notes: string | null
@@ -1507,7 +1358,7 @@ export type Database = {
           raised_amount: number
           slug: string
           start_date: string | null
-          status: Database['public']['Enums']['campaign_status'] | null
+          status: Database['donate']['Enums']['campaign_status'] | null
           title: string
           updated_at: string | null
           verification_notes: string | null
@@ -1538,7 +1389,7 @@ export type Database = {
           raised_amount: number
           slug: string
           start_date: string | null
-          status: Database['public']['Enums']['campaign_status'] | null
+          status: Database['donate']['Enums']['campaign_status'] | null
           title: string
           updated_at: string | null
           verification_notes: string | null
@@ -1588,7 +1439,7 @@ export type Database = {
           raised_amount: number
           slug: string
           start_date: string | null
-          status: Database['public']['Enums']['campaign_status'] | null
+          status: Database['donate']['Enums']['campaign_status'] | null
           title: string
           updated_at: string | null
           verification_notes: string | null
@@ -1701,16 +1552,7 @@ export type Database = {
       }
       get_my_profile: {
         Args: never
-        Returns: {
-          avatar_url: string | null
-          created_at: string | null
-          email: string
-          full_name: string | null
-          id: string
-          is_system_admin: boolean | null
-          metadata: Json | null
-          updated_at: string | null
-        }[]
+        Returns: Database['shared']['Tables']['profiles']['Row'][]
         SetofOptions: {
           from: '*'
           to: 'profiles'
@@ -1832,7 +1674,7 @@ export type Database = {
           raised_amount: number
           slug: string
           start_date: string | null
-          status: Database['public']['Enums']['campaign_status'] | null
+          status: Database['donate']['Enums']['campaign_status'] | null
           title: string
           updated_at: string | null
           verification_notes: string | null
@@ -2029,7 +1871,7 @@ export type Database = {
           raised_amount: number
           slug: string
           start_date: string | null
-          status: Database['public']['Enums']['campaign_status'] | null
+          status: Database['donate']['Enums']['campaign_status'] | null
           title: string
           updated_at: string | null
           verification_notes: string | null
@@ -2082,7 +1924,7 @@ export type Database = {
           raised_amount: number
           slug: string
           start_date: string | null
-          status: Database['public']['Enums']['campaign_status'] | null
+          status: Database['donate']['Enums']['campaign_status'] | null
           title: string
           updated_at: string | null
           verification_notes: string | null
@@ -2136,7 +1978,7 @@ export type Database = {
           p_is_zakat_eligible?: boolean
           p_slug?: string
           p_start_date?: string
-          p_status?: Database['public']['Enums']['campaign_status']
+          p_status?: Database['donate']['Enums']['campaign_status']
           p_title?: string
         }
         Returns: {
@@ -2154,7 +1996,7 @@ export type Database = {
           raised_amount: number
           slug: string
           start_date: string | null
-          status: Database['public']['Enums']['campaign_status'] | null
+          status: Database['donate']['Enums']['campaign_status'] | null
           title: string
           updated_at: string | null
           verification_notes: string | null
@@ -2379,7 +2221,7 @@ export type Database = {
           raised_amount: number
           slug: string
           start_date: string | null
-          status: Database['public']['Enums']['campaign_status'] | null
+          status: Database['donate']['Enums']['campaign_status'] | null
           title: string
           updated_at: string | null
           verification_notes: string | null
@@ -2397,6 +2239,55 @@ export type Database = {
     Enums: {
       campaign_status:
         'draft' | 'pending_review' | 'live' | 'rejected' | 'closed'
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+  shared: {
+    Tables: {
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string
+          full_name: string | null
+          id: string
+          is_system_admin: boolean | null
+          metadata: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email: string
+          full_name?: string | null
+          id: string
+          is_system_admin?: boolean | null
+          metadata?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          is_system_admin?: boolean | null
+          metadata?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2519,10 +2410,7 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
-  public: {
+  donate: {
     Enums: {
       campaign_status: [
         'draft',
@@ -2532,5 +2420,8 @@ export const Constants = {
         'closed',
       ],
     },
+  },
+  shared: {
+    Enums: {},
   },
 } as const

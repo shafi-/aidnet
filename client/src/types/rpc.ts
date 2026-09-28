@@ -4,15 +4,16 @@ import type { Database } from './database'
  * RPC Function Names
  * Manually maintained, validated against database.ts at compile time.
  *
- * Each value must exist in Database['public']['Functions'].
+ * Each value must exist in Database['donate']['Functions'] — the donate
+ * schema is the product's only API surface (see AGENTS.md schema layout).
  * TypeScript errors if you add a name that doesn't exist in the generated types.
  */
-type DbFunction = keyof Database['public']['Functions']
+type DbFunction = keyof Database['donate']['Functions']
 export type { DbFunction }
 
 /** The exact return type of a DB function — use it to type test fixtures. */
 export type RpcReturn<F extends DbFunction> =
-  Database['public']['Functions'][F]['Returns']
+  Database['donate']['Functions'][F]['Returns']
 
 export const Rpc = {
   Profile: {

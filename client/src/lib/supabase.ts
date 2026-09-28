@@ -14,15 +14,22 @@ if (!supabaseAnonKey) {
   throw new Error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable')
 }
 
-// Create Supabase client
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-  },
-})
+// Create Supabase client. db.schema pins the PostgREST profile to the
+// donate product schema — the only API-exposed schema on the shared stack;
+// the 'donate' type argument binds the same schema for rpc() typing.
+export const supabase = createClient<Database, 'donate'>(
+  supabaseUrl,
+  supabaseAnonKey,
+  {
+    db: { schema: 'donate' },
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    },
+  }
+)
 
 // Get current session
 export async function getCurrentSession() {
@@ -137,7 +144,7 @@ export class SupabaseClientManager {
   ): Promise<{ data: T | null; error: string | null }> {
     try {
       const { data, error } = await supabase.rpc(
-        functionName as keyof Database['public']['Functions'],
+        functionName as keyof Database['donate']['Functions'],
         (params ?? {}) as never
       )
 
