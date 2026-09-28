@@ -14,6 +14,7 @@
 # ====================================================================
 set -euo pipefail
 
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJECT="donate-local"
 API_URL="${SUPABASE_API_URL:-http://127.0.0.1:55321}"
 PW="Password123!"
@@ -22,19 +23,34 @@ OWNER_EMAIL="owner@donate.app"
 MEMBER_EMAIL="member@donate.app"
 
 # --- resolve service role key + db container -------------------------
-SERVICE_ROLE_KEY="$(supabase status --output env 2>/dev/null | awk -F'"' '/SERVICE_ROLE_KEY/{print $2}' | tr -d '[:space:]')"
+# Key resolution order: SUPABASE_SERVICE_ROLE_KEY env -> docker/.env (the
+# custom docker/ compose stack) -> `supabase status` (CLI-managed stack).
+# DB access order: DB_CONTAINER env -> docker compose -> CLI project label.
+SERVICE_ROLE_KEY="${SUPABASE_SERVICE_ROLE_KEY:-}"
+if [ -z "$SERVICE_ROLE_KEY" ] && [ -f "$ROOT/docker/.env" ]; then
+  SERVICE_ROLE_KEY="$(grep -E '^SERVICE_ROLE_KEY=' "$ROOT/docker/.env" | cut -d= -f2-)"
+fi
 if [ -z "$SERVICE_ROLE_KEY" ]; then
-  echo "ERROR: could not read SERVICE_ROLE_KEY from 'supabase status'" >&2
+  SERVICE_ROLE_KEY="$(supabase status --output env 2>/dev/null | awk -F'"' '/SERVICE_ROLE_KEY/{print $2}' | tr -d '[:space:]' || true)"
+fi
+if [ -z "$SERVICE_ROLE_KEY" ]; then
+  echo "ERROR: could not resolve SERVICE_ROLE_KEY (set SUPABASE_SERVICE_ROLE_KEY, or run the docker/ stack, or 'supabase start')" >&2
   exit 1
 fi
 
-DB_CONTAINER="$(docker ps --filter "label=com.supabase.cli.project=${PROJECT}" --format '{{.Names}}' | grep -E 'db_' | head -1)"
-if [ -z "$DB_CONTAINER" ]; then
-  echo "ERROR: supabase db container for project '${PROJECT}' not running" >&2
-  exit 1
+COMPOSE="docker compose -f $ROOT/docker/docker-compose.yml --env-file $ROOT/docker/.env"
+if [ -n "${DB_CONTAINER:-}" ]; then
+  psql() { docker exec -i "$DB_CONTAINER" psql -U postgres -d postgres -v ON_ERROR_STOP=1 "$@"; }
+elif [ -n "$($COMPOSE ps -q db 2>/dev/null || true)" ]; then
+  psql() { $COMPOSE exec -T db psql -U postgres -d postgres -v ON_ERROR_STOP=1 "$@"; }
+else
+  DB_CONTAINER="$(docker ps --filter "label=com.supabase.cli.project=${PROJECT}" --format '{{.Names}}' 2>/dev/null | grep -E 'db_' | head -1 || true)"
+  if [ -z "$DB_CONTAINER" ]; then
+    echo "ERROR: no db container found — start the docker/ stack (sh docker/bootstrap.sh) or 'supabase start'" >&2
+    exit 1
+  fi
+  psql() { docker exec -i "$DB_CONTAINER" psql -U postgres -d postgres -v ON_ERROR_STOP=1 "$@"; }
 fi
-
-psql() { docker exec -i "$DB_CONTAINER" psql -U postgres -d postgres -v ON_ERROR_STOP=1 "$@"; }
 
 # --- create auth users via GoTrue (scrypt password) -------------------
 create_user() {
