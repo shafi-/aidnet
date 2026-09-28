@@ -24,7 +24,15 @@ if [ "${1:-}" = "--fresh" ]; then
 fi
 
 # --- stack up ----------------------------------------------------------
-echo "==> starting stack (db, auth, rest, storage, kong, studio, inbucket)"
+# The db comes up first: PostgREST refuses to boot before the product
+# schemas exist (PGRST_DB_SCHEMAS=donate), so they are created here — as
+# postgres, so migration-time ownership matches — before the API tier.
+echo "==> starting db"
+$COMPOSE up -d --wait db
+$COMPOSE exec -T db psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
+  -c "CREATE SCHEMA IF NOT EXISTS donate; CREATE SCHEMA IF NOT EXISTS shared;"
+
+echo "==> starting stack (auth, rest, storage, kong, studio, inbucket)"
 $COMPOSE up -d --wait
 
 # --- wait for GoTrue (its migrations create auth.users; the donate

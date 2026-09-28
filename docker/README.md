@@ -54,8 +54,11 @@ Seeded logins (all products, one credential store):
   GoTrue (`auth.users`). "Is this user already one of ours?" is inherently
   true across products; a shared `profiles` row follows `auth.users.id`.
 - **Schema per product**: each product repo owns a Postgres schema and pushes
-  only it. The gateway serves every listed schema:
-  `PGRST_DB_SCHEMAS` in `docker/.env` (add the schema, `docker compose up -d rest studio`).
+  only it. Donate's objects live in the `donate` schema (the only API-exposed
+  schema); the `shared` data layer (`shared.profiles`) is reachable only
+  through SECURITY DEFINER product functions. To add a product, list its
+  schema in `PGRST_DB_SCHEMAS` (docker/.env) and run
+  `docker compose up -d rest studio`.
 - **Per-repo migrations**: `bootstrap.sh` applies `supabase/migrations/*.sql`
   in order, tracked in the `local_migrations` ledger table (like
   `supabase db push`). When a product moves to its own migration tool
