@@ -3,6 +3,7 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+import { Check } from 'lucide-react'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { usePublicCampaigns } from '@/hooks/usePublicCampaigns'
 import { CampaignCard } from '@/components/campaign/CampaignCard'
@@ -43,24 +44,41 @@ function CampaignsContent() {
           </Link>
         </div>
 
-        <div className="flex items-center gap-4">
-          <Link
-            href={buildHref(!zakat)}
-            className={`rounded-md px-4 py-2 text-sm font-medium ${
-              zakat
-                ? 'bg-green-600 text-white'
-                : 'border border-gray-300 bg-white text-gray-700'
-            }`}
-          >
-            {zakat ? '✓ Zakat Eligible' : 'All Campaigns'}
-          </Link>
-          {zakat && (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-gray-500">Filter:</span>
             <Link
-              href="/campaigns"
-              className="text-sm text-gray-500 hover:underline"
+              href={buildHref(!zakat)}
+              className={`inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
+                zakat
+                  ? 'border-green-600 bg-green-600 text-white hover:bg-green-700'
+                  : 'border-gray-300 bg-white text-gray-700 hover:border-indigo-400 hover:text-indigo-600'
+              }`}
             >
-              Clear filter
+              <span
+                aria-hidden="true"
+                className={`flex h-4 w-4 items-center justify-center rounded-sm border ${
+                  zakat ? 'border-white bg-transparent' : 'border-gray-400'
+                }`}
+              >
+                {zakat && <Check className="h-3 w-3" strokeWidth={3} />}
+              </span>
+              Zakat Eligible
             </Link>
+            {zakat && (
+              <Link
+                href="/campaigns"
+                className="text-sm text-gray-500 hover:text-gray-700 hover:underline"
+              >
+                Clear filter
+              </Link>
+            )}
+          </div>
+          {!loading && !error && campaigns.length > 0 && (
+            <p className="text-sm text-gray-500" role="status">
+              Showing {campaigns.length}{' '}
+              {campaigns.length === 1 ? 'campaign' : 'campaigns'}
+            </p>
           )}
         </div>
 

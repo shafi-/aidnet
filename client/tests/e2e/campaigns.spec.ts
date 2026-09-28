@@ -82,9 +82,7 @@ test.describe('Public discovery + filters', () => {
     page,
   }) => {
     await page.goto('/campaigns')
-    await page
-      .getByRole('link', { name: /Zakat Eligible|All Campaigns/ })
-      .click()
+    await page.getByRole('link', { name: /Zakat Eligible/ }).click()
     await expect(page).toHaveURL(/zakat=true/)
     await expect(
       page.getByRole('link', { name: 'Zakat Eligible' })
