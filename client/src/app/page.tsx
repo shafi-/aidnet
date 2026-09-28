@@ -64,9 +64,9 @@ export default function HomePage() {
 
       <main className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="text-center">
-          <h2 className="text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl">
+          <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl">
             Welcome to Donate
-          </h2>
+          </h1>
           <p className="mx-auto mt-5 max-w-md text-xl text-gray-500">
             Discover campaigns that matter and support the causes you care about
           </p>
