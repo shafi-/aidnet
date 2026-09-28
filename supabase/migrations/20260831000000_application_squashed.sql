@@ -1701,10 +1701,10 @@ RETURNS TABLE(
     c.cover_image_url,
     c.is_zakat_eligible,
     c.org_id,
-    om.name AS org_name,
+    COALESCE(om.name, o.name) AS org_name,
     o.slug AS org_slug,
-    om.description AS org_description,
-    om.logo_url AS org_logo_url,
+    COALESCE(om.description, o.description) AS org_description,
+    COALESCE(om.logo_url, o.logo_url) AS org_logo_url,
     COALESCE(
       jsonb_agg(
         jsonb_build_object(
@@ -2845,10 +2845,10 @@ RETURNS TABLE(
     c.cover_image_url,
     c.is_zakat_eligible,
     c.org_id,
-    om.name AS org_name,
+    COALESCE(om.name, o.name) AS org_name,
     o.slug AS org_slug,
-    om.description AS org_description,
-    om.logo_url AS org_logo_url,
+    COALESCE(om.description, o.description) AS org_description,
+    COALESCE(om.logo_url, o.logo_url) AS org_logo_url,
     COALESCE(
       jsonb_agg(
         jsonb_build_object(
