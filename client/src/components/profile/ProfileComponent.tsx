@@ -7,8 +7,17 @@ export function ProfileComponent({
 }: {
   controller: ProfileController
 }) {
-  const { email, fullName, setFullName, orgName, loading, saving, save } =
-    controller
+  const {
+    email,
+    fullName,
+    setFullName,
+    orgName,
+    loading,
+    saving,
+    saved,
+    saveError,
+    save,
+  } = controller
 
   if (loading) return <div>Loading...</div>
 
@@ -50,6 +59,16 @@ export function ProfileComponent({
         >
           {saving ? 'Saving...' : 'Save'}
         </button>
+        {saved && (
+          <p className="text-sm text-green-600" role="status">
+            Profile saved.
+          </p>
+        )}
+        {saveError && (
+          <p className="text-sm text-red-600" role="alert">
+            {saveError}
+          </p>
+        )}
       </div>
     </div>
   )

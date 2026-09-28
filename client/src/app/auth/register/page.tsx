@@ -148,8 +148,14 @@ function RegisterContent() {
 
           <div className="text-sm text-gray-600">
             <p>
-              By creating an account, you agree to our Terms of Service and
-              Privacy Policy.
+              By creating an account, you agree to our Terms of Service and{' '}
+              <Link
+                href="/privacy/"
+                className="font-medium text-indigo-600 hover:text-indigo-700 hover:underline"
+              >
+                Privacy Policy
+              </Link>
+              .
             </p>
           </div>
 

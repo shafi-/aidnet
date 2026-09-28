@@ -14,6 +14,8 @@ export function useProfile() {
   const [loading, setLoading] = useState(true)
   const [fullName, setFullName] = useState('')
   const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
     // Only fetch once the auth session is restored — firing earlier sends an
@@ -43,10 +45,21 @@ export function useProfile() {
 
   const save = async () => {
     setSaving(true)
-    await profileService.updateMyProfile({ full_name: fullName })
+    setSaved(false)
+    setSaveError(null)
+    const { error } = await profileService.updateMyProfile({
+      full_name: fullName,
+    })
+    if (error) {
+      setSaveError(error)
+      setSaving(false)
+      return
+    }
     const { data } = await profileService.getMyProfile()
     if (data) setProfile(data)
     setSaving(false)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2500)
   }
 
   return {
@@ -56,6 +69,8 @@ export function useProfile() {
     orgName: currentOrg?.name ?? null,
     loading,
     saving,
+    saved,
+    saveError,
     save,
   }
 }

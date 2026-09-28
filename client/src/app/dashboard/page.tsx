@@ -13,7 +13,7 @@ import Link from 'next/link'
 export default function DashboardPage() {
   useRequireAuth()
   const { user } = useAuth()
-  const { currentOrg } = useOrganization()
+  const { currentOrg, organizations } = useOrganization()
   const { fullName } = useProfile()
   usePageTitle('Dashboard')
 
@@ -24,13 +24,41 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-bold">Dashboard</h1>
           {user && (
             <p className="text-gray-600">
-              Welcome back, {fullName || user.email}!
+              Welcome back{fullName ? `, ${fullName}` : ''}!
             </p>
           )}
         </div>
 
-        {/* Security: Show message if no active org is selected */}
-        {!currentOrg && (
+        {/* No org at all: onboarding, not a warning */}
+        {!currentOrg && organizations.length === 0 && (
+          <div className="rounded-lg border border-indigo-100 bg-white p-6 shadow">
+            <h2 className="mb-2 text-lg font-semibold text-gray-900">
+              Get started on Donate
+            </h2>
+            <p className="mb-4 text-gray-600">
+              You are not part of an organization yet. Discover live campaigns
+              you can support, or request an organization to start raising
+              funds.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href="/campaigns"
+                className="inline-block rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
+              >
+                Browse Campaigns
+              </Link>
+              <Link
+                href="/org/request"
+                className="inline-block rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 hover:border-indigo-400 hover:text-indigo-600"
+              >
+                Request an Organization
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Has orgs but none selected */}
+        {!currentOrg && organizations.length > 0 && (
           <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-6">
             <h2 className="mb-2 text-lg font-semibold text-yellow-900">
               No Active Organization Selected

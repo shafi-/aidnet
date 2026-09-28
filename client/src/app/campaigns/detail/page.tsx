@@ -11,6 +11,16 @@ import { useAuth } from '@/hooks/useAuth'
 import { useOrganization } from '@/hooks/useOrganization'
 import { usePermissions } from '@/hooks/usePermissions'
 
+// Button label shows just the hostname; a malformed stored URL falls back
+// to the raw value rather than crashing the page.
+function donationUrlLabel(url: string) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '')
+  } catch {
+    return url.replace(/^https?:\/\//, '')
+  }
+}
+
 function CampaignDetailContent() {
   const searchParams = useSearchParams()
   const slug = searchParams.get('slug')
@@ -265,7 +275,7 @@ function DonationMethods({
                 rel="noreferrer"
                 className="inline-block rounded-md bg-indigo-600 px-6 py-3 font-medium text-white hover:bg-indigo-700"
               >
-                Donate via {m.donation_url.replace(/^https?:\/\//, '')}
+                Donate via {donationUrlLabel(m.donation_url)}
               </a>
             )}
             {rows.map(r => (

@@ -72,7 +72,10 @@ function LoginContent() {
               id="email"
               type="email"
               value={email}
-              onChange={e => setEmail(e.target.value)}
+              onChange={e => {
+                setError('')
+                setEmail(e.target.value)
+              }}
               required
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="you@example.com"
@@ -90,7 +93,10 @@ function LoginContent() {
               id="password"
               type="password"
               value={password}
-              onChange={e => setPassword(e.target.value)}
+              onChange={e => {
+                setError('')
+                setPassword(e.target.value)
+              }}
               required
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="••••••••"
