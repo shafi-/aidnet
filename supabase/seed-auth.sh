@@ -39,17 +39,20 @@ if [ -z "$SERVICE_ROLE_KEY" ]; then
 fi
 
 COMPOSE="docker compose -f $ROOT/docker/docker-compose.yml --env-file $ROOT/docker/.env"
+# Product schema chain (donate strategy) — psql sessions here are the table
+# owner (RLS bypass), but unqualified table refs still need the chain.
+PGOPTIONS_SQL="-c search_path=donate,shared,extensions"
 if [ -n "${DB_CONTAINER:-}" ]; then
-  psql() { docker exec -i "$DB_CONTAINER" psql -U postgres -d postgres -v ON_ERROR_STOP=1 "$@"; }
+  psql() { docker exec -i -e PGOPTIONS="$PGOPTIONS_SQL" "$DB_CONTAINER" psql -U postgres -d postgres -v ON_ERROR_STOP=1 "$@"; }
 elif [ -n "$($COMPOSE ps -q db 2>/dev/null || true)" ]; then
-  psql() { $COMPOSE exec -T db psql -U postgres -d postgres -v ON_ERROR_STOP=1 "$@"; }
+  psql() { $COMPOSE exec -T -e PGOPTIONS="$PGOPTIONS_SQL" db psql -U postgres -d postgres -v ON_ERROR_STOP=1 "$@"; }
 else
   DB_CONTAINER="$(docker ps --filter "label=com.supabase.cli.project=${PROJECT}" --format '{{.Names}}' 2>/dev/null | grep -E 'db_' | head -1 || true)"
   if [ -z "$DB_CONTAINER" ]; then
     echo "ERROR: no db container found — start the docker/ stack (sh docker/bootstrap.sh) or 'supabase start'" >&2
     exit 1
   fi
-  psql() { docker exec -i "$DB_CONTAINER" psql -U postgres -d postgres -v ON_ERROR_STOP=1 "$@"; }
+  psql() { docker exec -i -e PGOPTIONS="$PGOPTIONS_SQL" "$DB_CONTAINER" psql -U postgres -d postgres -v ON_ERROR_STOP=1 "$@"; }
 fi
 
 # --- create auth users via GoTrue (scrypt password) -------------------

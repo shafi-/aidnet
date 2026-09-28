@@ -27,6 +27,14 @@ changing anything. Canonical companions:
   migration.
 - **One repository per entity** in `client/src/repositories/`, extending
   `BaseRepository`. Every `callRpc` lives there. Services NEVER call `callRpc`.
+- **Schema layout (multi-product)**: product objects (tables, views, RPC
+  functions) live in the `donate` schema — that is the only API surface
+  (`PGRST_DB_SCHEMAS=donate` in `docker/.env`). The platform data layer lives
+  in `shared` (`shared.profiles`, auth onboarding trigger) and is NOT exposed;
+  it is reachable only through SECURITY DEFINER product functions. `public` is
+  retired. A future product ships its own schema + its own migration stream;
+  every function pins `SET search_path = donate, shared, extensions` (its own
+  schema first), and service roles carry the same chain at role level.
 - **RPC function names are a repository-layer secret.** Only repositories know
   them: a service calls a domain method (`todoRepo.getTodos(orgId)`), the
   repository translates it to the actual function

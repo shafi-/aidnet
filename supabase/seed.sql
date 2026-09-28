@@ -19,6 +19,11 @@
 --   member@donate.app  / Password123!  (plain org member)
 -- ====================================================================
 
+-- Product schema chain (see migrations/20240814160000_initial_schema.sql)
+SET search_path = donate, shared, extensions, private;
+
+-- ===========================================================================
+
 -- ===========================================================================
 -- Plan capability matrix (post feature-gating infrastructure)
 -- Per product decision, EVERY tier includes the core capabilities:

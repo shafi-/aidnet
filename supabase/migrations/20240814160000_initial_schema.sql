@@ -8,16 +8,60 @@
 -- 4. SECURITY INVOKER on utility functions (run as auth user)
 -- 5. SECURITY DEFINER only on triggers, CLI helpers, and anon-access fns
 -- ====================================================================
+-- SCHEMA LAYOUT (multi-product strategy — rewritten in place, pre-prod):
+--   shared  : platform data layer (profiles, auth onboarding trigger).
+--             NOT exposed by the API gateway; reachable only through
+--             SECURITY DEFINER product functions.
+--   donate  : this product's tables, views and RPC functions = API surface.
+--   private : donate-internal helpers (RLS recursion breakers).
+-- Every function pins SET search_path = donate, shared, extensions, private
+-- so unqualified references resolve deterministically; service roles get
+-- the same chain at role level so RLS policy expressions resolve too.
+-- ====================================================================
 
 -- Extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
+CREATE SCHEMA IF NOT EXISTS shared;
+CREATE SCHEMA IF NOT EXISTS donate;
+
+-- Service roles resolve unqualified references (RLS policy expressions,
+-- ad-hoc sessions) through the product chain; PostgREST additionally pins
+-- search_path per request.
+ALTER ROLE anon          IN DATABASE postgres SET search_path = donate, shared, extensions;
+ALTER ROLE authenticated IN DATABASE postgres SET search_path = donate, shared, extensions;
+ALTER ROLE authenticator IN DATABASE postgres SET search_path = donate, shared, extensions;
+ALTER ROLE service_role  IN DATABASE postgres SET search_path = donate, shared, extensions;
+
+-- Deny-all baseline: shared carries no direct API surface
+REVOKE ALL ON SCHEMA shared FROM anon, authenticated;
+-- The donate schema IS the API surface: PostgREST (authenticator) switches
+-- to anon/authenticated per request, which need USAGE to reach the granted
+-- functions. shared stays revoked for anon — reachable only via SECURITY
+-- DEFINER fns.
+GRANT USAGE ON SCHEMA donate TO anon, authenticated, authenticator, service_role;
+
+-- shared.profiles access PATH for the authenticated role is granted in the
+-- GRANTS section below (after the table exists): the private.rls_* RLS
+-- helpers (and own-row reads) run as INVOKER and rely on profiles' own-row
+-- RLS policy as the gate. The table is unreachable via the API gateway
+-- either way (PGRST_DB_SCHEMAS=donate).
+
+-- Access PATH for SECURITY INVOKER functions and RLS evaluation on product
+-- tables (RLS stays enable + deny-all + permissive policies — see
+-- supabase/README.md: functions are THE authorization boundary). Default
+-- privileges cover tables created later by the migration role.
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA donate
+  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO anon, authenticated, service_role;
+
+SET search_path = donate, shared, extensions, private;
+
 -- ====================================================================
--- TABLES
+-- PLATFORM DATA LAYER (shared schema)
 -- ====================================================================
 
-CREATE TABLE profiles (
+CREATE TABLE shared.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email TEXT UNIQUE NOT NULL,
   full_name TEXT,
@@ -148,7 +192,7 @@ RETURNS BOOLEAN AS $$
       AND om.status = 'active'
       AND (rp.permission = permission_name OR rp.permission = '*')
   );
-$$ LANGUAGE sql STABLE SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE sql STABLE SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 -- is_system_admin: checks profile flag. INVOKER — reads auth.uid().
 CREATE OR REPLACE FUNCTION is_system_admin()
@@ -157,7 +201,7 @@ RETURNS BOOLEAN AS $$
     (SELECT is_system_admin FROM profiles WHERE id = auth.uid()),
     false
   );
-$$ LANGUAGE sql STABLE SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE sql STABLE SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 -- ====================================================================
 -- PRIVATE SCHEMA
@@ -174,7 +218,7 @@ STABLE
 SET search_path = ''
 AS $$
   SELECT organization_id
-  FROM public.organization_members
+  FROM donate.organization_members
   WHERE user_id = auth.uid()
     AND status = 'active'
 $$;
@@ -318,7 +362,7 @@ CREATE OR REPLACE FUNCTION audit_action(
 )
 RETURNS UUID AS $$
 BEGIN
-  INSERT INTO public.audit_logs (
+  INSERT INTO donate.audit_logs (
     user_id, organization_id, action, resource_type, resource_id, metadata, ip_address, user_agent
   ) VALUES (
     audit_user_id, audit_org_id, action_name, p_resource_type, p_resource_id, audit_metadata,
@@ -327,7 +371,7 @@ BEGIN
   );
   RETURN (SELECT id FROM audit_logs ORDER BY created_at DESC LIMIT 1);
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION audit_table_changes()
 RETURNS TRIGGER AS $$
@@ -365,7 +409,7 @@ BEGIN
     v_org_id := NULL;
   END IF;
 
-  INSERT INTO public.audit_logs (user_id, organization_id, action, resource_type, resource_id, metadata, ip_address)
+  INSERT INTO donate.audit_logs (user_id, organization_id, action, resource_type, resource_id, metadata, ip_address)
   VALUES (auth.uid(), v_org_id, operation, TG_TABLE_NAME, v_resource_id,
     jsonb_build_object('old', old_data, 'new', new_data, 'operation', TG_OP), inet_client_addr());
 
@@ -388,12 +432,12 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE FUNCTION get_my_profile()
 RETURNS SETOF profiles AS $$
   SELECT * FROM profiles WHERE id = auth.uid();
-$$ LANGUAGE sql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE sql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION get_user_profile(target_user_id UUID)
 RETURNS SETOF profile_view AS $$
   SELECT * FROM profile_view WHERE id = target_user_id;
-$$ LANGUAGE sql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE sql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION update_my_profile(
   new_full_name TEXT DEFAULT NULL,
@@ -412,10 +456,16 @@ BEGIN
 
   RETURN QUERY SELECT * FROM profile_view WHERE id = auth.uid();
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 -- ====================================================================
--- ORGANIZATION FUNCTIONS (all INVOKER — RLS enforces via can_perform)
+-- ORGANIZATION FUNCTIONS
+-- ====================================================================
+-- These read organization_view / member_view, which execute with the view
+-- owner's privileges (bypassing underlying RLS). The views themselves are
+-- NOT queryable by client roles (see GRANTS below — leak surface closed),
+-- so these functions run as SECURITY DEFINER; their internal guards
+-- (auth.uid() filter / can_perform) remain the authorization.
 -- ====================================================================
 
 CREATE OR REPLACE FUNCTION create_organization(
@@ -437,18 +487,18 @@ BEGIN
 
   RETURN QUERY SELECT * FROM organization_view WHERE id = new_org.id;
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION get_my_organizations()
 RETURNS SETOF organization_view AS $$
   SELECT * FROM organization_view WHERE user_id = auth.uid();
-$$ LANGUAGE sql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE sql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION get_organization(target_org_id UUID)
 RETURNS SETOF organization_detail_view AS $$
   SELECT * FROM organization_detail_view WHERE id = target_org_id
   AND can_perform('org:read', target_org_id);
-$$ LANGUAGE sql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE sql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION update_organization(
   target_org_id UUID,
@@ -474,7 +524,7 @@ BEGIN
 
   RETURN QUERY SELECT * FROM organization_view WHERE id = target_org_id;
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION delete_organization(target_org_id UUID)
 RETURNS BOOLEAN AS $$
@@ -486,10 +536,13 @@ BEGIN
   DELETE FROM organizations WHERE id = target_org_id;
   RETURN true;
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 -- ====================================================================
--- MEMBER FUNCTIONS (all INVOKER)
+-- MEMBER FUNCTIONS
+-- ====================================================================
+-- Same DEFINER rationale as the organization functions: member_view is
+-- owner-executed and not directly queryable; can_perform guards stay.
 -- ====================================================================
 
 CREATE OR REPLACE FUNCTION add_organization_member(
@@ -517,7 +570,7 @@ BEGIN
 
   RETURN QUERY SELECT * FROM member_view WHERE organization_id = target_org_id AND user_id = target_user_id;
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION remove_organization_member(
   target_org_id UUID,
@@ -532,7 +585,7 @@ BEGIN
   DELETE FROM organization_members WHERE organization_id = target_org_id AND user_id = target_user_id;
   RETURN true;
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 -- get_organization_members: INVOKER + explicit guard.
 -- member_view bypasses RLS (view runs as owner), so the can_perform
@@ -547,7 +600,7 @@ BEGIN
   RETURN QUERY
   SELECT * FROM member_view WHERE organization_id = target_org_id;
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION update_member_role(
   target_org_id UUID,
@@ -565,7 +618,7 @@ BEGIN
 
   RETURN QUERY SELECT * FROM member_view WHERE organization_id = target_org_id AND user_id = target_user_id;
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION get_membership(p_org_id UUID)
 RETURNS TABLE(role TEXT, permissions TEXT[], is_active BOOLEAN, is_owner BOOLEAN) AS $$
@@ -575,7 +628,7 @@ RETURNS TABLE(role TEXT, permissions TEXT[], is_active BOOLEAN, is_owner BOOLEAN
     om.is_owner
   FROM organization_members om
   WHERE om.organization_id = p_org_id AND om.user_id = auth.uid();
-$$ LANGUAGE sql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE sql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 -- ====================================================================
 -- TODO FUNCTIONS (all INVOKER)
@@ -597,14 +650,14 @@ BEGIN
   VALUES (p_organization_id, p_title, p_description, auth.uid())
   RETURNING *;
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION get_todos(p_organization_id UUID)
 RETURNS SETOF todos AS $$
   SELECT * FROM todos WHERE organization_id = p_organization_id
   AND can_perform('todos:read', p_organization_id)
   ORDER BY created_at DESC;
-$$ LANGUAGE sql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE sql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION update_todo(
   p_todo_id UUID,
@@ -625,7 +678,7 @@ BEGIN
 
   RETURN QUERY SELECT * FROM todos WHERE id = p_todo_id;
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION delete_todo(p_todo_id UUID)
 RETURNS BOOLEAN AS $$
@@ -634,7 +687,7 @@ BEGIN
   AND can_perform('todos:delete', todos.organization_id);
   RETURN true;
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 -- ====================================================================
 -- INVITE FUNCTIONS
@@ -657,7 +710,7 @@ BEGIN
   VALUES (p_organization_id, p_email, p_role, auth.uid())
   RETURNING *;
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 -- get_invites: INVOKER
 CREATE OR REPLACE FUNCTION get_invites(p_organization_id UUID)
@@ -667,7 +720,7 @@ RETURNS SETOF invites AS $$
   AND accepted_at IS NULL
   AND expires_at > NOW()
   AND can_perform('invites:read', p_organization_id);
-$$ LANGUAGE sql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE sql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 -- validate_invite: SECURITY DEFINER (public — used by invite acceptance flow)
 CREATE OR REPLACE FUNCTION validate_invite(p_token TEXT)
@@ -676,7 +729,7 @@ RETURNS TABLE(invite_id UUID, org_id UUID, org_name TEXT, invite_email TEXT, inv
   FROM invites i
   JOIN organizations o ON i.organization_id = o.id
   WHERE i.token = p_token AND i.accepted_at IS NULL AND i.expires_at > NOW();
-$$ LANGUAGE sql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE sql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 -- accept_invite: SECURITY DEFINER (public — used by invite acceptance flow)
 CREATE OR REPLACE FUNCTION accept_invite(p_token TEXT)
@@ -698,7 +751,7 @@ BEGIN
   UPDATE invites SET accepted_at = NOW() WHERE id = v_invite.id;
   RETURN true;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 -- revoke_invite: INVOKER
 CREATE OR REPLACE FUNCTION revoke_invite(p_invite_id UUID)
@@ -714,10 +767,14 @@ BEGIN
   DELETE FROM invites WHERE id = p_invite_id;
   RETURN true;
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 -- ====================================================================
--- SYSTEM ADMIN FUNCTIONS (INVOKER — checks profiles.is_system_admin)
+-- SYSTEM ADMIN FUNCTIONS
+-- ====================================================================
+-- DEFINER (with is_system_admin guards): stats and admin listings must see
+-- all rows; as INVOKER they would be scoped to the caller's own shared-
+-- profiles row by RLS and return wrong results.
 -- ====================================================================
 
 CREATE OR REPLACE FUNCTION get_system_stats()
@@ -729,11 +786,11 @@ BEGIN
 
   RETURN QUERY SELECT
     (SELECT COUNT(*) FROM organizations),
-    (SELECT COUNT(*) FROM profiles),
+    (SELECT COUNT(*) FROM shared.profiles),
     (SELECT COUNT(*) FROM organization_members),
-    (SELECT COUNT(*) FROM profiles WHERE created_at > NOW() - INTERVAL '7 days');
+    (SELECT COUNT(*) FROM shared.profiles WHERE created_at > NOW() - INTERVAL '7 days');
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION get_all_organizations()
 RETURNS SETOF organization_detail_view AS $$
@@ -744,7 +801,7 @@ BEGIN
 
   RETURN QUERY SELECT * FROM organization_detail_view;
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION grant_system_admin(target_user_id UUID)
 RETURNS BOOLEAN AS $$
@@ -757,7 +814,7 @@ BEGIN
   IF NOT FOUND THEN RAISE EXCEPTION 'User not found'; END IF;
   RETURN true;
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION revoke_system_admin(target_user_id UUID)
 RETURNS BOOLEAN AS $$
@@ -774,7 +831,7 @@ BEGIN
   IF NOT FOUND THEN RAISE EXCEPTION 'User not found'; END IF;
   RETURN true;
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION get_system_admins()
 RETURNS SETOF profile_view AS $$
@@ -783,9 +840,9 @@ BEGIN
     RAISE EXCEPTION 'Not authorized: system admin required';
   END IF;
 
-  RETURN QUERY SELECT * FROM profiles WHERE is_system_admin = true;
+  RETURN QUERY SELECT * FROM shared.profiles WHERE is_system_admin = true;
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION bootstrap_system_admin()
 RETURNS BOOLEAN AS $$
@@ -802,7 +859,7 @@ BEGIN
   IF NOT FOUND THEN RAISE EXCEPTION 'No profile found for current user'; END IF;
   RETURN true;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 -- CLI/Script helper: set any user as system admin (SECURITY DEFINER — runs outside user context)
 CREATE OR REPLACE FUNCTION set_system_admin(p_user_id UUID)
@@ -812,34 +869,35 @@ BEGIN
   IF NOT FOUND THEN RAISE EXCEPTION 'User not found'; END IF;
   RETURN true;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 -- ====================================================================
--- AUTH HANDLER (SECURITY DEFINER — trigger runs outside user context)
+-- AUTH HANDLER (shared schema — trigger fires on the platform auth.users
+-- table for EVERY product; fully qualified body, empty search_path)
 -- ====================================================================
 
-CREATE OR REPLACE FUNCTION handle_new_user()
+CREATE OR REPLACE FUNCTION shared.handle_new_user()
 RETURNS TRIGGER AS $$
 DECLARE
   default_org_slug TEXT;
   default_org_id UUID;
 BEGIN
-  INSERT INTO public.profiles (id, email, full_name)
+  INSERT INTO shared.profiles (id, email, full_name)
   VALUES (NEW.id, NEW.email, COALESCE(NEW.raw_user_meta_data->>'full_name', ''));
 
   default_org_slug := split_part(NEW.email, '@', 1) || '-' || substr(NEW.id::text, 1, 8);
 
-  INSERT INTO public.organizations (name, slug)
+  INSERT INTO donate.organizations (name, slug)
   VALUES (COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)), default_org_slug)
   RETURNING id INTO default_org_id;
 
-  INSERT INTO public.organization_members (organization_id, user_id, role, status, is_owner, joined_at)
+  INSERT INTO donate.organization_members (organization_id, user_id, role, status, is_owner, joined_at)
   VALUES (default_org_id, NEW.id, 'admin', 'active', true, NOW());
 
-  PERFORM public.audit_action(NEW.id, default_org_id, 'user.onboarding_completed', 'organization', default_org_id,
+  PERFORM donate.audit_action(NEW.id, default_org_id, 'user.onboarding_completed', 'organization', default_org_id,
     jsonb_build_object('email', NEW.email, 'auto_created', true));
 
-  PERFORM public.audit_action(NEW.id, NULL, 'user.created', 'profile', NEW.id,
+  PERFORM donate.audit_action(NEW.id, NULL, 'user.created', 'profile', NEW.id,
     jsonb_build_object('email', NEW.email));
 
   RETURN NEW;
@@ -847,7 +905,7 @@ EXCEPTION WHEN OTHERS THEN
   RAISE WARNING 'Failed to create default organization for user %: %', NEW.id, SQLERRM;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 
 -- ====================================================================
 -- TRIGGERS
@@ -855,7 +913,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+  FOR EACH ROW EXECUTE FUNCTION shared.handle_new_user();
 
 CREATE TRIGGER audit_organizations_changes
   AFTER INSERT OR UPDATE OR DELETE ON organizations
@@ -907,10 +965,21 @@ ON CONFLICT (role, permission) DO NOTHING;
 -- GRANTS
 -- ====================================================================
 
-GRANT SELECT ON profile_view TO authenticated;
-GRANT SELECT ON organization_view TO authenticated;
-GRANT SELECT ON organization_detail_view TO authenticated;
-GRANT SELECT ON member_view TO authenticated;
+-- Views execute with owner privileges and would bypass underlying RLS if
+-- queried directly — that was a cross-org data + email enumeration leak.
+-- The client is function-first and never selects views, so client roles
+-- get NO direct view access; only DEFINER functions read them.
+REVOKE SELECT ON profile_view FROM authenticated, anon, PUBLIC;
+REVOKE SELECT ON organization_view FROM authenticated, anon, PUBLIC;
+REVOKE SELECT ON organization_detail_view FROM authenticated, anon, PUBLIC;
+REVOKE SELECT ON member_view FROM authenticated, anon, PUBLIC;
+REVOKE SELECT ON role_view FROM authenticated, anon, PUBLIC;
+
+-- shared.profiles: access PATH only — profiles' own-row RLS policy is the
+-- gate (deny-all for every other row). Used by private.rls_* RLS helpers
+-- and own-row reads; not reachable via the API gateway (donate-only).
+GRANT USAGE ON SCHEMA shared TO authenticated;
+GRANT SELECT ON TABLE shared.profiles TO authenticated;
 
 GRANT EXECUTE ON FUNCTION get_my_profile() TO authenticated;
 GRANT EXECUTE ON FUNCTION get_user_profile(UUID) TO authenticated;
@@ -960,7 +1029,7 @@ BEGIN
   DELETE FROM roles;
   RAISE NOTICE 'Development data reset completed';
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION create_test_user(
   test_email TEXT,
@@ -981,7 +1050,7 @@ BEGIN
   VALUES (test_org_id, test_user_id, 'admin', 'active', true, NOW());
   RETURN test_user_id;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 -- ====================================================================
 -- MIGRATION COMPLETE

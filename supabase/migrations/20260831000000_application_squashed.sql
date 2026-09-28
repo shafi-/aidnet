@@ -7,6 +7,17 @@
 -- the project had never been deployed, so no remote had consumed the
 -- individual version markers. Original files remain in git history.
 -- ====================================================================
+-- Schema layout: everything here belongs to the donate product schema
+-- (see 20240814160000_initial_schema.sql for the layout and role-level
+-- search_path). The SET below routes all unqualified DDL in this file
+-- into donate; `shared` is only in the chain so function bodies and FKs
+-- resolve shared.profiles.
+-- ====================================================================
+
+CREATE SCHEMA IF NOT EXISTS donate;
+CREATE SCHEMA IF NOT EXISTS shared;
+
+SET search_path = donate, shared, extensions, private;
 
 
 -- ====================================================================
@@ -86,15 +97,15 @@ CREATE POLICY "deny_all_organization_subscriptions" ON organization_subscription
 CREATE POLICY "deny_all_subscription_history" ON subscription_history FOR ALL USING (false);
 
 -- System admins can do everything
-CREATE POLICY "System admins can manage subscription plans" ON subscription_plans FOR ALL USING (
+CREATE POLICY "System admins can manage subscription plans" ON subscription_plans FOR ALL TO authenticated USING (
   is_system_admin()
 );
 
-CREATE POLICY "System admins can manage org subscriptions" ON organization_subscriptions FOR ALL USING (
+CREATE POLICY "System admins can manage org subscriptions" ON organization_subscriptions FOR ALL TO authenticated USING (
   is_system_admin()
 );
 
-CREATE POLICY "System admins can view subscription history" ON subscription_history FOR SELECT USING (
+CREATE POLICY "System admins can view subscription history" ON subscription_history FOR SELECT TO authenticated USING (
   is_system_admin()
 );
 
@@ -132,7 +143,11 @@ CREATE POLICY "Owners can create own org subscription history" ON subscription_h
 -- HELPER FUNCTIONS
 -- ====================================================================
 
--- Check if org has a specific feature via active subscription
+-- Check if org has a specific feature via active subscription.
+-- Caller guard is INLINED (active member or system admin), NOT via
+-- can_perform: can_perform itself delegates to has_feature (step 4) and a
+-- can_perform call here would recurse. Returns false for non-members, so
+-- one org's plan capabilities are not probeable by another org's users.
 CREATE OR REPLACE FUNCTION has_feature(p_org_id UUID, p_feature TEXT)
 RETURNS BOOLEAN AS $$
   SELECT EXISTS (
@@ -144,8 +159,17 @@ RETURNS BOOLEAN AS $$
       AND sp.is_active = true
       AND os.current_period_end > NOW()
       AND sp.features ? p_feature
+      AND (
+        is_system_admin()
+        OR EXISTS (
+          SELECT 1 FROM organization_members om
+          WHERE om.user_id = auth.uid()
+            AND om.organization_id = p_org_id
+            AND om.status = 'active'
+        )
+      )
   );
-$$ LANGUAGE sql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE sql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 -- ====================================================================
 -- SYSTEM ADMIN FUNCTIONS
@@ -173,7 +197,7 @@ BEGIN
 
   RETURN new_plan;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 -- Update subscription plan
 CREATE OR REPLACE FUNCTION update_subscription_plan(
@@ -211,13 +235,13 @@ BEGIN
 
   RETURN updated_plan;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 -- Get all subscription plans
 CREATE OR REPLACE FUNCTION get_subscription_plans()
 RETURNS SETOF subscription_plans AS $$
   SELECT * FROM subscription_plans ORDER BY price_monthly ASC, price_yearly ASC;
-$$ LANGUAGE sql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE sql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 -- Get all organization subscriptions with plan details
 CREATE OR REPLACE FUNCTION get_organization_subscriptions()
@@ -250,7 +274,7 @@ RETURNS TABLE(
   JOIN organizations o ON os.organization_id = o.id
   JOIN subscription_plans sp ON os.plan_id = sp.id
   ORDER BY os.created_at DESC, os.id DESC;
-$$ LANGUAGE sql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE sql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 -- Get subscription history for an org
 CREATE OR REPLACE FUNCTION get_subscription_history(p_org_id UUID)
@@ -282,7 +306,7 @@ RETURNS TABLE(
   JOIN subscription_plans sp ON sh.plan_id = sp.id
   WHERE sh.organization_id = p_org_id
   ORDER BY sh.created_at DESC, sh.id DESC;
-$$ LANGUAGE sql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE sql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 -- Pause an org's subscription
 CREATE OR REPLACE FUNCTION pause_subscription(p_org_id UUID)
@@ -315,7 +339,7 @@ BEGIN
 
   RETURN true;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 -- Unpause an org's subscription
 CREATE OR REPLACE FUNCTION unpause_subscription(p_org_id UUID)
@@ -345,7 +369,7 @@ BEGIN
 
   RETURN true;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 -- ====================================================================
 -- ORG OWNER FUNCTIONS
@@ -408,7 +432,7 @@ BEGIN
 
   RETURN v_new_sub;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 -- Change plan (upgrade/downgrade, expires old)
 CREATE OR REPLACE FUNCTION change_plan(
@@ -492,7 +516,7 @@ BEGIN
 
   RETURN v_new_sub;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 -- Cancel subscription
 CREATE OR REPLACE FUNCTION cancel_subscription(p_org_id UUID)
@@ -523,7 +547,7 @@ BEGIN
 
   RETURN true;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 -- Get my current subscription
 CREATE OR REPLACE FUNCTION get_my_subscription(p_org_id UUID)
@@ -557,7 +581,7 @@ RETURNS TABLE(
   WHERE os.organization_id = p_org_id
     AND os.status = 'active'
   LIMIT 1;
-$$ LANGUAGE sql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE sql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 -- ====================================================================
 -- TRIGGERS
@@ -627,7 +651,7 @@ RETURNS TABLE (
 )
 LANGUAGE sql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = donate, shared, extensions, private
 AS $$
   SELECT o.id, o.name, o.slug, o.description, o.created_at
   FROM organizations o
@@ -871,7 +895,7 @@ BEGIN
   )
   RETURNING *;
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION get_campaigns(p_org_id UUID)
 RETURNS SETOF campaigns AS $$
@@ -879,7 +903,7 @@ RETURNS SETOF campaigns AS $$
   WHERE org_id = p_org_id
     AND can_perform('campaigns:read', p_org_id)
   ORDER BY created_at DESC;
-$$ LANGUAGE sql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE sql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION get_campaign(p_campaign_id UUID)
 RETURNS SETOF campaigns AS $$
@@ -889,7 +913,7 @@ RETURNS SETOF campaigns AS $$
       can_perform('campaigns:read', org_id)
       OR is_system_admin()
     );
-$$ LANGUAGE sql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE sql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION update_campaign(
   p_campaign_id UUID,
@@ -947,7 +971,7 @@ BEGIN
   WHERE id = p_campaign_id
   RETURNING *;
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION delete_campaign(p_campaign_id UUID)
 RETURNS BOOLEAN AS $$
@@ -971,7 +995,7 @@ BEGIN
   DELETE FROM campaigns WHERE id = p_campaign_id;
   RETURN true;
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION submit_campaign_for_review(p_campaign_id UUID)
 RETURNS SETOF campaigns AS $$
@@ -998,7 +1022,7 @@ BEGIN
   WHERE id = p_campaign_id
   RETURNING *;
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 -- ====================================================================
 -- ADMIN CAMPAIGN FUNCTIONS (is_system_admin ONLY — no self-publish)
@@ -1025,7 +1049,7 @@ BEGIN
   WHERE id = p_campaign_id
   RETURNING *;
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION reject_campaign(
   p_campaign_id UUID,
@@ -1048,7 +1072,7 @@ BEGIN
   WHERE id = p_campaign_id
   RETURNING *;
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION get_pending_campaigns()
 RETURNS SETOF campaigns AS $$
@@ -1062,7 +1086,7 @@ BEGIN
   WHERE status = 'pending_review'
   ORDER BY created_at ASC;
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION get_campaign_by_slug(p_slug TEXT)
 RETURNS SETOF campaigns AS $$
@@ -1072,7 +1096,7 @@ RETURNS SETOF campaigns AS $$
       can_perform('campaigns:read', org_id)
       OR is_system_admin()
     );
-$$ LANGUAGE sql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE sql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 -- ====================================================================
 -- DONATION METHODS FUNCTIONS (INVOKER)
@@ -1084,7 +1108,7 @@ RETURNS SETOF donation_methods AS $$
   WHERE organization_id = p_org_id
     AND can_perform('org:read', p_org_id)
   ORDER BY is_preferred DESC, created_at ASC;
-$$ LANGUAGE sql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE sql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION upsert_donation_methods(
   p_org_id UUID,
@@ -1151,7 +1175,7 @@ BEGIN
     RETURNING *;
   END IF;
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 -- ====================================================================
 -- CAMPAIGN TAGS FUNCTIONS (INVOKER)
@@ -1160,7 +1184,7 @@ $$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = public;
 CREATE OR REPLACE FUNCTION get_campaign_tags()
 RETURNS SETOF campaign_tags AS $$
   SELECT * FROM campaign_tags ORDER BY label ASC;
-$$ LANGUAGE sql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE sql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 CREATE OR REPLACE FUNCTION set_campaign_tags(
   p_campaign_id UUID,
@@ -1189,7 +1213,7 @@ BEGIN
 
   RETURN true;
 END;
-$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 -- ====================================================================
 -- TRIGGERS
@@ -1278,7 +1302,7 @@ RETURNS TABLE (
 )
 LANGUAGE sql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = donate, shared, extensions, private
 AS $$
   SELECT
     c.id,
@@ -1370,10 +1394,10 @@ CREATE POLICY "Anon can view live campaigns"
   TO anon
   USING (status = 'live' AND is_active = true);
 
-CREATE OR REPLACE FUNCTION public.get_campaign_by_slug(p_slug text)
+CREATE OR REPLACE FUNCTION donate.get_campaign_by_slug(p_slug text)
   RETURNS SETOF campaigns
   LANGUAGE sql
-  SET search_path TO 'public'
+  SET search_path TO 'donate', 'shared', 'extensions', 'private'
 AS $function$
   SELECT * FROM campaigns
   WHERE slug = p_slug
@@ -1399,7 +1423,7 @@ $function$;
 -- Also takes a row lock (FOR UPDATE) so two concurrent redemptions
 -- cannot both pass the unaccepted check.
 
-CREATE OR REPLACE FUNCTION public.accept_invite(p_token TEXT)
+CREATE OR REPLACE FUNCTION donate.accept_invite(p_token TEXT)
 RETURNS BOOLEAN AS $$
 DECLARE
   v_invite invites;
@@ -1426,11 +1450,11 @@ BEGIN
   UPDATE invites SET accepted_at = NOW() WHERE id = v_invite.id;
   RETURN true;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 -- Keep the grant surface explicit: authenticated redeemers only.
-REVOKE EXECUTE ON FUNCTION public.accept_invite(TEXT) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.accept_invite(TEXT) TO authenticated;
+REVOKE EXECUTE ON FUNCTION donate.accept_invite(TEXT) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION donate.accept_invite(TEXT) TO authenticated;
 
 -- ====================================================================
 -- SQUASHED: 20260822180000_validate_invite_requires_email.sql
@@ -1447,16 +1471,16 @@ GRANT EXECUTE ON FUNCTION public.accept_invite(TEXT) TO authenticated;
 -- Signature changed: CREATE OR REPLACE would leave the leaky 1-arg
 -- overload callable, so it is dropped explicitly first.
 
-DROP FUNCTION IF EXISTS public.validate_invite(TEXT);
+DROP FUNCTION IF EXISTS donate.validate_invite(TEXT);
 
-CREATE OR REPLACE FUNCTION public.validate_invite(
+CREATE OR REPLACE FUNCTION donate.validate_invite(
   p_token TEXT,
   p_email TEXT
 )
 RETURNS TEXT -- org name when the pending invite is bound to p_email, else NULL
 LANGUAGE sql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = donate, shared, extensions, private
 AS $$
   SELECT o.name
   FROM invites i
@@ -1468,8 +1492,8 @@ AS $$
 $$;
 
 -- Pre-auth lookup for the /invite page stays anonymous-capable.
-REVOKE EXECUTE ON FUNCTION public.validate_invite(TEXT, TEXT) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.validate_invite(TEXT, TEXT) TO anon, authenticated;
+REVOKE EXECUTE ON FUNCTION donate.validate_invite(TEXT, TEXT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION donate.validate_invite(TEXT, TEXT) TO anon, authenticated;
 
 -- ====================================================================
 -- SQUASHED: 20260823091921_org_request_workflow.sql
@@ -1545,7 +1569,7 @@ RETURNS UUID AS $$
   INSERT INTO org_requests (user_id, org_name, org_slug, org_description)
   VALUES (auth.uid(), p_org_name, p_org_slug, p_org_description)
   RETURNING id;
-$$ LANGUAGE sql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE sql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 REVOKE EXECUTE ON FUNCTION submit_org_request(TEXT, TEXT, TEXT) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION submit_org_request(TEXT, TEXT, TEXT) TO authenticated;
@@ -1598,7 +1622,7 @@ BEGIN
 
   RETURN v_org_id;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 REVOKE EXECUTE ON FUNCTION approve_org_request(UUID) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION approve_org_request(UUID) TO authenticated;
@@ -1630,7 +1654,7 @@ BEGIN
 
   RETURN true;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 REVOKE EXECUTE ON FUNCTION reject_org_request(UUID, TEXT) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION reject_org_request(UUID, TEXT) TO authenticated;
@@ -1722,7 +1746,7 @@ RETURNS TABLE(
   GROUP BY c.id, o.id, om.organization_id
   ORDER BY c.created_at DESC
   LIMIT COALESCE(result_limit, 20);
-$$ LANGUAGE sql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE sql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 REVOKE EXECUTE ON FUNCTION get_public_campaigns(UUID, INT, BOOLEAN) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION get_public_campaigns(UUID, INT, BOOLEAN) TO anon, authenticated;
@@ -1750,7 +1774,7 @@ BEGIN
 
   RETURN true;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 REVOKE EXECUTE ON FUNCTION set_org_status(UUID, TEXT) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION set_org_status(UUID, TEXT) TO authenticated;
@@ -1762,13 +1786,13 @@ GRANT EXECUTE ON FUNCTION set_org_status(UUID, TEXT) TO authenticated;
 CREATE OR REPLACE FUNCTION get_org_meta(p_org_id UUID)
 RETURNS SETOF org_meta AS $$
 BEGIN
-  IF NOT can_perform('read:org', p_org_id) THEN
+  IF NOT can_perform('org:read', p_org_id) THEN
     RAISE EXCEPTION 'Not authorized';
   END IF;
 
   RETURN QUERY SELECT * FROM org_meta WHERE organization_id = p_org_id;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 REVOKE EXECUTE ON FUNCTION get_org_meta(UUID) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION get_org_meta(UUID) TO authenticated;
@@ -1811,7 +1835,7 @@ BEGIN
 
   RETURN true;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 REVOKE EXECUTE ON FUNCTION update_org_meta(UUID, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, JSONB, JSONB) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION update_org_meta(UUID, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, JSONB, JSONB) TO authenticated;
@@ -1838,11 +1862,14 @@ RETURNS TABLE(
   FROM org_requests
   WHERE user_id = auth.uid()
   ORDER BY requested_at DESC, id DESC;
-$$ LANGUAGE sql SECURITY INVOKER SET search_path = public;
+$$ LANGUAGE sql SECURITY INVOKER SET search_path = donate, shared, extensions, private;
 
 REVOKE EXECUTE ON FUNCTION get_my_org_requests() FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION get_my_org_requests() TO authenticated;
 
+-- DEFINER (is_system_admin guard inside): the listing joins shared.profiles
+-- for requester/reviewer emails — as INVOKER, profiles' own-row RLS would
+-- blank every row except the caller's own.
 CREATE OR REPLACE FUNCTION get_all_org_requests()
 RETURNS TABLE(
   id UUID,
@@ -1891,7 +1918,7 @@ BEGIN
     r.requested_at DESC,
     r.id DESC;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 REVOKE EXECUTE ON FUNCTION get_all_org_requests() FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION get_all_org_requests() TO authenticated;
@@ -1993,7 +2020,7 @@ SET features = features || '["settings"]'::jsonb
 WHERE name = 'Free'
   AND NOT features @> '["settings"]'::jsonb;
 
-CREATE OR REPLACE FUNCTION public.attach_default_plan()
+CREATE OR REPLACE FUNCTION donate.attach_default_plan()
 RETURNS TRIGGER AS $$
 DECLARE
   v_free_plan_id UUID;
@@ -2017,12 +2044,12 @@ BEGIN
 
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 DROP TRIGGER IF EXISTS trg_attach_default_plan ON organizations;
 CREATE TRIGGER trg_attach_default_plan
   AFTER INSERT ON organizations
-  FOR EACH ROW EXECUTE FUNCTION public.attach_default_plan();
+  FOR EACH ROW EXECUTE FUNCTION donate.attach_default_plan();
 
 -- 2. Backfill: organizations that predate this trigger and have no plan.
 INSERT INTO organization_subscriptions
@@ -2105,7 +2132,7 @@ BEGIN
              COALESCE(om.name, o.name), COALESCE(om.description, o.description), om.logo_url, om.website_url, om.contact_email,
              om.contact_phone, om.address, om.social_links, om.settings;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 REVOKE EXECUTE ON FUNCTION get_all_organizations() FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION get_all_organizations() TO authenticated;
@@ -2161,7 +2188,7 @@ RETURNS TABLE(
   LEFT JOIN org_meta m
     ON o.id = m.organization_id
   WHERE om.user_id = auth.uid();
-$$ LANGUAGE sql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE sql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 REVOKE EXECUTE ON FUNCTION get_my_organizations() FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION get_my_organizations() TO authenticated;
@@ -2215,7 +2242,7 @@ RETURNS TABLE(
   GROUP BY o.id, o.slug, o.status, o.created_by, o.created_at, o.updated_at,
            COALESCE(om.name, o.name), COALESCE(om.description, o.description), om.logo_url, om.website_url, om.contact_email,
            om.contact_phone, om.address, om.social_links, om.settings;
-$$ LANGUAGE sql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE sql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 REVOKE EXECUTE ON FUNCTION get_organization(UUID) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION get_organization(UUID) TO authenticated;
@@ -2235,7 +2262,7 @@ GRANT EXECUTE ON FUNCTION get_organization(UUID) TO authenticated;
 -- Keep the rework version: it additionally filters out suspended orgs.
 -- All-NULL calls behave identically on either signature.
 
-DROP FUNCTION IF EXISTS public.get_public_campaigns(
+DROP FUNCTION IF EXISTS donate.get_public_campaigns(
   p_zakat_filter boolean,
   p_org_filter uuid,
   p_result_limit integer
@@ -2243,7 +2270,7 @@ DROP FUNCTION IF EXISTS public.get_public_campaigns(
 
 -- The original declared its parameters WITHOUT the p_ prefix; drop that
 -- spelling too (positional types are what Postgres matches on).
-DROP FUNCTION IF EXISTS public.get_public_campaigns(boolean, uuid, integer);
+DROP FUNCTION IF EXISTS donate.get_public_campaigns(boolean, uuid, integer);
 
 -- ====================================================================
 -- SQUASHED: 20260824000002_update_org_meta_upsert.sql
@@ -2257,7 +2284,7 @@ DROP FUNCTION IF EXISTS public.get_public_campaigns(boolean, uuid, integer);
 --    meta rows) and for orgs whose metadata was never edited; saving from
 --    the Settings tab must upsert, not explode.
 
-CREATE OR REPLACE FUNCTION public.update_org_meta(
+CREATE OR REPLACE FUNCTION donate.update_org_meta(
   p_org_id uuid,
   p_name text DEFAULT NULL::text,
   p_description text DEFAULT NULL::text,
@@ -2272,7 +2299,7 @@ CREATE OR REPLACE FUNCTION public.update_org_meta(
 RETURNS boolean
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = donate, shared, extensions, private
 AS $function$
 BEGIN
   IF NOT can_perform('org:update', p_org_id) THEN
@@ -2309,7 +2336,7 @@ $function$;
 -- SQUASHED: 20260824000003_unified_can_perform.sql
 -- ====================================================================
 -- ============================================================================
--- UNIFIED AUTHORIZATION GATE: public.can_perform(permission, org_id)
+-- UNIFIED AUTHORIZATION GATE: donate.can_perform(permission, org_id)
 --
 -- Single source of truth for DB-side access control. Every mutation already
 -- routes through this function (directly or via RLS policies), so wiring all
@@ -2335,7 +2362,7 @@ $function$;
 --   plan instantly starts enforcing it — no code change.
 -- ============================================================================
 
-CREATE OR REPLACE FUNCTION public.can_perform(
+CREATE OR REPLACE FUNCTION donate.can_perform(
   permission_name TEXT,
   p_org_id UUID
 )
@@ -2343,7 +2370,7 @@ RETURNS BOOLEAN
 LANGUAGE plpgsql
 STABLE
 SECURITY DEFINER
-SET search_path = public
+SET search_path = donate, shared, extensions, private
 AS $$
 DECLARE
   v_org_status TEXT;
@@ -2417,8 +2444,8 @@ $$;
 -- evaluate this function during anonymous queries, and it answers FALSE
 -- safely (auth.uid() is NULL -> no membership). Revoking would convert those
 -- evaluations into hard SQL errors instead of a clean denial.
-REVOKE EXECUTE ON FUNCTION public.can_perform(TEXT, UUID) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.can_perform(TEXT, UUID) TO anon, authenticated;
+REVOKE EXECUTE ON FUNCTION donate.can_perform(TEXT, UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION donate.can_perform(TEXT, UUID) TO anon, authenticated;
 
 -- ====================================================================
 -- SQUASHED: 20260824000004_rls_read_split.sql
@@ -2426,7 +2453,7 @@ GRANT EXECUTE ON FUNCTION public.can_perform(TEXT, UUID) TO anon, authenticated;
 -- ============================================================================
 -- READ/WRITE SPLIT (recursion-free authorization architecture)
 --
---   * public.can_perform(...) gates USER ACTIONS only (RPC mutations).
+--   * donate.can_perform(...) gates USER ACTIONS only (RPC mutations).
 --     Read RLS never calls it.
 --   * Read RLS uses small dedicated SECURITY INVOKER helpers in schema
 --     `private`, all prefixed rls_.
@@ -2444,12 +2471,12 @@ GRANT EXECUTE ON FUNCTION public.can_perform(TEXT, UUID) TO anon, authenticated;
 -- ---------------------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION private.rls_uid()
-RETURNS UUID LANGUAGE sql STABLE SECURITY INVOKER SET search_path = public AS $$
+RETURNS UUID LANGUAGE sql STABLE SECURITY INVOKER SET search_path = donate, shared, extensions, private AS $$
   SELECT auth.uid();
 $$;
 
 CREATE OR REPLACE FUNCTION private.rls_is_system_admin()
-RETURNS BOOLEAN LANGUAGE sql STABLE SECURITY INVOKER SET search_path = public AS $$
+RETURNS BOOLEAN LANGUAGE sql STABLE SECURITY INVOKER SET search_path = donate, shared, extensions, private AS $$
   -- Reads the CALLER'S OWN profile row (permitted by profiles' own-row policy)
   SELECT COALESCE(
     (SELECT is_system_admin FROM profiles WHERE id = auth.uid()), false
@@ -2457,7 +2484,7 @@ RETURNS BOOLEAN LANGUAGE sql STABLE SECURITY INVOKER SET search_path = public AS
 $$;
 
 CREATE OR REPLACE FUNCTION private.rls_is_active_member(p_org_id UUID)
-RETURNS BOOLEAN LANGUAGE sql STABLE SECURITY INVOKER SET search_path = public AS $$
+RETURNS BOOLEAN LANGUAGE sql STABLE SECURITY INVOKER SET search_path = donate, shared, extensions, private AS $$
   -- Own membership row: permitted by organization_members' self-row policy
   SELECT EXISTS (
     SELECT 1 FROM organization_members
@@ -2468,7 +2495,7 @@ RETURNS BOOLEAN LANGUAGE sql STABLE SECURITY INVOKER SET search_path = public AS
 $$;
 
 CREATE OR REPLACE FUNCTION private.rls_is_owner(p_org_id UUID)
-RETURNS BOOLEAN LANGUAGE sql STABLE SECURITY INVOKER SET search_path = public AS $$
+RETURNS BOOLEAN LANGUAGE sql STABLE SECURITY INVOKER SET search_path = donate, shared, extensions, private AS $$
   SELECT EXISTS (
     SELECT 1 FROM organization_members
     WHERE organization_id = p_org_id
@@ -2479,7 +2506,7 @@ RETURNS BOOLEAN LANGUAGE sql STABLE SECURITY INVOKER SET search_path = public AS
 $$;
 
 CREATE OR REPLACE FUNCTION private.rls_org_status(p_org_id UUID)
-RETURNS TEXT LANGUAGE sql STABLE SECURITY INVOKER SET search_path = public AS $$
+RETURNS TEXT LANGUAGE sql STABLE SECURITY INVOKER SET search_path = donate, shared, extensions, private AS $$
   SELECT status FROM organizations WHERE id = p_org_id;
 $$;
 
@@ -2493,7 +2520,7 @@ GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA private TO authenticated;
 
 DROP POLICY IF EXISTS "Members can view organizations" ON organizations;
 CREATE POLICY "Members can view organizations" ON organizations
-  FOR SELECT USING (
+  FOR SELECT  TO authenticated USING (
     created_by = auth.uid()
     OR EXISTS (
       SELECT 1 FROM organization_members om
@@ -2517,11 +2544,11 @@ CREATE POLICY "Members can view own memberships" ON organization_members
 
 DROP POLICY IF EXISTS "Members can view campaigns" ON campaigns;
 CREATE POLICY "Members can view campaigns" ON campaigns
-  FOR SELECT USING (private.rls_is_active_member(org_id));
+  FOR SELECT  TO authenticated USING (private.rls_is_active_member(org_id));
 
 DROP POLICY IF EXISTS "Members can view campaign_tag_map" ON campaign_tag_map;
 CREATE POLICY "Members can view campaign_tag_map" ON campaign_tag_map
-  FOR SELECT USING (
+  FOR SELECT  TO authenticated USING (
     EXISTS (
       SELECT 1 FROM campaigns c
       WHERE c.id = campaign_tag_map.campaign_id
@@ -2531,19 +2558,19 @@ CREATE POLICY "Members can view campaign_tag_map" ON campaign_tag_map
 
 DROP POLICY IF EXISTS "Members can view donation_methods" ON donation_methods;
 CREATE POLICY "Members can view donation_methods" ON donation_methods
-  FOR SELECT USING (private.rls_is_active_member(organization_id));
+  FOR SELECT  TO authenticated USING (private.rls_is_active_member(organization_id));
 
 DROP POLICY IF EXISTS "Admins can view invites" ON invites;
 CREATE POLICY "Admins can view invites" ON invites
-  FOR SELECT USING (private.rls_is_active_member(organization_id));
+  FOR SELECT  TO authenticated USING (private.rls_is_active_member(organization_id));
 
 DROP POLICY IF EXISTS "Owners can view own subscription" ON organization_subscriptions;
 CREATE POLICY "Owners can view own subscription" ON organization_subscriptions
-  FOR SELECT USING (private.rls_is_owner(organization_id));
+  FOR SELECT  TO authenticated USING (private.rls_is_owner(organization_id));
 
 DROP POLICY IF EXISTS "Members can view todos" ON todos;
 CREATE POLICY "Members can view todos" ON todos
-  FOR SELECT USING (private.rls_is_active_member(organization_id));
+  FOR SELECT  TO authenticated USING (private.rls_is_active_member(organization_id));
 
 -- ---------------------------------------------------------------------------
 -- 4. can_perform = ACTION GATE ONLY (rewrites the unified version):
@@ -2551,7 +2578,7 @@ CREATE POLICY "Members can view todos" ON todos
 --    membership + role permission | plan-managed subscription feature
 -- ---------------------------------------------------------------------------
 
-CREATE OR REPLACE FUNCTION public.can_perform(
+CREATE OR REPLACE FUNCTION donate.can_perform(
   permission_name TEXT,
   p_org_id UUID
 )
@@ -2559,7 +2586,7 @@ RETURNS BOOLEAN
 LANGUAGE plpgsql
 STABLE
 SECURITY DEFINER
-SET search_path = public
+SET search_path = donate, shared, extensions, private
 AS $$
 DECLARE
   v_org_status TEXT;
@@ -2657,7 +2684,7 @@ RETURNS BOOLEAN
 LANGUAGE sql
 STABLE
 SECURITY INVOKER
-SET search_path = public
+SET search_path = donate, shared, extensions, private
 AS $$
   SELECT EXISTS (
     SELECT 1
@@ -2675,7 +2702,7 @@ GRANT EXECUTE ON FUNCTION private.rls_has_role_permission(UUID, TEXT) TO authent
 -- ---------------------------------------------------------------------------
 -- A. get_my_subscription — caller must belong to the org (or be admin).
 -- ---------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION public.get_my_subscription(p_org_id uuid)
+CREATE OR REPLACE FUNCTION donate.get_my_subscription(p_org_id uuid)
 RETURNS TABLE(
   id uuid,
   plan_id uuid,
@@ -2692,7 +2719,7 @@ RETURNS TABLE(
 LANGUAGE sql
 STABLE
 SECURITY DEFINER
-SET search_path = public
+SET search_path = donate, shared, extensions, private
 AS $function$
   SELECT
     os.id,
@@ -2722,18 +2749,18 @@ AS $function$
   LIMIT 1;
 $function$;
 
-REVOKE EXECUTE ON FUNCTION public.get_my_subscription(UUID) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION donate.get_my_subscription(UUID) FROM PUBLIC;
 -- anon keeps EXECUTE deliberately (same rationale as can_perform): the
 -- guard yields an empty result for unauthenticated callers, and revoking
 -- would turn anonymous evaluations into hard SQL errors instead.
-GRANT EXECUTE ON FUNCTION public.get_my_subscription(UUID) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION donate.get_my_subscription(UUID) TO anon, authenticated;
 
 -- ---------------------------------------------------------------------------
 -- C. invites: role-sensitive read (no viewers, no bare members).
 -- ---------------------------------------------------------------------------
 DROP POLICY IF EXISTS "Admins can view invites" ON invites;
 CREATE POLICY "Members with invites:read can view invites" ON invites
-  FOR SELECT USING (
+  FOR SELECT  TO authenticated USING (
     private.rls_is_system_admin()
     OR private.rls_has_role_permission(organization_id, 'invites:read')
   );
@@ -2743,14 +2770,14 @@ CREATE POLICY "Members with invites:read can view invites" ON invites
 -- ---------------------------------------------------------------------------
 DROP POLICY IF EXISTS "Members can view campaigns" ON campaigns;
 CREATE POLICY "Members can view campaigns" ON campaigns
-  FOR SELECT USING (
+  FOR SELECT  TO authenticated USING (
     private.rls_is_active_member(org_id)
     OR private.rls_is_system_admin()
   );
 
 DROP POLICY IF EXISTS "Members can view campaign_tag_map" ON campaign_tag_map;
 CREATE POLICY "Members can view campaign_tag_map" ON campaign_tag_map
-  FOR SELECT USING (
+  FOR SELECT  TO authenticated USING (
     EXISTS (
       SELECT 1 FROM campaigns c
       WHERE c.id = campaign_tag_map.campaign_id
@@ -2761,14 +2788,14 @@ CREATE POLICY "Members can view campaign_tag_map" ON campaign_tag_map
 
 DROP POLICY IF EXISTS "Members can view donation_methods" ON donation_methods;
 CREATE POLICY "Members can view donation_methods" ON donation_methods
-  FOR SELECT USING (
+  FOR SELECT  TO authenticated USING (
     private.rls_is_active_member(organization_id)
     OR private.rls_is_system_admin()
   );
 
 DROP POLICY IF EXISTS "Members can view todos" ON todos;
 CREATE POLICY "Members can view todos" ON todos
-  FOR SELECT USING (
+  FOR SELECT  TO authenticated USING (
     private.rls_is_active_member(organization_id)
     OR private.rls_is_system_admin()
   );
@@ -2864,7 +2891,7 @@ RETURNS TABLE(
   GROUP BY c.id, o.id, om.organization_id
   ORDER BY c.created_at DESC
   LIMIT 1;
-$$ LANGUAGE sql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE sql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 REVOKE EXECUTE ON FUNCTION get_public_campaign_by_slug(TEXT) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION get_public_campaign_by_slug(TEXT) TO anon, authenticated;
@@ -2885,12 +2912,12 @@ GRANT EXECUTE ON FUNCTION get_public_campaign_by_slug(TEXT) TO anon, authenticat
 -- Unknown campaign id -> org lookup is NULL -> can_perform FALSE -> no rows.
 -- ============================================================================
 
-CREATE OR REPLACE FUNCTION public.get_campaign_tag_ids(p_campaign_id UUID)
+CREATE OR REPLACE FUNCTION donate.get_campaign_tag_ids(p_campaign_id UUID)
 RETURNS SETOF UUID
 LANGUAGE sql
 STABLE
 SECURITY INVOKER
-SET search_path = public
+SET search_path = donate, shared, extensions, private
 AS $$
   SELECT m.tag_id
   FROM campaign_tag_map m
@@ -2902,8 +2929,8 @@ AS $$
   ORDER BY m.tag_id ASC;
 $$;
 
-REVOKE EXECUTE ON FUNCTION public.get_campaign_tag_ids(UUID) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.get_campaign_tag_ids(UUID) TO authenticated;
+REVOKE EXECUTE ON FUNCTION donate.get_campaign_tag_ids(UUID) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION donate.get_campaign_tag_ids(UUID) TO authenticated;
 
 -- ====================================================================
 -- SQUASHED: 20260829000000_cursor_pagination_orgs.sql
@@ -2974,7 +3001,7 @@ BEGIN
     ORDER BY o.id ASC
     LIMIT v_limit;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 REVOKE EXECUTE ON FUNCTION get_all_organizations(int, text) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION get_all_organizations(int, text) TO authenticated;
@@ -3037,7 +3064,7 @@ RETURNS TABLE(
     AND (p_cursor IS NULL OR o.id::text > p_cursor)
   ORDER BY o.id ASC
   LIMIT least(greatest(coalesce(p_limit, 20), 1), 100);
-$$ LANGUAGE sql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE sql SECURITY DEFINER SET search_path = donate, shared, extensions, private;
 
 REVOKE EXECUTE ON FUNCTION get_my_organizations(int, text) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION get_my_organizations(int, text) TO authenticated;
@@ -3058,16 +3085,20 @@ GRANT EXECUTE ON FUNCTION get_my_organizations(int, text) TO authenticated;
 -- (approve_org_request) or the seed script. The trigger only ensures
 -- a profiles row exists so FK constraints (organization_members.user_id)
 -- are satisfied from the moment the user is created.
--- ====================================================================
+--
+-- Schema note: the auth handler lives in `shared` (it fires on the platform
+-- auth.users table); this rework replaces the initial org-creating version
+-- in place. Drop the pre-refactor leftover in donate if one exists.
+DROP FUNCTION IF EXISTS donate.handle_new_user();
 
-CREATE OR REPLACE FUNCTION public.handle_new_user()
+CREATE OR REPLACE FUNCTION shared.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, email, full_name)
+  INSERT INTO shared.profiles (id, email, full_name)
   VALUES (NEW.id, NEW.email, COALESCE(NEW.raw_user_meta_data->>'full_name', ''));
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 
 -- ====================================================================
 -- SQUASHED: 20260830100000_fix_grant_system_admin_security.sql
@@ -3079,9 +3110,9 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 -- Changing to SECURITY DEFINER makes the UPDATE run as the function owner
 -- (postgres), bypassing RLS.  The internal is_system_admin() check is the
 -- real authorization guard — same pattern used by every other DB function.
-ALTER FUNCTION public.grant_system_admin(uuid)
+ALTER FUNCTION donate.grant_system_admin(uuid)
   SECURITY DEFINER
-  SET search_path TO 'public';
+  SET search_path TO 'donate', 'shared', 'extensions', 'private';
 
 -- ====================================================================
 -- SQUASHED: 20260830200000_security_hardening_legacy_functions.sql
@@ -3124,11 +3155,11 @@ DROP FUNCTION IF EXISTS create_test_user(TEXT, TEXT, TEXT);
 
 -- S3: get_user_profile — leaked any user's email
 -- Fix: only return profile if caller shares an org with target, or is system admin.
-CREATE OR REPLACE FUNCTION public.get_user_profile(target_user_id UUID)
+CREATE OR REPLACE FUNCTION donate.get_user_profile(target_user_id UUID)
 RETURNS SETOF profile_view
 LANGUAGE sql
 SECURITY DEFINER
-SET search_path TO 'public'
+SET search_path TO 'donate', 'shared', 'extensions', 'private'
 AS $function$
   SELECT pv.*
   FROM profile_view pv
@@ -3151,7 +3182,7 @@ $function$;
 
 -- S4: get_organization_subscriptions — leaked all billing data
 -- Fix: system admin only (this is an admin-panel function).
-CREATE OR REPLACE FUNCTION public.get_organization_subscriptions()
+CREATE OR REPLACE FUNCTION donate.get_organization_subscriptions()
 RETURNS TABLE(
   id UUID, organization_id UUID, org_name TEXT, plan_name TEXT,
   status TEXT, billing_period TEXT, price_monthly NUMERIC, price_yearly NUMERIC,
@@ -3159,7 +3190,7 @@ RETURNS TABLE(
 )
 LANGUAGE sql
 SECURITY DEFINER
-SET search_path TO 'public'
+SET search_path TO 'donate', 'shared', 'extensions', 'private'
 AS $function$
   SELECT
     os.id, os.organization_id, o.name AS org_name, sp.name AS plan_name,
@@ -3174,7 +3205,7 @@ $function$;
 
 -- S5: get_subscription_history — leaked any org's payment history
 -- Fix: require can_perform('org:read') on the target org.
-CREATE OR REPLACE FUNCTION public.get_subscription_history(p_org_id UUID)
+CREATE OR REPLACE FUNCTION donate.get_subscription_history(p_org_id UUID)
 RETURNS TABLE(
   id UUID, organization_id UUID, org_name TEXT, plan_name TEXT,
   action TEXT, amount NUMERIC, payment_status TEXT, invoice_number TEXT,
@@ -3182,7 +3213,7 @@ RETURNS TABLE(
 )
 LANGUAGE sql
 SECURITY DEFINER
-SET search_path TO 'public'
+SET search_path TO 'donate', 'shared', 'extensions', 'private'
 AS $function$
   SELECT
     sh.id, sh.organization_id, o.name AS org_name, sp.name AS plan_name,
@@ -3195,3 +3226,29 @@ AS $function$
     AND can_perform('org:read', p_org_id)
   ORDER BY sh.created_at DESC, sh.id DESC;
 $function$;
+
+-- ====================================================================
+-- SCHEMA-MOVE GRANT RESTORE (donate)
+-- ====================================================================
+-- The pre-refactor baseline granted table DML on public to anon/
+-- authenticated so SECURITY INVOKER functions and RLS evaluation have an
+-- access PATH; RLS (enable + deny-all + permissive policies) remains THE
+-- authorization boundary. Reproduce that path for the donate schema.
+-- Default privileges (initial migration) cover this too; this explicit
+-- block is belt-and-braces for tables created by other roles.
+-- ====================================================================
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA donate TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA donate TO service_role;
+
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA donate
+  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO anon, authenticated, service_role;
+
+-- Views must never carry client grants: postgres-owned views execute with
+-- owner privileges and would bypass underlying RLS (cross-org membership +
+-- email enumeration leak). "GRANT ... ON ALL TABLES" above includes views,
+-- so the revoke is repeated AFTER the grant block. NOTE for future
+-- migrations: any new view in donate must revoke client SELECT explicitly.
+REVOKE SELECT ON profile_view, organization_view, organization_detail_view,
+  member_view, role_view
+FROM authenticated, anon, PUBLIC;
