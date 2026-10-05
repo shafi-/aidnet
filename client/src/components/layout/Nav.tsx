@@ -166,9 +166,7 @@ export function Nav() {
       {mobileOpen && (
         <div className="border-t md:hidden" id="mobile-menu">
           <div className="space-y-1 px-4 py-2">
-            <div className="py-2">
-              <LanguageSwitcher />
-            </div>
+            {/* Language switcher stays in the top bar on mobile — no duplicate here. */}
             {user ? (
               <>
                 <Link

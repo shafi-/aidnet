@@ -65,6 +65,30 @@ test.describe('Landing Page', () => {
     ).toBeVisible()
   })
 
+  test('When landing has no campaigns, launch panel invites organizations', async ({
+    page,
+  }) => {
+    await page.goto('/')
+    await expect(
+      page.getByRole('heading', { name: "We're just getting started" })
+    ).toBeVisible()
+    await expect(
+      page.getByRole('link', { name: 'Register your organization' })
+    ).toHaveAttribute('href', '/org/request')
+  })
+
+  test('When anon loads landing, how-giving-works steps render', async ({
+    page,
+  }) => {
+    await page.goto('/')
+    await expect(
+      page.getByRole('heading', { name: 'How giving works' })
+    ).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: 'Browse verified campaigns' })
+    ).toBeVisible()
+  })
+
   test.describe('Navigation from landing', () => {
     test('When anon loads landing, nav shows brand and auth links', async ({
       page,

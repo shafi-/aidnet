@@ -27,6 +27,8 @@ export const ROUTE_ACCESS: AccessRule[] = [
   { exact: '/', level: 'public' },
   { exact: '/about', level: 'public' },
   { exact: '/privacy', level: 'public' },
+  { exact: '/terms', level: 'public' },
+  { exact: '/contact', level: 'public' },
 
   // Auth flows are public (they manage their own signed-in state)
   { prefix: '/auth/', level: 'public' },

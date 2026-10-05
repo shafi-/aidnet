@@ -102,22 +102,35 @@ function CampaignsContent() {
         )}
 
         {!loading && !error && campaigns.length === 0 && (
-          <div className="space-y-3 py-12 text-center text-gray-500">
-            <p>
-              {zakat
-                ? t('campaigns.emptyZakat')
-                : org
-                  ? t('campaigns.emptyOrg')
-                  : t('campaigns.emptyAll')}
-            </p>
-            {(zakat || org) && (
-              <Link
-                href="/campaigns"
-                className="font-medium text-indigo-600 hover:text-indigo-700"
-              >
-                {t('campaigns.clearFilters')}
-              </Link>
+          <div className="space-y-4 py-12 text-center text-gray-500">
+            {!zakat && !org && (
+              <>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {t('campaigns.launchTitle')}
+                </h2>
+                <p className="mx-auto max-w-2xl leading-relaxed">
+                  {t('campaigns.launchBody')}
+                </p>
+              </>
             )}
+            {zakat && <p>{t('campaigns.emptyZakat')}</p>}
+            {org && <p>{t('campaigns.emptyOrg')}</p>}
+            <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+              <Link
+                href="/org/request"
+                className="inline-block rounded-md bg-indigo-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-indigo-700"
+              >
+                {t('campaigns.launchCta')}
+              </Link>
+              {(zakat || org) && (
+                <Link
+                  href="/campaigns"
+                  className="text-sm text-gray-500 hover:text-gray-700 hover:underline"
+                >
+                  {t('campaigns.clearFilters')}
+                </Link>
+              )}
+            </div>
           </div>
         )}
 
