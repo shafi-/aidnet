@@ -1,38 +1,9 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('Navigation', () => {
-  test.describe('Static Pages', () => {
-    test('When anon loads /about, about content renders', async ({ page }) => {
-      await page.goto('/about/')
-      await expect(page.locator('h1')).toContainText('About Donate')
-      await expect(
-        page.getByRole('heading', { name: 'Our Mission' })
-      ).toBeVisible()
-    })
-
-    test('When anon loads /privacy, privacy policy renders', async ({
-      page,
-    }) => {
-      await page.goto('/privacy/')
-      await expect(page.locator('h1')).toContainText('Privacy Policy')
-      await expect(
-        page.getByRole('heading', { name: 'We Do Not Sell Your Data' })
-      ).toBeVisible()
-    })
-
-    test('When anon loads /terms, terms of service renders', async ({
-      page,
-    }) => {
-      await page.goto('/terms/')
-      await expect(page.locator('h1')).toContainText('Terms of Service')
-    })
-
-    test('When anon loads /contact, contact page renders', async ({ page }) => {
-      await page.goto('/contact/')
-      await expect(page.locator('h1')).toContainText('Contact')
-      await expect(page.locator('a[href^="mailto:"]')).toBeVisible()
-    })
-  })
+  // Page-render assertions for /about, /privacy, /terms and /contact live in
+  // about-privacy.spec.ts — their owning spec. This file owns navigation
+  // behavior: the footer links and 404 handling.
 
   test.describe('Footer', () => {
     test('When anon clicks the footer About link, about page renders', async ({
@@ -44,7 +15,7 @@ test.describe('Navigation', () => {
         .getByRole('link', { name: 'About Us' })
         .click()
       await expect(page).toHaveURL(/\/about\/$/)
-      await expect(page.locator('h1')).toContainText('About Donate')
+      await expect(page.locator('h1')).toContainText('About AidNet')
     })
 
     test('When anon clicks the footer Privacy link, privacy page renders', async ({

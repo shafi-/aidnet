@@ -14,7 +14,7 @@ const notoBengali = Noto_Sans_Bengali({
 })
 
 export const metadata: Metadata = {
-  title: 'Donate',
+  title: 'AidNet',
   description:
     'Launch verified charity campaigns and donate directly to organizations.',
 }

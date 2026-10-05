@@ -5,9 +5,9 @@ const ADMIN_STATE = 'tests/e2e/.auth/systemAdmin.json'
 test.describe('Landing Page', () => {
   test('When anon loads landing, welcome content renders', async ({ page }) => {
     await page.goto('/')
-    await expect(page.locator('h1')).toContainText('Donate')
+    await expect(page.locator('h1')).toContainText('AidNet')
     await expect(
-      page.getByRole('heading', { name: 'Welcome to Donate' })
+      page.getByRole('heading', { name: 'Welcome to AidNet' })
     ).toBeVisible()
     await expect(
       page.locator(
@@ -99,7 +99,7 @@ test.describe('Landing Page', () => {
     }) => {
       await page.goto('/')
       const nav = page.locator('nav')
-      await expect(nav.getByRole('link', { name: 'Donate' })).toBeVisible()
+      await expect(nav.getByRole('link', { name: 'AidNet' })).toBeVisible()
       await expect(nav.getByRole('link', { name: 'Campaigns' })).toBeVisible()
       await expect(nav.getByRole('link', { name: 'Sign In' })).toBeVisible()
     })

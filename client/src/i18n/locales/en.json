@@ -6,7 +6,7 @@
     "language": "Language"
   },
   "nav": {
-    "brand": "Donate",
+    "brand": "AidNet",
     "campaigns": "Campaigns",
     "organizations": "Organizations",
     "dashboard": "Dashboard",
@@ -27,11 +27,11 @@
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
     "contact": "Contact",
-    "copyright": "© {{year}} Donate"
+    "copyright": "© {{year}} AidNet"
   },
   "getInvolved": {
     "title": "Get involved",
-    "body": "Donate brings verified organizations, fundraisers, and donors together. Tell us how you would like to take part.",
+    "body": "AidNet brings verified organizations, fundraisers, and donors together. Tell us how you would like to take part.",
     "orgsTitle": "Represent an organization?",
     "orgsBody": "Once reviewed and approved, your organization can launch its own campaigns.",
     "orgsCta": "Register your organization",
@@ -43,7 +43,7 @@
     "aidCta": "Reach out"
   },
   "home": {
-    "welcome": "Welcome to Donate",
+    "welcome": "Welcome to AidNet",
     "tagline": "Discover campaigns that matter and support the causes you care about",
     "welcomeBack": "Welcome back, {{email}}!",
     "goToDashboard": "Go to Dashboard",
@@ -87,10 +87,10 @@
     "emptyOrg": "No campaigns found for this organization."
   },
   "about": {
-    "pageTitle": "About Donate",
-    "title": "About Donate",
+    "pageTitle": "About AidNet",
+    "title": "About AidNet",
     "missionTitle": "Our Mission",
-    "missionBody": "Donate connects generous people with verified organizations running campaigns for causes that matter. We make giving transparent, so you always know who you are helping and how.",
+    "missionBody": "AidNet connects generous people with verified organizations running campaigns for causes that matter. We make giving transparent, so you always know who you are helping and how.",
     "howTitle": "How It Works",
     "howOrgs": "Organizations request to join and are reviewed by administrators before approval.",
     "howCampaigns": "Approved organizations create and manage their own donation campaigns.",
@@ -105,7 +105,7 @@
     "pageTitle": "Privacy Policy",
     "title": "Privacy Policy",
     "updated": "Last updated: October 2026",
-    "intro": "Your privacy matters. This policy explains, in plain language, what data Donate collects and how it is used.",
+    "intro": "Your privacy matters. This policy explains, in plain language, what data AidNet collects and how it is used.",
     "collectTitle": "Data We Collect",
     "collectBody": "Account information you provide at sign-up (email address and name), organization profiles and campaign content you create, records of donations made through the platform, and your language preference (stored only in your own browser).",
     "useTitle": "How We Use Your Data",
@@ -117,7 +117,7 @@
     "rightsTitle": "Your Rights",
     "rightsBody": "You can request an export or deletion of your personal data at any time through the contact page, and we aim to respond as soon as we can.",
     "childrenTitle": "Children",
-    "childrenBody": "Donate is not directed at children under 13, and we do not knowingly collect their data.",
+    "childrenBody": "AidNet is not directed at children under 13, and we do not knowingly collect their data.",
     "changesTitle": "Changes to This Policy",
     "changesBody": "If this policy changes, the updated version will be posted on this page with a new date.",
     "contactTitle": "Contact",
@@ -127,15 +127,15 @@
     "pageTitle": "Terms of Service",
     "title": "Terms of Service",
     "updated": "Last updated: October 2026",
-    "intro": "These terms govern your use of Donate. By using the platform you agree to them.",
+    "intro": "These terms govern your use of AidNet. By using the platform you agree to them.",
     "acceptanceTitle": "1. Acceptance",
-    "acceptanceBody": "By creating an account or using Donate in any way, you accept these terms. If you do not agree, please do not use the platform.",
+    "acceptanceBody": "By creating an account or using AidNet in any way, you accept these terms. If you do not agree, please do not use the platform.",
     "accountsTitle": "2. Accounts",
     "accountsBody": "Provide accurate information when signing up and keep your credentials secure. You are responsible for activity that happens under your account.",
     "organizationsTitle": "3. Organizations",
     "organizationsBody": "Organizations must submit truthful information during review, run lawful fundraising, and keep their campaigns accurate and up to date. Funds raised belong to the organization, which is solely responsible for their use.",
     "donationsTitle": "4. Donations",
-    "donationsBody": "Donate is a platform that connects donors with organizations — it is not a charity and does not hold or distribute funds itself. Donations are made to the organization running the campaign. Please review a campaign carefully before giving.",
+    "donationsBody": "AidNet is a platform that connects donors with organizations — it is not a charity and does not hold or distribute funds itself. Donations are made to the organization running the campaign. Please review a campaign carefully before giving.",
     "useTitle": "5. Acceptable Use",
     "useBody": "Do not misuse the platform: no fraud, misrepresentation, unlawful content, or attempts to break the service or other users' accounts.",
     "availabilityTitle": "6. Availability and Liability",

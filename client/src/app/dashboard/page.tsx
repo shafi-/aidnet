@@ -35,7 +35,7 @@ export default function DashboardPage() {
           {!currentOrg && organizations.length === 0 && (
             <div className="rounded-lg border border-indigo-100 bg-white p-6 shadow">
               <h2 className="mb-2 text-lg font-semibold text-gray-900">
-                Get started on Donate
+                Get started on AidNet
               </h2>
               <p className="mb-4 text-gray-600">
                 You are not part of an organization yet. Discover live campaigns
