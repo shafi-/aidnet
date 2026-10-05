@@ -8,6 +8,7 @@ import { useSystemAdmin } from '@/hooks/useSystemAdmin'
 import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { LanguageSwitcher } from './LanguageSwitcher'
+import { MobileDrawer } from './MobileDrawer'
 
 interface NavLink {
   href: string
@@ -124,92 +125,35 @@ export function Nav() {
               className="inline-flex items-center justify-center rounded p-2 text-gray-600 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 md:hidden"
               aria-expanded={mobileOpen}
               aria-controls="mobile-menu"
-              aria-label={mobileOpen ? t('nav.closeMenu') : t('nav.openMenu')}
-              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label={t('nav.openMenu')}
+              onClick={() => setMobileOpen(true)}
             >
-              {mobileOpen ? (
-                <svg
-                  className="h-6 w-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              ) : (
-                <svg
-                  className="h-6 w-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-              )}
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
             </button>
           </div>
         </div>
       </div>
 
-      {mobileOpen && (
-        <div className="border-t md:hidden" id="mobile-menu">
-          <div className="space-y-1 px-4 py-2">
-            {/* Language switcher stays in the top bar on mobile — no duplicate here. */}
-            {user ? (
-              <>
-                <Link
-                  href="/profile"
-                  className={`block py-2 ${linkClass}`}
-                  onClick={() => setMobileOpen(false)}
-                >
-                  {t('nav.profile')}
-                </Link>
-                {links.map(link => {
-                  const active = isActive(link.href)
-                  return (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      aria-current={active ? 'page' : undefined}
-                      className={`block py-2 ${linkClass} ${active ? 'font-semibold text-gray-900' : ''}`}
-                      onClick={() => setMobileOpen(false)}
-                    >
-                      {t(link.label)}
-                    </Link>
-                  )
-                })}
-                <button
-                  type="button"
-                  onClick={handleSignOut}
-                  className={`block w-full py-2 text-left ${linkClass}`}
-                >
-                  {t('nav.signOut')}
-                </button>
-              </>
-            ) : (
-              <Link
-                href="/auth/login"
-                className={`block py-2 ${linkClass}`}
-                onClick={() => setMobileOpen(false)}
-              >
-                {t('nav.signIn')}
-              </Link>
-            )}
-          </div>
-        </div>
-      )}
+      <MobileDrawer
+        open={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+        links={links.map(link => ({ ...link, active: isActive(link.href) }))}
+        user={user ? { email: user.email } : null}
+        onSignOut={handleSignOut}
+      />
     </nav>
   )
 }
