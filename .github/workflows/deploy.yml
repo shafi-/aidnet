@@ -52,13 +52,28 @@ jobs:
       - name: Unit tests
         run: npm run test:unit:ci
 
+      - name: Resolve Pages base path
+        id: pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Project pages (owner.github.io/<repo>) need the repo prefix baked
+          # into asset URLs; custom domains and root sites serve at "/".
+          # Undetermined (Pages not enabled yet) defaults to the project form.
+          HTML_URL=$(gh api "repos/${{ github.repository }}/pages" --jq '.html_url // ""' 2>/dev/null || true)
+          REPO_URL="${{ github.server_url }}/${{ github.repository }}/"
+          if [ -z "$HTML_URL" ] || [ "$HTML_URL" = "$REPO_URL" ]; then
+            echo "base_path=/${{ github.event.repository.name }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "base_path=" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build static export
         env:
-          # Next bakes asset URLs into the HTML at build time, so Pages
-          # project-site hosting needs the repo sub-path here (derived from
-          # the repo name, never hardcoded). App-level absolute URLs infer
-          # the base path at runtime instead — see client/src/lib/basePath.ts.
-          NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
+          # Next bakes asset URLs into the HTML at build time. App-level
+          # absolute URLs infer the base path at runtime instead — see
+          # client/src/lib/basePath.ts.
+          NEXT_PUBLIC_BASE_PATH: ${{ steps.pages.outputs.base_path }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         run: npm run build

@@ -169,10 +169,12 @@ so run e2e manually before merging UI changes.
 - Frontend: static export deployed to GitHub Pages by
   `.github/workflows/deploy.yml` (push to `main`, or manual dispatch). Requires
   the repo secrets `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-  The workflow builds with `NEXT_PUBLIC_BASE_PATH=/<repo>` (derived from the
-  repo name — Next bakes asset URLs at build time) so
-  `https://<owner>.github.io/<repo>/` works. App-level absolute URLs (e.g.
-  auth `redirectTo`) must go through `getAppBasePath()`
+  The workflow auto-detects the deployment target each run via the Pages API:
+  project pages (`https://<owner>.github.io/<repo>/`) build with
+  `NEXT_PUBLIC_BASE_PATH=/<repo>` (Next bakes asset URLs at build time);
+  a configured custom domain or root site builds without a base path. Re-run
+  the deploy after adding or removing a custom domain. App-level absolute
+  URLs (e.g. auth `redirectTo`) must go through `getAppBasePath()`
   (`client/src/lib/basePath.ts`), which infers the deployment base path from
   the browser at runtime; never hardcode the sub-path in app code. Manual local equivalent:
   ```sh
