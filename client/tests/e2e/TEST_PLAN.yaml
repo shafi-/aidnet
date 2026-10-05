@@ -1,0 +1,360 @@
+# =====================================================================
+# E2E TEST PLAN — donate
+# =====================================================================
+# Source of truth for WHAT we test end-to-end and WHY. Derived from the
+# project itself: route access map, RPC domain surface, seeded actors/
+# data, and the testing law in AGENTS.md.
+#
+# Conventions (binding):
+#   - One suite per page. A link A → B is tested ONCE, in A's suite.
+#   - Test titles: "When <condition>, <action>" (Given/When/Then).
+#   - Assert real outcomes (URLs, visible text, persistence after
+#     reload). Never CSS-class state assertions.
+#   - Backend-backed UI gets an env-guarded API-contract assertion via
+#     tests/e2e/lib/api.ts (rpc, signIn, USERS).
+#   - Rely ONLY on seeded data (global-setup.mjs → seed-auth.sh).
+#   - Auth via cached storage states (tests/e2e/.auth/*.json); only
+#     auth-flow tests log in through the UI.
+#   - workers=1 (shared seeded admin + shared /admin/org-requests queue).
+#   - Mobile coverage scoped to responsive.spec.ts only.
+
+# ---------------------------------------------------------------------
+# 1. ARCHITECTURE CONTEXT (what shapes the tests)
+# ---------------------------------------------------------------------
+architecture:
+  stack: >
+    Static-export Next.js client (no server components, no API routes,
+    no [param] segments — routing data arrives via query params
+    validated with useRequiredParam + isUuid/isInviteToken) backed by
+    Supabase. ALL data access goes through SECURITY DEFINER Postgres
+    functions via RPC; repositories own RPC names; services/hooks/
+    containers layer on top. The DB function is the real authorization
+    boundary; client-side gating is UX only.
+  routing_gate: >
+    Single source of truth: client/src/lib/routeAccess.ts (ROUTE_ACCESS),
+    enforced fail-closed by RouteAccessGuard in root layout. Unknown
+    routes default to 'authenticated'. Admin denials are inline
+    (Access Denied), not redirects.
+  pages_query_param_contract: "/orgs?id=, /orgs/public?id=, /campaigns/detail?id=, /invite?token=, /dashboard/campaigns/edit?id="
+  test_infra:
+    global_setup: tests/e2e/global-setup.mjs (seeds auth users + demo data, idempotent)
+    storage_states: tests/e2e/.auth/*.json (per role, regenerated per run, gitignored)
+    api_contract_helpers: tests/e2e/lib/api.ts (SUPABASE_URL, rpc(), signIn(), USERS)
+    projects: setup → chromium, firefox, webkit, Mobile Chrome (responsive only), Mobile Safari
+
+    seeded_users:
+      admin@donate.app:  system admin, NO org membership            (Password123!)
+      owner@donate.app:  org owner of demo-org, Pro plan            (Password123!)
+      member@donate.app: plain member of demo-org                   (Password123!)
+    seeded_data:
+      - demo-org (slug: demo-org) with donation methods (bKash/Nagad/bank/url)
+      - 14 live demo campaigns (demo-campaign-1..14); demo-campaign-1 is zakat eligible
+      - 1 draft campaign demo-draft-tagged tagged education+health (editable)
+      - subscription plans incl. Free baseline + Pro (active on demo-org)
+
+# ---------------------------------------------------------------------
+# 2. AUTH FLOW (domain rules under test)
+# ---------------------------------------------------------------------
+auth_flow:
+  session: Supabase JS client via useAuth provider — not NextJS auth.
+  access_levels:
+    public: >
+      "/", "/about", "/privacy", "/auth/*", "/campaigns",
+      "/campaigns/detail", "/orgs/public", "/invite"
+    authenticated: >
+      "/orgs", "/org/request", "/profile", "/dashboard/*"
+    systemAdmin: '"/admin/*" — inline deny for non-admins'
+  fail_closed: unknown/unlisted routes require authentication.
+  flows_under_test:
+    register:      valid signup → session → redirect to dashboard;
+                   mismatched passwords and short password rejected client-side.
+    login:         valid creds → dashboard; invalid creds → visible error;
+                   cross-links to register / reset-password / home.
+    reset:         submit email → "check your email" state; repeatable.
+    session_nav:   signed-in nav shows Dashboard/Profile/email + Sign out;
+                   sign out → login. Signed-out access to gated routes →
+                   redirect to /auth/login.
+
+# ---------------------------------------------------------------------
+# 3. PAGE INVENTORY
+# ---------------------------------------------------------------------
+pages:
+  - { route: "/",                     access: public,        suite: landing.spec.ts }
+  - { route: "/about",                access: public,        suite: about-privacy.spec.ts }
+  - { route: "/privacy",              access: public,        suite: about-privacy.spec.ts }
+  - { route: "/auth/login",           access: public,        suite: auth.spec.ts }
+  - { route: "/auth/register",        access: public,        suite: auth.spec.ts }
+  - { route: "/auth/reset-password",  access: public,        suite: auth.spec.ts }
+  - { route: "/campaigns",            access: public,        suite: campaigns.spec.ts }
+  - { route: "/campaigns/detail",     access: public,        suite: campaign-detail.spec.ts }
+  - { route: "/orgs/public",          access: public,        suite: public-org.spec.ts }
+  - { route: "/invite",               access: public,        suite: dashboard-org.spec.ts (invite accept) }
+  - { route: "/orgs",                 access: authenticated, suite: orgs-management.spec.ts }
+  - { route: "/org/request",          access: authenticated, suite: org-request-flow.spec.ts }
+  - { route: "/dashboard",            access: authenticated, suite: dashboard.spec.ts }
+  - { route: "/dashboard/campaigns(/new|/edit)", access: authenticated, suite: dashboard-campaigns.spec.ts }
+  - { route: "/dashboard org tabs (todos/members/settings/billing)", access: authenticated, suite: dashboard-org.spec.ts + subscription.spec.ts }
+  - { route: "/profile",              access: authenticated, suite: profile.spec.ts }
+  - { route: "/admin",                access: systemAdmin,   suite: admin.spec.ts }
+  - { route: "/admin/org-requests",   access: systemAdmin,   suite: admin-management.spec.ts + org-provisioning.spec.ts }
+  - { route: "/admin/orgs",           access: systemAdmin,   suite: admin-management.spec.ts }
+  - { route: "/admin/plans",          access: systemAdmin,   suite: admin-management.spec.ts }
+  - { route: "/admin/subscriptions",  access: systemAdmin,   suite: admin-management.spec.ts }
+  - { route: "/admin/campaigns",      access: systemAdmin,   suite: admin-management.spec.ts + campaigns.spec.ts (verify journey) }
+  - { route: "unknown route (404)",   access: fail-closed,   suite: navigation.spec.ts }
+
+# ---------------------------------------------------------------------
+# 4. FEATURE DOMAINS & SCENARIOS (when → expected behaviour)
+# ---------------------------------------------------------------------
+features:
+
+  auth:
+    owns: auth.spec.ts
+    scenarios:
+      - when: anon opens /auth/register
+        expect: all form fields render
+      - when: passwords do not match
+        expect: client-side error, no submit
+      - when: password too short
+        expect: client-side error
+      - when: valid registration submitted
+        expect: session created → redirected to /dashboard
+      - when: anon opens /auth/login
+        expect: form fields render
+      - when: invalid credentials
+        expect: visible error, stays on login
+      - when: valid credentials
+        expect: redirect to /dashboard
+      - when: reset requested with valid email
+        expect: check-your-email feedback; repeatable, consistent
+      - cross_links: register↔login↔reset↔home — each tested once, in its source page's suite
+      - status: covered
+
+  route_access:
+    owns: protected-pages.spec.ts, navigation.spec.ts
+    scenarios:
+      - when: anon hits /dashboard, /orgs, /profile
+        expect: redirect to /auth/login (fail-closed)
+      - when: non-admin (org owner) hits /admin/*
+        expect: inline Access Denied, NOT a redirect
+      - when: system admin hits /admin/*
+        expect: page renders
+      - when: unknown route opened
+        expect: 404
+      - status: covered
+
+  landing_and_static:
+    owns: landing.spec.ts, about-privacy.spec.ts, navigation.spec.ts
+    scenarios:
+      - when: anon loads /
+        expect: hero, feature cards, nav (brand + Sign In / Get Started)
+      - when: landing renders
+        expect: Latest Campaigns section, at most 12 cards, each links to its detail
+      - when: See more clicked
+        expect: navigate to /campaigns
+      - when: authed user loads /
+        expect: nav swaps to Dashboard/Profile links
+      - when: anon loads /about or /privacy
+        expect: content sections render
+      - status: covered
+
+  public_campaign_discovery:
+    owns: campaigns.spec.ts, campaign-detail.spec.ts
+    scenarios:
+      - when: anon opens /campaigns
+        expect: list matches API contract (get_public_campaigns) — env-guarded
+      - when: Zakat Eligible filter toggled
+        expect: URL gains zakat=true; filter stays active after reload
+      - when: Clear filter clicked
+        expect: zakat param removed
+      - when: valid live campaign slug opened
+        expect: detail renders title/description/goal from public RPC
+      - when: unknown or non-live slug opened
+        expect: Campaign Not Available state
+      - when: slug query param missing
+        expect: missing-slug error state
+      - when: back link clicked on detail
+        expect: navigate to /campaigns
+      - when: draft/unverified campaign slug opened
+        expect: NOT publicly visible (only verified live campaigns are public)
+      - status: covered
+
+  public_org_profile:
+    owns: public-org.spec.ts
+    scenarios:
+      - when: public org slug opened
+        expect: org metadata (name, description, contact) renders via get_public_org_by_slug
+      - when: org suspended
+        expect: metadata remains but suspension state surfaced; not listed as active
+      - when: unknown slug
+        expect: unavailable state
+      - status: covered
+
+  org_lifecycle_request_to_provisioning:
+    owns: org-request-flow.spec.ts, org-provisioning.spec.ts, orgs-management.spec.ts
+    scenarios:
+      - when: user without org opens /orgs
+        expect: empty state with Request Organization CTA (Create is NOT offered)
+      - when: org request submitted
+        expect: exactly one pending request created (contract via get_my_org_requests)
+      - when: user has pending request
+        expect: cannot submit another; /orgs shows pending state
+      - when: system admin approves a request
+        expect: org provisioned + membership + baseline Free plan (provisioning contract via rpc)
+      - when: system admin rejects with reason
+        expect: rejection visible to requester
+      - when: user has active org
+        expect: listed on /orgs as selectable link; selection stored
+      - when: org suspended by admin
+        expect: Suspended badge, card NOT a link; stale selection cleared; ?id= of suspended org blocked in selector
+      - when: admin suspends then reactivates org
+        expect: status transitions persist
+      - status: covered
+
+  dashboard_org_workspace:
+    owns: dashboard-org.spec.ts, org-metadata.spec.ts
+    scenarios:
+      - when: authed user opens /dashboard
+        expect: welcome, heading, org/profile links, card sections, Quick Stats
+      - when: org created
+        expect: org metadata auto-initialized (contract)
+      - when: org_admin updates org metadata
+        expect: changes persist after reload; reflected in org list / public profile
+      - when: feature-gated tabs (todos/members/settings/billing)
+        expect: gated by has_feature against the active plan — visible only when feature active
+      - when: owner uses todos
+        expect: create + delete persist
+      - when: members feature active
+        expect: member list + add-member form render
+      - when: settings feature active
+        expect: org settings form saves
+      - when: invite accepted at /invite
+        expect: token validated then membership granted via accept_invite
+      - status: covered
+
+  campaigns_owner_workspace:
+    owns: dashboard-campaigns.spec.ts
+    scenarios:
+      - when: owner loads /dashboard/campaigns
+        expect: list + New Campaign link
+      - when: New Campaign clicked
+        expect: navigate to /dashboard/campaigns/new
+      - when: form opened (new or edit)
+        expect: all fields present (title, slug, description, cover, goal, currency, dates, zakat flag, tags)
+      - when: valid create submitted
+        expect: return to list; campaign exists (persistence)
+      - when: Cancel clicked
+        expect: return to list
+      - when: Edit opened for a row
+        expect: pre-filled form with Save Changes (row-scoped, slug lookahead)
+      - when: tags edited on a DRAFT campaign
+        expect: tag selection persists after save + reload (live campaigns are not editable)
+      - status: covered
+
+  campaign_review_lifecycle:
+    owns: campaigns.spec.ts (owner submit → admin verify journey), admin-management.spec.ts
+    scenarios:
+      - when: owner creates + submits campaign
+        expect: pending review state
+      - when: system admin opens /admin/campaigns
+        expect: review queue (get_pending_campaigns) or empty state
+      - when: admin verifies submitted campaign
+        expect: goes live; anon RPC then exposes it publicly (cross-role contract)
+      - when: admin rejects campaign
+        expect: owner sees rejected state; campaign not public
+      - status: covered
+
+  profile:
+    owns: profile.spec.ts
+    scenarios:
+      - when: authed user opens /profile
+        expect: name input, email (matches profile API), org label
+      - when: name edited and saved
+        expect: change persists after reload
+      - when: nav email clicked
+        expect: navigate to /profile
+      - when: anon opens /profile
+        expect: redirect to login
+      - status: covered
+
+  subscriptions_org_facing:
+    owns: subscription.spec.ts
+    scenarios:
+      - when: owner opens billing/plans
+        expect: seeded plans listed (get_subscription_plans contract)
+      - when: owner subscribes or changes plan
+        expect: active subscription reflects choice (get_my_subscription contract)
+      - when: owner cancels subscription
+        expect: canceled state; feature gates reflect loss
+      - when: owner views history
+        expect: subscription history entries visible
+      - status: covered
+
+  admin_management:
+    owns: admin.spec.ts, admin-management.spec.ts
+    scenarios:
+      - when: system admin loads /admin
+        expect: system stats (get_system_stats contract) + Review Orgs link
+      - when: Review Orgs clicked
+        expect: navigate to /admin/org-requests
+      - when: admin manages /admin/orgs
+        expect: list, suspend/reactivate, delete
+      - when: admin opens /admin/plans
+        expect: seeded plans listed; create/edit/activate-deactivate work; new plan appears in table
+      - when: admin opens /admin/subscriptions
+        expect: org subscription table renders (get_organization_subscriptions); pause/unpause
+      - when: org owner opens /admin/plans
+        expect: Access Denied (inline)
+      - status: covered
+
+  donation_methods:
+    owns: org-metadata.spec.ts, dashboard-org.spec.ts
+    scenarios:
+      - when: owner edits donation methods
+        expect: upsert persists (bKash/Nagad/bank/url)
+      - when: methods saved
+        expect: public org profile surfaces the preferred method
+      - status: covered
+
+  navigation_global:
+    owns: navigation.spec.ts (top-level chrome only; per-page outgoing nav lives in each page's suite)
+    scenarios:
+      - when: any page loads
+        expect: global nav renders per auth state
+      - when: brand clicked
+        expect: navigate to /
+      - status: covered
+
+  responsive:
+    owns: responsive.spec.ts (Mobile Chrome / Mobile Safari projects only)
+    scenarios:
+      - when: key public + dashboard pages render at mobile viewport
+        expect: usable layout, nav collapsed appropriately
+      - status: covered
+
+# ---------------------------------------------------------------------
+# 5. EXECUTION ORDERING (respects workers=1 shared state)
+# ---------------------------------------------------------------------
+ordering:
+  notes:
+    - auth.setup project runs first, refreshing all storage states.
+    - Specs that CREATE org requests/campaigns mutate shared seed —
+      use unique names (Date.now()) and never assert exact totals of
+      shared lists.
+    - seed-auth.sh's cleanup purges orgs from prior runs so the admin
+      list stays within pagination/locator bounds.
+    - Suspension tests must clean up (reactivate or use a fresh org)
+      so later suites see demo-org active.
+
+# ---------------------------------------------------------------------
+# 6. DEFINITION OF DONE
+# ---------------------------------------------------------------------
+definition_of_done:
+  - tsc --noEmit clean
+  - next lint clean
+  - prettier --check clean
+  - pnpm test:unit:ci green (unit tier catches what e2e shouldn't)
+  - playwright test --list parses for every touched spec
+  - e2e green locally: supabase start && supabase db reset && ./supabase/seed-auth.sh && pnpm test:e2e
+  - every scenario above traces to exactly one owning spec
+

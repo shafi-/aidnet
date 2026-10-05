@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from '@/types/database'
+import { getAppBasePath } from './basePath'
 
 // Environment variables
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -14,15 +15,22 @@ if (!supabaseAnonKey) {
   throw new Error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable')
 }
 
-// Create Supabase client
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-  },
-})
+// Create Supabase client. db.schema pins the PostgREST profile to the
+// donate product schema — the only API-exposed schema on the shared stack;
+// the 'donate' type argument binds the same schema for rpc() typing.
+export const supabase = createClient<Database, 'donate'>(
+  supabaseUrl,
+  supabaseAnonKey,
+  {
+    db: { schema: 'donate' },
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    },
+  }
+)
 
 // Get current session
 export async function getCurrentSession() {
@@ -106,7 +114,11 @@ export class SupabaseClientManager {
     return supabase.auth.signInWithPassword({ email, password })
   }
 
-  public async signUp(email: string, password: string, metadata?: Record<string, string>) {
+  public async signUp(
+    email: string,
+    password: string,
+    metadata?: Record<string, string>
+  ) {
     return supabase.auth.signUp({
       email,
       password,
@@ -122,27 +134,48 @@ export class SupabaseClientManager {
 
   public async resetPassword(email: string) {
     return supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/reset-password`,
+      redirectTo: `${window.location.origin}${getAppBasePath()}/auth/reset-password`,
     })
   }
 
   // Database function wrapper
-  public async rpc<T = any>(
+  public async rpc<T = unknown>(
     functionName: string,
     params?: Record<string, unknown>
   ): Promise<{ data: T | null; error: string | null }> {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await supabase.rpc(functionName as any, params as any)
+      const { data, error } = await supabase.rpc(
+        functionName as keyof Database['donate']['Functions'],
+        (params ?? {}) as never
+      )
 
       if (error) {
         console.error(`RPC error (${functionName}):`, error.message)
+
+        // When a DB function raises "Not authorized" (can_perform returned
+        // FALSE), the current org may have been suspended by a system admin
+        // since the user's last check. Emit a global event so the
+        // OrganizationProvider can clear the stale selection and show the
+        // selector with a suspension notice.
+        if (error.message?.includes('Not authorized')) {
+          const orgId = (params?.p_org_id ?? params?.target_org_id) as
+            string | undefined
+          if (orgId) {
+            window.dispatchEvent(
+              new CustomEvent('organization-suspended', {
+                detail: { orgId },
+              })
+            )
+          }
+        }
+
         return { data: null, error: error.message }
       }
 
       return { data: data as T, error: null }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error'
       console.error(`RPC catch error (${functionName}):`, errorMessage)
       return { data: null, error: errorMessage }
     }

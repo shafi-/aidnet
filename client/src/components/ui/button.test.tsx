@@ -27,13 +27,25 @@ describe('Button', () => {
 
   it('calls onClick handler', () => {
     let clicked = false
-    render(<Button onClick={() => { clicked = true }}>Click</Button>)
+    render(
+      <Button
+        onClick={() => {
+          clicked = true
+        }}
+      >
+        Click
+      </Button>
+    )
     screen.getByRole('button').click()
     expect(clicked).toBe(true)
   })
 
   it('renders as child when asChild is true', () => {
-    render(<Button asChild><a href="/test">Link</a></Button>)
+    render(
+      <Button asChild>
+        <a href="/test">Link</a>
+      </Button>
+    )
     expect(screen.getByRole('link')).toBeInTheDocument()
   })
 })

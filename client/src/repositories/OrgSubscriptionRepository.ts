@@ -1,21 +1,36 @@
-import { BaseRepository } from '@/repositories/BaseRepository'
+import { BaseRepository } from './BaseRepository'
 import type {
   ServiceData,
   OrganizationSubscription,
   CurrentSubscription,
   SubscriptionPlan,
+  SubscriptionHistoryView,
 } from '@/types'
 import { Rpc } from '@/types/rpc'
 
-export class SubscriptionService extends BaseRepository {
+/**
+ * Org-facing subscription operations: plan listing, subscribe/change/cancel,
+ * own-subscription reads and history. System-admin-only management lives in
+ * SystemAdminSubscriptionRepository.
+ */
+export class OrgSubscriptionRepository extends BaseRepository {
   async getPlans(): ServiceData<SubscriptionPlan[]> {
     return this.callRpc<SubscriptionPlan[]>(Rpc.Subscription.GetPlans)
   }
 
-  async getMySubscription(orgId: string): ServiceData<CurrentSubscription> {
-    return this.callRpc<CurrentSubscription>(Rpc.Subscription.GetMy, {
+  async getMySubscription(orgId: string): ServiceData<CurrentSubscription[]> {
+    return this.callRpc<CurrentSubscription[]>(Rpc.Subscription.GetMy, {
       p_org_id: orgId,
     })
+  }
+
+  async getHistory(orgId: string): ServiceData<SubscriptionHistoryView[]> {
+    return this.callRpc<SubscriptionHistoryView[]>(
+      Rpc.Subscription.GetHistory,
+      {
+        p_org_id: orgId,
+      }
+    )
   }
 
   async subscribe(
@@ -55,5 +70,3 @@ export class SubscriptionService extends BaseRepository {
     })
   }
 }
-
-export const subscriptionService = new SubscriptionService()

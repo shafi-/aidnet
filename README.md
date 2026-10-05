@@ -47,7 +47,7 @@ This template implements a sophisticated **function-first database architecture*
 ### Tech Stack
 
 - **Frontend**: NextJS, React, TypeScript, shadcn/ui, TailwindCSS
-- **Backend**: Supabase (PostgreSQL, Auth, Edge Functions)
+- **Backend**: Supabase (PostgreSQL, Auth)
 - **Testing**: Vitest (unit), Playwright (E2E)
 - **Package Manager**: pnpm
 - **Deployment**: Static export (Vercel, Netlify, etc.)
@@ -92,12 +92,9 @@ This template implements a sophisticated **function-first database architecture*
 │   ├── tailwind.config.ts     # Tailwind config ✅
 │   ├── vitest.config.ts       # Unit test config ✅
 │   └── playwright.config.ts   # E2E test config ✅
-├── backend/           # Edge function business logic (to be created)
-├── supabase/          # Database and edge functions ✅
+├── supabase/          # Database migrations and configuration ✅
 │   ├── migrations/        # SQL schema migrations ✅
-│   │   ├── 20240814160000_initial_schema.sql ✅
-│   │   └── 20240814160500_seed_data.sql ✅
-│   ├── functions/         # Supabase edge functions (to be created)
+│   ├── functions/         # Supabase edge functions (none currently)
 │   └── README.md          # Database architecture guide ✅
 ├── scripts/           # Development and setup scripts ✅
 │   └── setup.sh          # Automated setup script ✅
@@ -121,7 +118,7 @@ This template implements a sophisticated **function-first database architecture*
 - **Multi-Tenant**: Organizations with member management
 - **Role-Based Access**: Owner, Admin, Member, Viewer roles
 - **Centralized Auth**: Auth provider with automatic permission handling
-- **Edge Function Auth**: Secure auth operations via Supabase Edge Functions
+- **Client Auth**: Auth via the Supabase JS client (`useAuth` hook)
 
 ### Frontend Architecture
 - **Container Pattern**: State management isolated from UI components
@@ -259,7 +256,7 @@ await userService.updateProfile({
 - **Restrictive RLS**: "Deny all" policies with function-based access
 - **Audit Logging**: All important actions tracked with IP addresses
 - **Input Validation**: Database-level validation in functions
-- **Edge Function Auth**: Secure auth operations isolated from frontend
+- **Client Auth**: Auth handled by the Supabase JS client (`useAuth` hook)
 
 ## 🌐 Deployment
 
@@ -278,17 +275,19 @@ netlify deploy --prod
 
 ### Backend (Supabase)
 
-```bash
-# Push migrations to production
-supabase db push
+No custom edge functions exist (`supabase/functions/` is empty), so there is
+nothing to deploy there. Push the migrations instead:
 
-# Deploy edge functions
-supabase functions deploy
+```bash
+supabase link --project-ref <ref> --config-path supabase/config.production.toml
+supabase db push --config-path supabase/config.production.toml
+# regenerate types from the linked project if the schema diverged
+supabase gen types typescript --linked > client/src/types/database.ts
 ```
 
 ## 📖 Documentation
 
-- **[CLAUDE.md](./CLAUDE.md)** - Comprehensive development guide for Claude Code
+- **[CLAUDE.md](./CLAUDE.md)** - Pointer to the authoritative `AGENTS.md` operating rules
 - **[supabase/README.md](./supabase/README.md)** - Database architecture documentation
 - **[docs/](./docs/)** - Additional project documentation
 

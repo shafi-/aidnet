@@ -1,42 +1,34 @@
-import { BaseRepository } from '@/repositories/BaseRepository'
-import type { ServiceData, Invite, InviteValidation } from '@/types'
-import { Rpc } from '@/types/rpc'
+import type { ServiceData, Invite } from '@/types'
+import { InviteRepository } from '@/repositories/InviteRepository'
 
-export class InviteService extends BaseRepository {
+export class InviteService {
+  constructor(private inviteRepo: InviteRepository = new InviteRepository()) {}
+
   async generateInvite(
     orgId: string,
     email: string,
     role: string = 'member'
   ): ServiceData<Invite> {
-    return this.callRpc<Invite>(Rpc.Invite.Create, {
-      p_organization_id: orgId,
-      p_email: email,
-      p_role: role,
-    })
+    return this.inviteRepo.generateInvite(orgId, email, role)
   }
 
   async getInvites(orgId: string): ServiceData<Invite[]> {
-    return this.callRpc<Invite[]>(Rpc.Invite.GetMany, {
-      p_organization_id: orgId,
-    })
+    return this.inviteRepo.getInvites(orgId)
   }
 
-  async validateInvite(token: string): ServiceData<InviteValidation[]> {
-    return this.callRpc<InviteValidation[]>(Rpc.Invite.Validate, {
-      p_token: token,
-    })
+  async validateInvite(
+    token: string,
+    email: string
+  ): ServiceData<string | null> {
+    return this.inviteRepo.validateInvite(token, email)
   }
 
   async acceptInvite(token: string): ServiceData<boolean> {
-    return this.callRpc<boolean>(Rpc.Invite.Accept, {
-      p_token: token,
-    })
+    return this.inviteRepo.acceptInvite(token)
   }
 
   async revokeInvite(inviteId: string): ServiceData<boolean> {
-    return this.callRpc<boolean>(Rpc.Invite.Revoke, {
-      p_invite_id: inviteId,
-    })
+    return this.inviteRepo.revokeInvite(inviteId)
   }
 }
 

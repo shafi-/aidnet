@@ -50,10 +50,12 @@ SELECT is(
   'Owner can manage subscription (is_owner short-circuit)'
 );
 
-SELECT lives_ok(
+SELECT throws_ok(
   $$INSERT INTO organization_subscriptions (organization_id, plan_id, status, billing_period, current_period_end)
     VALUES ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'dddddddd-dddd-dddd-dddd-dddddddddddd', 'active', 'monthly', now() + interval '1 month')$$,
-  'Owner can insert subscription (RLS allows)'
+  '42501',
+  NULL,
+  'Owner cannot insert subscription rows directly (writes are function-mediated only)'
 );
 
 RESET ROLE;

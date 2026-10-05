@@ -106,8 +106,16 @@ export function isStrongPassword(password: string): boolean {
  */
 export function generateRandomColor(): string {
   const colors = [
-    '#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#6366F1',
-    '#8B5CF6', '#EC4899', '#F43F5E', '#14B8A6', '#84CC16'
+    '#EF4444',
+    '#F59E0B',
+    '#10B981',
+    '#3B82F6',
+    '#6366F1',
+    '#8B5CF6',
+    '#EC4899',
+    '#F43F5E',
+    '#14B8A6',
+    '#84CC16',
   ]
   return colors[Math.floor(Math.random() * colors.length)]
 }
@@ -128,13 +136,13 @@ export function formatFileSize(bytes: number): string {
 /**
  * Debounce function
  */
-export function debounce<T extends (...args: any[]) => any>(
-  func: T,
+export function debounce<A extends unknown[]>(
+  func: (...args: A) => void,
   wait: number
-): (...args: Parameters<T>) => void {
+): (...args: A) => void {
   let timeout: NodeJS.Timeout | null = null
 
-  return function executedFunction(...args: Parameters<T>) {
+  return function executedFunction(...args: A) {
     const later = () => {
       timeout = null
       func(...args)
@@ -157,6 +165,6 @@ export function deepClone<T>(obj: T): T {
 /**
  * Check if two objects are equal
  */
-export function isEqual(obj1: any, obj2: any): boolean {
+export function isEqual(obj1: unknown, obj2: unknown): boolean {
   return JSON.stringify(obj1) === JSON.stringify(obj2)
 }

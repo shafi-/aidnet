@@ -11,12 +11,14 @@ export function usePublicOrg(slug: string | null) {
   const loadOrg = useCallback(async () => {
     if (!slug) {
       setOrg(null)
+      setError('Organization not found')
       setLoading(false)
       return
     }
 
     try {
-      const { data, error: rpcError } = await publicOrgService.getPublicOrg(slug)
+      const { data, error: rpcError } =
+        await publicOrgService.getPublicOrg(slug)
       if (rpcError) {
         setError(rpcError)
         setOrg(null)

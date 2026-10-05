@@ -1,99 +1,230 @@
 import { test, expect } from '@playwright/test'
+import { registerViaApi } from './lib/api'
 
-const ADMIN_PASSWORD = 'AdminPassword123!'
-const ADMIN_EMAIL = `admin-e2e-${Date.now()}@example.com`
+const ADMIN_PASSWORD = 'Password123!'
+const ADMIN_EMAIL = 'admin@donate.app'
+const TEST_PASSWORD = 'TestPass123!'
 
-async function setupSystemAdmin(page: import('@playwright/test').Page) {
-  await page.goto('/auth/register/')
-  await page.locator('#fullName').fill('System Admin')
+async function loginAsAdmin(page: import('@playwright/test').Page) {
+  await page.goto('/auth/login/')
   await page.locator('#email').fill(ADMIN_EMAIL)
   await page.locator('#password').fill(ADMIN_PASSWORD)
-  await page.locator('#confirmPassword').fill(ADMIN_PASSWORD)
-  await page.getByRole('button', { name: 'Create Account' }).click()
-  await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
-
-  const token = await page.evaluate(() => {
-    const key = Object.keys(localStorage).find(k => k.endsWith('-auth-token'))
-    if (!key) throw new Error('No auth token key found')
-    const stored = localStorage.getItem(key)
-    if (!stored) throw new Error('No auth token stored')
-    return JSON.parse(stored).access_token
-  })
-
-  await page.evaluate(async ({ token }) => {
-    await fetch('http://localhost:54321/rest/v1/rpc/bootstrap_system_admin', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        'apikey': 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH',
-      },
-    })
-  }, { token })
+  await page.getByRole('button', { name: 'Sign In' }).click()
+  await expect(page).toHaveURL(/\/dashboard/)
 }
 
-test.describe.serial('Admin Pages', () => {
-  test('loads system stats or shows access denied', async ({ page }) => {
-    await setupSystemAdmin(page)
-    await page.goto('/admin/', { waitUntil: 'networkidle' })
+async function loginAsUser(
+  page: import('@playwright/test').Page,
+  email: string,
+  password: string
+) {
+  await page.goto('/auth/login/')
+  await page.locator('#email').fill(email)
+  await page.locator('#password').fill(password)
+  await page.getByRole('button', { name: 'Sign In' }).click()
+  await expect(page).toHaveURL(/\/dashboard/)
+}
 
-    const h1Text = await page.locator('h1').textContent()
-    const isAdmin = h1Text?.includes('System Admin')
+test.describe.serial('Admin Pages - Org Request Workflow', () => {
+  test('When system admin loads /admin, system stats are shown', async ({
+    page,
+  }) => {
+    await loginAsAdmin(page)
+    await page.goto('/admin/')
 
-    if (isAdmin) {
-      await expect(page.locator('text=Organizations').first()).toBeVisible({ timeout: 10000 })
-      await expect(page.locator('text=Users').first()).toBeVisible()
-      await expect(page.locator('text=Members').first()).toBeVisible()
-      await expect(page.locator('text=Recent Signups')).toBeVisible()
-    } else {
-      await expect(page.locator('h1')).toContainText('Access Denied')
-    }
+    await expect(page.locator('h1')).toContainText('System Admin')
+    await expect(page.locator('text=Organizations').first()).toBeVisible()
+    await expect(page.locator('text=Users').first()).toBeVisible()
+    await expect(page.locator('text=Members').first()).toBeVisible()
+    await expect(page.locator('text=Recent Signups')).toBeVisible()
   })
 
-  test('shows Manage Organizations link when admin', async ({ page }) => {
-    await page.goto('/auth/login/')
-    await page.locator('#email').fill(ADMIN_EMAIL)
-    await page.locator('#password').fill(ADMIN_PASSWORD)
-    await page.getByRole('button', { name: 'Sign In' }).click()
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
-
-    await page.goto('/admin/', { waitUntil: 'networkidle' })
-    const h1Text = await page.locator('h1').textContent()
-    if (h1Text?.includes('System Admin')) {
-      await expect(page.getByRole('link', { name: 'Manage Organizations' })).toBeVisible({ timeout: 10000 })
-    }
+  test('When system admin views /admin, Review Orgs link is shown', async ({
+    page,
+  }) => {
+    await loginAsAdmin(page)
+    await page.goto('/admin/')
+    await expect(page.locator('h1')).toContainText('System Admin')
+    await expect(page.getByRole('link', { name: 'Review Orgs' })).toBeVisible()
   })
 
-  test('Manage Organizations link navigates to orgs page', async ({ page }) => {
-    await page.goto('/auth/login/')
-    await page.locator('#email').fill(ADMIN_EMAIL)
-    await page.locator('#password').fill(ADMIN_PASSWORD)
-    await page.getByRole('button', { name: 'Sign In' }).click()
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
-
-    await page.goto('/admin/', { waitUntil: 'networkidle' })
-    const h1Text = await page.locator('h1').textContent()
-    if (h1Text?.includes('System Admin')) {
-      await page.getByRole('link', { name: 'Manage Organizations' }).click()
-      await expect(page).toHaveURL(/\/admin\/orgs/)
-    }
+  test('When admin clicks Review Orgs, navigates to /admin/org-requests', async ({
+    page,
+  }) => {
+    await loginAsAdmin(page)
+    await page.goto('/admin/')
+    await expect(page.locator('h1')).toContainText('System Admin')
+    await page.getByRole('link', { name: 'Review Orgs' }).click()
+    await expect(page).toHaveURL(/\/admin\/org-requests/)
   })
 
-  test('loads organizations table when admin', async ({ page }) => {
-    await page.goto('/auth/login/')
-    await page.locator('#email').fill(ADMIN_EMAIL)
-    await page.locator('#password').fill(ADMIN_PASSWORD)
-    await page.getByRole('button', { name: 'Sign In' }).click()
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+  test('When system admin loads /admin/org-requests, requests list renders', async ({
+    page,
+  }) => {
+    await loginAsAdmin(page)
+    await page.goto('/admin/org-requests/')
+    await expect(page.locator('h1')).toContainText('Organization Requests')
+    // Status filter renders as toggle buttons: All (n), Pending (n), ...
+    await expect(
+      page.getByRole('button', { name: /^All \(\d+\)$/ })
+    ).toBeVisible()
+    await expect(
+      page.getByRole('button', { name: /^Pending \(\d+\)$/ })
+    ).toBeVisible()
+  })
 
-    await page.goto('/admin/orgs/', { waitUntil: 'networkidle' })
-    const h1Text = await page.locator('h1').textContent()
-    if (h1Text?.includes('Access Denied')) {
-      await expect(page.locator('h1')).toContainText('Access Denied')
-    } else {
-      await expect(page.locator('th:has-text("Name")')).toBeVisible({ timeout: 10000 })
-      await expect(page.locator('th:has-text("Slug")')).toBeVisible()
-      await expect(page.locator('th:has-text("Members")')).toBeVisible()
-    }
+  test('When system admin approves request, organization is created', async ({
+    page,
+  }) => {
+    const requesterEmail = `approve-test-${Date.now()}@example.com`
+    const orgName = `Approve Test Org ${Date.now()}`
+    const orgSlug = `approve-test-org-${Date.now()}`
+
+    // Create requester via API, login via UI, submit request
+    await registerViaApi(
+      page,
+      requesterEmail,
+      TEST_PASSWORD,
+      'Approve Test User'
+    )
+    await loginAsUser(page, requesterEmail, TEST_PASSWORD)
+
+    await page.goto('/org/request')
+    await page.getByPlaceholder('My Organization').fill(orgName)
+    await page.getByPlaceholder('my-organization').fill(orgSlug)
+    await page.getByRole('button', { name: 'Submit for Review' }).click()
+    await expect(page.getByText('Request Pending Review')).toBeVisible()
+
+    // Login as system admin and approve
+    await loginAsAdmin(page)
+
+    await page.goto('/admin/org-requests/')
+    // Target THIS request card (list + modal both render the name)
+    const card = page.locator('div.rounded-lg.bg-white', { hasText: orgName })
+    await expect(card).toBeVisible()
+
+    // Click Review button
+    await card.getByRole('button', { name: 'Review' }).click()
+    await expect(page.getByText('Review Organization Request')).toBeVisible()
+    await expect(page.getByRole('heading', { name: orgName })).toBeVisible()
+
+    // Approve
+    await page.getByRole('button', { name: 'Approve', exact: true }).click()
+    await expect(
+      page.getByText('Organization approved and created successfully!')
+    ).toBeVisible()
+
+    // Verify request shows as approved (filter count includes it)
+    await expect(
+      page.getByRole('button', { name: /^Approved \([1-9]/ })
+    ).toBeVisible()
+  })
+
+  test('When system admin rejects request with reason, shows rejection', async ({
+    page,
+  }) => {
+    const requesterEmail = `reject-test-${Date.now()}@example.com`
+    const orgName = `Reject Test Org ${Date.now()}`
+    const orgSlug = `reject-test-org-${Date.now()}`
+    const rejectionReason = 'Not suitable for our platform'
+
+    // Create requester via API, login via UI, submit request
+    await registerViaApi(
+      page,
+      requesterEmail,
+      TEST_PASSWORD,
+      'Reject Test User'
+    )
+    await loginAsUser(page, requesterEmail, TEST_PASSWORD)
+
+    await page.goto('/org/request')
+    await page.getByPlaceholder('My Organization').fill(orgName)
+    await page.getByPlaceholder('my-organization').fill(orgSlug)
+    await page.getByRole('button', { name: 'Submit for Review' }).click()
+    await expect(page.getByText('Request Pending Review')).toBeVisible()
+
+    // Login as system admin and reject
+    await loginAsAdmin(page)
+
+    await page.goto('/admin/org-requests/')
+    const rejectCard = page.locator('div.rounded-lg.bg-white', {
+      hasText: orgName,
+    })
+    await expect(rejectCard).toBeVisible()
+
+    // Click Review and reject with reason
+    await rejectCard.getByRole('button', { name: 'Review' }).click()
+    await page
+      .getByPlaceholder('Explain why this request is being rejected')
+      .fill(rejectionReason)
+    await page.getByRole('button', { name: 'Reject', exact: true }).click()
+
+    await expect(page.getByText('Organization request rejected.')).toBeVisible()
+
+    // Verify THIS request's card shows as rejected with the reason
+    await expect(
+      rejectCard.getByText(`Rejection Reason: ${rejectionReason}`)
+    ).toBeVisible()
+    await expect(
+      page.getByRole('button', { name: /^Rejected \([1-9]/ })
+    ).toBeVisible()
+  })
+
+  test('When system_admin manages org status, can suspend and reactivate', async ({
+    page,
+  }) => {
+    const orgName = `Status Test Org ${Date.now()}`
+    const orgSlug = `status-test-org-${Date.now()}`
+
+    // Create requester via API, login via UI, submit request
+    const requesterEmail = `status-test-${Date.now()}@example.com`
+    await registerViaApi(
+      page,
+      requesterEmail,
+      TEST_PASSWORD,
+      'Status Test User'
+    )
+    await loginAsUser(page, requesterEmail, TEST_PASSWORD)
+
+    await page.goto('/org/request')
+    await page.getByPlaceholder('My Organization').fill(orgName)
+    await page.getByPlaceholder('my-organization').fill(orgSlug)
+    await page.getByRole('button', { name: 'Submit for Review' }).click()
+
+    // Login as system admin and approve
+    await loginAsAdmin(page)
+
+    await page.goto('/admin/org-requests/')
+    const approveCard = page.locator('div.rounded-lg.bg-white', {
+      hasText: orgName,
+    })
+    await expect(approveCard).toBeVisible()
+    await approveCard.getByRole('button', { name: 'Review' }).click()
+    await page.getByRole('button', { name: 'Approve', exact: true }).click()
+    await expect(
+      page.getByText('Organization approved and created successfully!')
+    ).toBeVisible()
+
+    // Suspend and reactivate via the proper org-management page (/admin/orgs)
+    await page.goto('/admin/orgs')
+    const orgRow = page.locator(`tr:has(td:has-text("${orgName}"))`)
+    const suspendButton = orgRow.getByRole('button', { name: 'Suspend' })
+    await expect(suspendButton).toBeVisible()
+    await suspendButton.click()
+
+    await expect(
+      page.getByText('Organization status updated to suspended.')
+    ).toBeVisible()
+
+    // Reactivate the org
+    const reactivateButton = page
+      .locator(`tr:has(td:has-text("${orgName}"))`)
+      .getByRole('button', { name: 'Activate' })
+    await expect(reactivateButton).toBeVisible()
+    await reactivateButton.click()
+
+    await expect(
+      page.getByText('Organization status updated to active.')
+    ).toBeVisible()
   })
 })

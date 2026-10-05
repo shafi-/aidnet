@@ -7,32 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-  public: {
+  donate: {
     Tables: {
       audit_logs: {
         Row: {
@@ -73,39 +48,279 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "audit_logs_organization_id_fkey"
-            columns: ["organization_id"]
+            foreignKeyName: 'audit_logs_organization_id_fkey'
+            columns: ['organization_id']
             isOneToOne: false
-            referencedRelation: "organization_detail_view"
-            referencedColumns: ["id"]
+            referencedRelation: 'organization_detail_view'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "audit_logs_organization_id_fkey"
-            columns: ["organization_id"]
+            foreignKeyName: 'audit_logs_organization_id_fkey'
+            columns: ['organization_id']
             isOneToOne: false
-            referencedRelation: "organization_view"
-            referencedColumns: ["id"]
+            referencedRelation: 'organization_view'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "audit_logs_organization_id_fkey"
-            columns: ["organization_id"]
+            foreignKeyName: 'audit_logs_organization_id_fkey'
+            columns: ['organization_id']
             isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
+            referencedRelation: 'organizations'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "audit_logs_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'audit_logs_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: false
-            referencedRelation: "profile_view"
-            referencedColumns: ["id"]
+            referencedRelation: 'profile_view'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      campaign_tag_map: {
+        Row: {
+          campaign_id: string
+          created_at: string | null
+          tag_id: string
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string | null
+          tag_id: string
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string | null
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'campaign_tag_map_campaign_id_fkey'
+            columns: ['campaign_id']
+            isOneToOne: false
+            referencedRelation: 'campaigns'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "audit_logs_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'campaign_tag_map_tag_id_fkey'
+            columns: ['tag_id']
             isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            referencedRelation: 'campaign_tags'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      campaign_tags: {
+        Row: {
+          id: string
+          label: string
+          label_bn: string | null
+          slug: string
+        }
+        Insert: {
+          id?: string
+          label: string
+          label_bn?: string | null
+          slug: string
+        }
+        Update: {
+          id?: string
+          label?: string
+          label_bn?: string | null
+          slug?: string
+        }
+        Relationships: []
+      }
+      campaigns: {
+        Row: {
+          cover_image_url: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          description: string | null
+          end_date: string | null
+          goal_amount: number | null
+          id: string
+          is_active: boolean | null
+          is_zakat_eligible: boolean | null
+          org_id: string
+          raised_amount: number
+          slug: string
+          start_date: string | null
+          status: Database['donate']['Enums']['campaign_status'] | null
+          title: string
+          updated_at: string | null
+          verification_notes: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          cover_image_url?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          description?: string | null
+          end_date?: string | null
+          goal_amount?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_zakat_eligible?: boolean | null
+          org_id: string
+          raised_amount?: number
+          slug: string
+          start_date?: string | null
+          status?: Database['donate']['Enums']['campaign_status'] | null
+          title: string
+          updated_at?: string | null
+          verification_notes?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          cover_image_url?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          description?: string | null
+          end_date?: string | null
+          goal_amount?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_zakat_eligible?: boolean | null
+          org_id?: string
+          raised_amount?: number
+          slug?: string
+          start_date?: string | null
+          status?: Database['donate']['Enums']['campaign_status'] | null
+          title?: string
+          updated_at?: string | null
+          verification_notes?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'campaigns_created_by_fkey'
+            columns: ['created_by']
+            isOneToOne: false
+            referencedRelation: 'profile_view'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'campaigns_org_id_fkey'
+            columns: ['org_id']
+            isOneToOne: false
+            referencedRelation: 'organization_detail_view'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'campaigns_org_id_fkey'
+            columns: ['org_id']
+            isOneToOne: false
+            referencedRelation: 'organization_view'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'campaigns_org_id_fkey'
+            columns: ['org_id']
+            isOneToOne: false
+            referencedRelation: 'organizations'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'campaigns_verified_by_fkey'
+            columns: ['verified_by']
+            isOneToOne: false
+            referencedRelation: 'profile_view'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      donation_methods: {
+        Row: {
+          bank_account_name: string | null
+          bank_account_number: string | null
+          bank_branch: string | null
+          bank_name: string | null
+          bank_routing_number: string | null
+          bkash_account_name: string | null
+          bkash_number: string | null
+          created_at: string | null
+          donation_url: string | null
+          id: string
+          instructions: string | null
+          is_preferred: boolean | null
+          nagad_account_name: string | null
+          nagad_number: string | null
+          organization_id: string
+          qr_image_url: string | null
+          rocket_account_name: string | null
+          rocket_number: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_branch?: string | null
+          bank_name?: string | null
+          bank_routing_number?: string | null
+          bkash_account_name?: string | null
+          bkash_number?: string | null
+          created_at?: string | null
+          donation_url?: string | null
+          id?: string
+          instructions?: string | null
+          is_preferred?: boolean | null
+          nagad_account_name?: string | null
+          nagad_number?: string | null
+          organization_id: string
+          qr_image_url?: string | null
+          rocket_account_name?: string | null
+          rocket_number?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_branch?: string | null
+          bank_name?: string | null
+          bank_routing_number?: string | null
+          bkash_account_name?: string | null
+          bkash_number?: string | null
+          created_at?: string | null
+          donation_url?: string | null
+          id?: string
+          instructions?: string | null
+          is_preferred?: boolean | null
+          nagad_account_name?: string | null
+          nagad_number?: string | null
+          organization_id?: string
+          qr_image_url?: string | null
+          rocket_account_name?: string | null
+          rocket_number?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'donation_methods_organization_id_fkey'
+            columns: ['organization_id']
+            isOneToOne: false
+            referencedRelation: 'organization_detail_view'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'donation_methods_organization_id_fkey'
+            columns: ['organization_id']
+            isOneToOne: false
+            referencedRelation: 'organization_view'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'donation_methods_organization_id_fkey'
+            columns: ['organization_id']
+            isOneToOne: false
+            referencedRelation: 'organizations'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -145,39 +360,184 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "invites_invited_by_fkey"
-            columns: ["invited_by"]
+            foreignKeyName: 'invites_invited_by_fkey'
+            columns: ['invited_by']
             isOneToOne: false
-            referencedRelation: "profile_view"
-            referencedColumns: ["id"]
+            referencedRelation: 'profile_view'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "invites_invited_by_fkey"
-            columns: ["invited_by"]
+            foreignKeyName: 'invites_organization_id_fkey'
+            columns: ['organization_id']
             isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            referencedRelation: 'organization_detail_view'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "invites_organization_id_fkey"
-            columns: ["organization_id"]
+            foreignKeyName: 'invites_organization_id_fkey'
+            columns: ['organization_id']
             isOneToOne: false
-            referencedRelation: "organization_detail_view"
-            referencedColumns: ["id"]
+            referencedRelation: 'organization_view'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "invites_organization_id_fkey"
-            columns: ["organization_id"]
+            foreignKeyName: 'invites_organization_id_fkey'
+            columns: ['organization_id']
             isOneToOne: false
-            referencedRelation: "organization_view"
-            referencedColumns: ["id"]
+            referencedRelation: 'organizations'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      org_meta: {
+        Row: {
+          address: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          description: string | null
+          logo_url: string | null
+          name: string
+          organization_id: string
+          settings: Json | null
+          social_links: Json | null
+          updated_at: string | null
+          updated_by: string | null
+          website_url: string | null
+        }
+        Insert: {
+          address?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          description?: string | null
+          logo_url?: string | null
+          name: string
+          organization_id: string
+          settings?: Json | null
+          social_links?: Json | null
+          updated_at?: string | null
+          updated_by?: string | null
+          website_url?: string | null
+        }
+        Update: {
+          address?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          description?: string | null
+          logo_url?: string | null
+          name?: string
+          organization_id?: string
+          settings?: Json | null
+          social_links?: Json | null
+          updated_at?: string | null
+          updated_by?: string | null
+          website_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'org_meta_organization_id_fkey'
+            columns: ['organization_id']
+            isOneToOne: true
+            referencedRelation: 'organization_detail_view'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "invites_organization_id_fkey"
-            columns: ["organization_id"]
+            foreignKeyName: 'org_meta_organization_id_fkey'
+            columns: ['organization_id']
+            isOneToOne: true
+            referencedRelation: 'organization_view'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'org_meta_organization_id_fkey'
+            columns: ['organization_id']
+            isOneToOne: true
+            referencedRelation: 'organizations'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'org_meta_updated_by_fkey'
+            columns: ['updated_by']
             isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
+            referencedRelation: 'profile_view'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      org_requests: {
+        Row: {
+          created_org_id: string | null
+          id: string
+          org_description: string | null
+          org_name: string
+          org_slug: string
+          rejection_reason: string | null
+          requested_at: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          created_org_id?: string | null
+          id?: string
+          org_description?: string | null
+          org_name: string
+          org_slug: string
+          rejection_reason?: string | null
+          requested_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          created_org_id?: string | null
+          id?: string
+          org_description?: string | null
+          org_name?: string
+          org_slug?: string
+          rejection_reason?: string | null
+          requested_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'org_requests_created_org_id_fkey'
+            columns: ['created_org_id']
+            isOneToOne: false
+            referencedRelation: 'organization_detail_view'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'org_requests_created_org_id_fkey'
+            columns: ['created_org_id']
+            isOneToOne: false
+            referencedRelation: 'organization_view'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'org_requests_created_org_id_fkey'
+            columns: ['created_org_id']
+            isOneToOne: false
+            referencedRelation: 'organizations'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'org_requests_reviewed_by_fkey'
+            columns: ['reviewed_by']
+            isOneToOne: false
+            referencedRelation: 'profile_view'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'org_requests_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'profile_view'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -220,53 +580,39 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "organization_members_invited_by_fkey"
-            columns: ["invited_by"]
+            foreignKeyName: 'organization_members_invited_by_fkey'
+            columns: ['invited_by']
             isOneToOne: false
-            referencedRelation: "profile_view"
-            referencedColumns: ["id"]
+            referencedRelation: 'profile_view'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "organization_members_invited_by_fkey"
-            columns: ["invited_by"]
+            foreignKeyName: 'organization_members_organization_id_fkey'
+            columns: ['organization_id']
             isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            referencedRelation: 'organization_detail_view'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "organization_members_organization_id_fkey"
-            columns: ["organization_id"]
+            foreignKeyName: 'organization_members_organization_id_fkey'
+            columns: ['organization_id']
             isOneToOne: false
-            referencedRelation: "organization_detail_view"
-            referencedColumns: ["id"]
+            referencedRelation: 'organization_view'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "organization_members_organization_id_fkey"
-            columns: ["organization_id"]
+            foreignKeyName: 'organization_members_organization_id_fkey'
+            columns: ['organization_id']
             isOneToOne: false
-            referencedRelation: "organization_view"
-            referencedColumns: ["id"]
+            referencedRelation: 'organizations'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "organization_members_organization_id_fkey"
-            columns: ["organization_id"]
+            foreignKeyName: 'organization_members_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "organization_members_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profile_view"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "organization_members_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            referencedRelation: 'profile_view'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -306,100 +652,81 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "organization_subscriptions_organization_id_fkey"
-            columns: ["organization_id"]
+            foreignKeyName: 'organization_subscriptions_organization_id_fkey'
+            columns: ['organization_id']
             isOneToOne: false
-            referencedRelation: "organization_detail_view"
-            referencedColumns: ["id"]
+            referencedRelation: 'organization_detail_view'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "organization_subscriptions_organization_id_fkey"
-            columns: ["organization_id"]
+            foreignKeyName: 'organization_subscriptions_organization_id_fkey'
+            columns: ['organization_id']
             isOneToOne: false
-            referencedRelation: "organization_view"
-            referencedColumns: ["id"]
+            referencedRelation: 'organization_view'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "organization_subscriptions_organization_id_fkey"
-            columns: ["organization_id"]
+            foreignKeyName: 'organization_subscriptions_organization_id_fkey'
+            columns: ['organization_id']
             isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
+            referencedRelation: 'organizations'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "organization_subscriptions_plan_id_fkey"
-            columns: ["plan_id"]
+            foreignKeyName: 'organization_subscriptions_plan_id_fkey'
+            columns: ['plan_id']
             isOneToOne: false
-            referencedRelation: "subscription_plans"
-            referencedColumns: ["id"]
+            referencedRelation: 'subscription_plans'
+            referencedColumns: ['id']
           },
         ]
       }
       organizations: {
         Row: {
           created_at: string | null
+          created_by: string | null
           description: string | null
           id: string
           logo_url: string | null
           name: string
           settings: Json | null
           slug: string
+          status: string | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           id?: string
           logo_url?: string | null
           name: string
           settings?: Json | null
           slug: string
+          status?: string | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           id?: string
           logo_url?: string | null
           name?: string
           settings?: Json | null
           slug?: string
+          status?: string | null
           updated_at?: string | null
         }
-        Relationships: []
-      }
-      profiles: {
-        Row: {
-          avatar_url: string | null
-          created_at: string | null
-          email: string
-          full_name: string | null
-          id: string
-          is_system_admin: boolean | null
-          metadata: Json | null
-          updated_at: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          created_at?: string | null
-          email: string
-          full_name?: string | null
-          id: string
-          is_system_admin?: boolean | null
-          metadata?: Json | null
-          updated_at?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          created_at?: string | null
-          email?: string
-          full_name?: string | null
-          id?: string
-          is_system_admin?: boolean | null
-          metadata?: Json | null
-          updated_at?: string | null
-        }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: 'organizations_created_by_fkey'
+            columns: ['created_by']
+            isOneToOne: false
+            referencedRelation: 'profile_view'
+            referencedColumns: ['id']
+          },
+        ]
       }
       role_permissions: {
         Row: {
@@ -422,18 +749,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "role_permissions_role_fkey"
-            columns: ["role"]
+            foreignKeyName: 'role_permissions_role_fkey'
+            columns: ['role']
             isOneToOne: false
-            referencedRelation: "role_view"
-            referencedColumns: ["name"]
+            referencedRelation: 'role_view'
+            referencedColumns: ['name']
           },
           {
-            foreignKeyName: "role_permissions_role_fkey"
-            columns: ["role"]
+            foreignKeyName: 'role_permissions_role_fkey'
+            columns: ['role']
             isOneToOne: false
-            referencedRelation: "roles"
-            referencedColumns: ["name"]
+            referencedRelation: 'roles'
+            referencedColumns: ['name']
           },
         ]
       }
@@ -497,32 +824,32 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "subscription_history_organization_id_fkey"
-            columns: ["organization_id"]
+            foreignKeyName: 'subscription_history_organization_id_fkey'
+            columns: ['organization_id']
             isOneToOne: false
-            referencedRelation: "organization_detail_view"
-            referencedColumns: ["id"]
+            referencedRelation: 'organization_detail_view'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "subscription_history_organization_id_fkey"
-            columns: ["organization_id"]
+            foreignKeyName: 'subscription_history_organization_id_fkey'
+            columns: ['organization_id']
             isOneToOne: false
-            referencedRelation: "organization_view"
-            referencedColumns: ["id"]
+            referencedRelation: 'organization_view'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "subscription_history_organization_id_fkey"
-            columns: ["organization_id"]
+            foreignKeyName: 'subscription_history_organization_id_fkey'
+            columns: ['organization_id']
             isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
+            referencedRelation: 'organizations'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "subscription_history_plan_id_fkey"
-            columns: ["plan_id"]
+            foreignKeyName: 'subscription_history_plan_id_fkey'
+            columns: ['plan_id']
             isOneToOne: false
-            referencedRelation: "subscription_plans"
-            referencedColumns: ["id"]
+            referencedRelation: 'subscription_plans'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -595,39 +922,32 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "todos_created_by_fkey"
-            columns: ["created_by"]
+            foreignKeyName: 'todos_created_by_fkey'
+            columns: ['created_by']
             isOneToOne: false
-            referencedRelation: "profile_view"
-            referencedColumns: ["id"]
+            referencedRelation: 'profile_view'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "todos_created_by_fkey"
-            columns: ["created_by"]
+            foreignKeyName: 'todos_organization_id_fkey'
+            columns: ['organization_id']
             isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            referencedRelation: 'organization_detail_view'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "todos_organization_id_fkey"
-            columns: ["organization_id"]
+            foreignKeyName: 'todos_organization_id_fkey'
+            columns: ['organization_id']
             isOneToOne: false
-            referencedRelation: "organization_detail_view"
-            referencedColumns: ["id"]
+            referencedRelation: 'organization_view'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "todos_organization_id_fkey"
-            columns: ["organization_id"]
+            foreignKeyName: 'todos_organization_id_fkey'
+            columns: ['organization_id']
             isOneToOne: false
-            referencedRelation: "organization_view"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "todos_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
+            referencedRelation: 'organizations'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -648,39 +968,32 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "organization_members_organization_id_fkey"
-            columns: ["organization_id"]
+            foreignKeyName: 'organization_members_organization_id_fkey'
+            columns: ['organization_id']
             isOneToOne: false
-            referencedRelation: "organization_detail_view"
-            referencedColumns: ["id"]
+            referencedRelation: 'organization_detail_view'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "organization_members_organization_id_fkey"
-            columns: ["organization_id"]
+            foreignKeyName: 'organization_members_organization_id_fkey'
+            columns: ['organization_id']
             isOneToOne: false
-            referencedRelation: "organization_view"
-            referencedColumns: ["id"]
+            referencedRelation: 'organization_view'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "organization_members_organization_id_fkey"
-            columns: ["organization_id"]
+            foreignKeyName: 'organization_members_organization_id_fkey'
+            columns: ['organization_id']
             isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
+            referencedRelation: 'organizations'
+            referencedColumns: ['id']
           },
           {
-            foreignKeyName: "organization_members_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'organization_members_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: false
-            referencedRelation: "profile_view"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "organization_members_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            referencedRelation: 'profile_view'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -715,18 +1028,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "organization_members_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: 'organization_members_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: false
-            referencedRelation: "profile_view"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "organization_members_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            referencedRelation: 'profile_view'
+            referencedColumns: ['id']
           },
         ]
       }
@@ -806,12 +1112,13 @@ export type Database = {
           user_id: string | null
         }[]
         SetofOptions: {
-          from: "*"
-          to: "member_view"
+          from: '*'
+          to: 'member_view'
           isOneToOne: false
           isSetofReturn: true
         }
       }
+      approve_org_request: { Args: { p_request_id: string }; Returns: string }
       audit_action: {
         Args: {
           action_name: string
@@ -847,10 +1154,52 @@ export type Database = {
           updated_at: string | null
         }
         SetofOptions: {
-          from: "*"
-          to: "organization_subscriptions"
+          from: '*'
+          to: 'organization_subscriptions'
           isOneToOne: true
           isSetofReturn: false
+        }
+      }
+      create_campaign: {
+        Args: {
+          p_cover_image_url?: string
+          p_currency?: string
+          p_description?: string
+          p_end_date?: string
+          p_goal_amount?: number
+          p_is_zakat_eligible?: boolean
+          p_org_id: string
+          p_slug: string
+          p_start_date?: string
+          p_title: string
+        }
+        Returns: {
+          cover_image_url: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          description: string | null
+          end_date: string | null
+          goal_amount: number | null
+          id: string
+          is_active: boolean | null
+          is_zakat_eligible: boolean | null
+          org_id: string
+          raised_amount: number
+          slug: string
+          start_date: string | null
+          status: Database['donate']['Enums']['campaign_status'] | null
+          title: string
+          updated_at: string | null
+          verification_notes: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }[]
+        SetofOptions: {
+          from: '*'
+          to: 'campaigns'
+          isOneToOne: false
+          isSetofReturn: true
         }
       }
       create_invite: {
@@ -867,8 +1216,8 @@ export type Database = {
           token: string
         }[]
         SetofOptions: {
-          from: "*"
-          to: "invites"
+          from: '*'
+          to: 'invites'
           isOneToOne: false
           isSetofReturn: true
         }
@@ -895,8 +1244,8 @@ export type Database = {
           user_role: string | null
         }[]
         SetofOptions: {
-          from: "*"
-          to: "organization_view"
+          from: '*'
+          to: 'organization_view'
           isOneToOne: false
           isSetofReturn: true
         }
@@ -921,19 +1270,11 @@ export type Database = {
           updated_at: string | null
         }
         SetofOptions: {
-          from: "*"
-          to: "subscription_plans"
+          from: '*'
+          to: 'subscription_plans'
           isOneToOne: true
           isSetofReturn: false
         }
-      }
-      create_test_user: {
-        Args: {
-          test_email: string
-          test_full_name?: string
-          test_org_name?: string
-        }
-        Returns: string
       }
       create_todo: {
         Args: {
@@ -952,30 +1293,192 @@ export type Database = {
           updated_at: string | null
         }[]
         SetofOptions: {
-          from: "*"
-          to: "todos"
+          from: '*'
+          to: 'todos'
           isOneToOne: false
           isSetofReturn: true
         }
       }
+      delete_campaign: { Args: { p_campaign_id: string }; Returns: boolean }
       delete_organization: { Args: { target_org_id: string }; Returns: boolean }
       delete_todo: { Args: { p_todo_id: string }; Returns: boolean }
-      get_all_organizations: {
+      get_all_org_requests: {
         Args: never
         Returns: {
+          created_org_id: string
+          id: string
+          org_description: string
+          org_name: string
+          org_slug: string
+          rejection_reason: string
+          requested_at: string
+          reviewed_at: string
+          reviewed_by_email: string
+          status: string
+          user_email: string
+          user_id: string
+          user_name: string
+        }[]
+      }
+      get_all_organizations: {
+        Args: { p_cursor?: string; p_limit?: number }
+        Returns: {
+          address: string
+          contact_email: string
+          contact_phone: string
+          created_at: string
+          created_by: string
+          description: string
+          id: string
+          logo_url: string
+          member_count: number
+          name: string
+          settings: Json
+          slug: string
+          social_links: Json
+          status: string
+          updated_at: string
+          website_url: string
+        }[]
+      }
+      get_campaign: {
+        Args: { p_campaign_id: string }
+        Returns: {
+          cover_image_url: string | null
           created_at: string | null
+          created_by: string | null
+          currency: string | null
           description: string | null
-          id: string | null
-          logo_url: string | null
-          member_count: number | null
-          name: string | null
-          settings: Json | null
-          slug: string | null
+          end_date: string | null
+          goal_amount: number | null
+          id: string
+          is_active: boolean | null
+          is_zakat_eligible: boolean | null
+          org_id: string
+          raised_amount: number
+          slug: string
+          start_date: string | null
+          status: Database['donate']['Enums']['campaign_status'] | null
+          title: string
+          updated_at: string | null
+          verification_notes: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }[]
+        SetofOptions: {
+          from: '*'
+          to: 'campaigns'
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_campaign_by_slug: {
+        Args: { p_slug: string }
+        Returns: {
+          cover_image_url: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          description: string | null
+          end_date: string | null
+          goal_amount: number | null
+          id: string
+          is_active: boolean | null
+          is_zakat_eligible: boolean | null
+          org_id: string
+          raised_amount: number
+          slug: string
+          start_date: string | null
+          status: Database['donate']['Enums']['campaign_status'] | null
+          title: string
+          updated_at: string | null
+          verification_notes: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }[]
+        SetofOptions: {
+          from: '*'
+          to: 'campaigns'
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_campaign_tag_ids: {
+        Args: { p_campaign_id: string }
+        Returns: string[]
+      }
+      get_campaign_tags: {
+        Args: never
+        Returns: {
+          id: string
+          label: string
+          label_bn: string | null
+          slug: string
+        }[]
+        SetofOptions: {
+          from: '*'
+          to: 'campaign_tags'
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_campaigns: {
+        Args: { p_org_id: string }
+        Returns: {
+          cover_image_url: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          description: string | null
+          end_date: string | null
+          goal_amount: number | null
+          id: string
+          is_active: boolean | null
+          is_zakat_eligible: boolean | null
+          org_id: string
+          raised_amount: number
+          slug: string
+          start_date: string | null
+          status: Database['donate']['Enums']['campaign_status'] | null
+          title: string
+          updated_at: string | null
+          verification_notes: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }[]
+        SetofOptions: {
+          from: '*'
+          to: 'campaigns'
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_donation_methods: {
+        Args: { p_org_id: string }
+        Returns: {
+          bank_account_name: string | null
+          bank_account_number: string | null
+          bank_branch: string | null
+          bank_name: string | null
+          bank_routing_number: string | null
+          bkash_account_name: string | null
+          bkash_number: string | null
+          created_at: string | null
+          donation_url: string | null
+          id: string
+          instructions: string | null
+          is_preferred: boolean | null
+          nagad_account_name: string | null
+          nagad_number: string | null
+          organization_id: string
+          qr_image_url: string | null
+          rocket_account_name: string | null
+          rocket_number: string | null
           updated_at: string | null
         }[]
         SetofOptions: {
-          from: "*"
-          to: "organization_detail_view"
+          from: '*'
+          to: 'donation_methods'
           isOneToOne: false
           isSetofReturn: true
         }
@@ -994,8 +1497,8 @@ export type Database = {
           token: string
         }[]
         SetofOptions: {
-          from: "*"
-          to: "invites"
+          from: '*'
+          to: 'invites'
           isOneToOne: false
           isSetofReturn: true
         }
@@ -1009,44 +1512,50 @@ export type Database = {
           role: string
         }[]
       }
-      get_my_organizations: {
+      get_my_org_requests: {
         Args: never
         Returns: {
-          created_at: string | null
-          description: string | null
-          id: string | null
-          joined_at: string | null
-          logo_url: string | null
-          membership_status: string | null
-          name: string | null
-          settings: Json | null
-          slug: string | null
-          updated_at: string | null
-          user_id: string | null
-          user_role: string | null
+          created_org_id: string
+          id: string
+          org_description: string
+          org_name: string
+          org_slug: string
+          rejection_reason: string
+          requested_at: string
+          reviewed_at: string
+          status: string
         }[]
-        SetofOptions: {
-          from: "*"
-          to: "organization_view"
-          isOneToOne: false
-          isSetofReturn: true
-        }
+      }
+      get_my_organizations: {
+        Args: { p_cursor?: string; p_limit?: number }
+        Returns: {
+          address: string
+          contact_email: string
+          contact_phone: string
+          created_at: string
+          created_by: string
+          description: string
+          id: string
+          joined_at: string
+          logo_url: string
+          membership_status: string
+          name: string
+          settings: Json
+          slug: string
+          social_links: Json
+          status: string
+          updated_at: string
+          user_id: string
+          user_role: string
+          website_url: string
+        }[]
       }
       get_my_profile: {
         Args: never
-        Returns: {
-          avatar_url: string | null
-          created_at: string | null
-          email: string
-          full_name: string | null
-          id: string
-          is_system_admin: boolean | null
-          metadata: Json | null
-          updated_at: string | null
-        }[]
+        Returns: Database['shared']['Tables']['profiles']['Row'][]
         SetofOptions: {
-          from: "*"
-          to: "profiles"
+          from: '*'
+          to: 'profiles'
           isOneToOne: false
           isSetofReturn: true
         }
@@ -1067,25 +1576,49 @@ export type Database = {
           status: string
         }[]
       }
-      get_organization: {
-        Args: { target_org_id: string }
+      get_org_meta: {
+        Args: { p_org_id: string }
         Returns: {
-          created_at: string | null
+          address: string | null
+          contact_email: string | null
+          contact_phone: string | null
           description: string | null
-          id: string | null
           logo_url: string | null
-          member_count: number | null
-          name: string | null
+          name: string
+          organization_id: string
           settings: Json | null
-          slug: string | null
+          social_links: Json | null
           updated_at: string | null
+          updated_by: string | null
+          website_url: string | null
         }[]
         SetofOptions: {
-          from: "*"
-          to: "organization_detail_view"
+          from: '*'
+          to: 'org_meta'
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      get_organization: {
+        Args: { target_org_id: string }
+        Returns: {
+          address: string
+          contact_email: string
+          contact_phone: string
+          created_at: string
+          created_by: string
+          description: string
+          id: string
+          logo_url: string
+          member_count: number
+          name: string
+          settings: Json
+          slug: string
+          social_links: Json
+          status: string
+          updated_at: string
+          website_url: string
+        }[]
       }
       get_organization_members: {
         Args: { target_org_id: string }
@@ -1102,8 +1635,8 @@ export type Database = {
           user_id: string | null
         }[]
         SetofOptions: {
-          from: "*"
-          to: "member_view"
+          from: '*'
+          to: 'member_view'
           isOneToOne: false
           isSetofReturn: true
         }
@@ -1122,6 +1655,87 @@ export type Database = {
           price_monthly: number
           price_yearly: number
           status: string
+        }[]
+      }
+      get_pending_campaigns: {
+        Args: never
+        Returns: {
+          cover_image_url: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          description: string | null
+          end_date: string | null
+          goal_amount: number | null
+          id: string
+          is_active: boolean | null
+          is_zakat_eligible: boolean | null
+          org_id: string
+          raised_amount: number
+          slug: string
+          start_date: string | null
+          status: Database['donate']['Enums']['campaign_status'] | null
+          title: string
+          updated_at: string | null
+          verification_notes: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }[]
+        SetofOptions: {
+          from: '*'
+          to: 'campaigns'
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_public_campaign_by_slug: {
+        Args: { p_slug: string }
+        Returns: {
+          cover_image_url: string
+          currency: string
+          description: string
+          donation_methods: Json
+          end_date: string
+          goal_amount: number
+          id: string
+          is_zakat_eligible: boolean
+          org_description: string
+          org_id: string
+          org_logo_url: string
+          org_name: string
+          org_slug: string
+          raised_amount: number
+          slug: string
+          start_date: string
+          tags: Json
+          title: string
+        }[]
+      }
+      get_public_campaigns: {
+        Args: {
+          org_filter?: string
+          result_limit?: number
+          zakat_filter?: boolean
+        }
+        Returns: {
+          cover_image_url: string
+          currency: string
+          description: string
+          donation_methods: Json
+          end_date: string
+          goal_amount: number
+          id: string
+          is_zakat_eligible: boolean
+          org_description: string
+          org_id: string
+          org_logo_url: string
+          org_name: string
+          org_slug: string
+          raised_amount: number
+          slug: string
+          start_date: string
+          tags: Json
+          title: string
         }[]
       }
       get_public_org_by_slug: {
@@ -1163,8 +1777,8 @@ export type Database = {
           updated_at: string | null
         }[]
         SetofOptions: {
-          from: "*"
-          to: "subscription_plans"
+          from: '*'
+          to: 'subscription_plans'
           isOneToOne: false
           isSetofReturn: true
         }
@@ -1181,8 +1795,8 @@ export type Database = {
           updated_at: string | null
         }[]
         SetofOptions: {
-          from: "*"
-          to: "profile_view"
+          from: '*'
+          to: 'profile_view'
           isOneToOne: false
           isSetofReturn: true
         }
@@ -1209,8 +1823,8 @@ export type Database = {
           updated_at: string | null
         }[]
         SetofOptions: {
-          from: "*"
-          to: "todos"
+          from: '*'
+          to: 'todos'
           isOneToOne: false
           isSetofReturn: true
         }
@@ -1227,8 +1841,8 @@ export type Database = {
           updated_at: string | null
         }[]
         SetofOptions: {
-          from: "*"
-          to: "profile_view"
+          from: '*'
+          to: 'profile_view'
           isOneToOne: false
           isSetofReturn: true
         }
@@ -1240,17 +1854,98 @@ export type Database = {
       }
       is_system_admin: { Args: never; Returns: boolean }
       pause_subscription: { Args: { p_org_id: string }; Returns: boolean }
+      reject_campaign: {
+        Args: { p_campaign_id: string; p_notes?: string }
+        Returns: {
+          cover_image_url: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          description: string | null
+          end_date: string | null
+          goal_amount: number | null
+          id: string
+          is_active: boolean | null
+          is_zakat_eligible: boolean | null
+          org_id: string
+          raised_amount: number
+          slug: string
+          start_date: string | null
+          status: Database['donate']['Enums']['campaign_status'] | null
+          title: string
+          updated_at: string | null
+          verification_notes: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }[]
+        SetofOptions: {
+          from: '*'
+          to: 'campaigns'
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      reject_org_request: {
+        Args: { p_rejection_reason?: string; p_request_id: string }
+        Returns: boolean
+      }
       remove_organization_member: {
         Args: { target_org_id: string; target_user_id: string }
         Returns: boolean
       }
-      reset_development_data: { Args: never; Returns: undefined }
       revoke_invite: { Args: { p_invite_id: string }; Returns: boolean }
       revoke_system_admin: {
         Args: { target_user_id: string }
         Returns: boolean
       }
+      set_campaign_tags: {
+        Args: { p_campaign_id: string; p_tag_ids: string[] }
+        Returns: boolean
+      }
+      set_org_status: {
+        Args: { p_org_id: string; p_status: string }
+        Returns: boolean
+      }
       set_system_admin: { Args: { p_user_id: string }; Returns: boolean }
+      submit_campaign_for_review: {
+        Args: { p_campaign_id: string }
+        Returns: {
+          cover_image_url: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          description: string | null
+          end_date: string | null
+          goal_amount: number | null
+          id: string
+          is_active: boolean | null
+          is_zakat_eligible: boolean | null
+          org_id: string
+          raised_amount: number
+          slug: string
+          start_date: string | null
+          status: Database['donate']['Enums']['campaign_status'] | null
+          title: string
+          updated_at: string | null
+          verification_notes: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }[]
+        SetofOptions: {
+          from: '*'
+          to: 'campaigns'
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      submit_org_request: {
+        Args: {
+          p_org_description?: string
+          p_org_name: string
+          p_org_slug: string
+        }
+        Returns: string
+      }
       subscribe_to_plan: {
         Args: { p_billing_period: string; p_org_id: string; p_plan_id: string }
         Returns: {
@@ -1265,13 +1960,56 @@ export type Database = {
           updated_at: string | null
         }
         SetofOptions: {
-          from: "*"
-          to: "organization_subscriptions"
+          from: '*'
+          to: 'organization_subscriptions'
           isOneToOne: true
           isSetofReturn: false
         }
       }
       unpause_subscription: { Args: { p_org_id: string }; Returns: boolean }
+      update_campaign: {
+        Args: {
+          p_campaign_id: string
+          p_cover_image_url?: string
+          p_currency?: string
+          p_description?: string
+          p_end_date?: string
+          p_goal_amount?: number
+          p_is_zakat_eligible?: boolean
+          p_slug?: string
+          p_start_date?: string
+          p_status?: Database['donate']['Enums']['campaign_status']
+          p_title?: string
+        }
+        Returns: {
+          cover_image_url: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          description: string | null
+          end_date: string | null
+          goal_amount: number | null
+          id: string
+          is_active: boolean | null
+          is_zakat_eligible: boolean | null
+          org_id: string
+          raised_amount: number
+          slug: string
+          start_date: string | null
+          status: Database['donate']['Enums']['campaign_status'] | null
+          title: string
+          updated_at: string | null
+          verification_notes: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }[]
+        SetofOptions: {
+          from: '*'
+          to: 'campaigns'
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       update_member_role: {
         Args: {
           new_role: string
@@ -1291,8 +2029,8 @@ export type Database = {
           user_id: string | null
         }[]
         SetofOptions: {
-          from: "*"
-          to: "member_view"
+          from: '*'
+          to: 'member_view'
           isOneToOne: false
           isSetofReturn: true
         }
@@ -1313,11 +2051,26 @@ export type Database = {
           updated_at: string | null
         }[]
         SetofOptions: {
-          from: "*"
-          to: "profile_view"
+          from: '*'
+          to: 'profile_view'
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      update_org_meta: {
+        Args: {
+          p_address?: string
+          p_contact_email?: string
+          p_contact_phone?: string
+          p_description?: string
+          p_logo_url?: string
+          p_name?: string
+          p_org_id: string
+          p_settings?: Json
+          p_social_links?: Json
+          p_website_url?: string
+        }
+        Returns: boolean
       }
       update_organization: {
         Args: {
@@ -1342,8 +2095,8 @@ export type Database = {
           user_role: string | null
         }[]
         SetofOptions: {
-          from: "*"
-          to: "organization_view"
+          from: '*'
+          to: 'organization_view'
           isOneToOne: false
           isSetofReturn: true
         }
@@ -1370,8 +2123,8 @@ export type Database = {
           updated_at: string | null
         }
         SetofOptions: {
-          from: "*"
-          to: "subscription_plans"
+          from: '*'
+          to: 'subscription_plans'
           isOneToOne: true
           isSetofReturn: false
         }
@@ -1394,22 +2147,144 @@ export type Database = {
           updated_at: string | null
         }[]
         SetofOptions: {
-          from: "*"
-          to: "todos"
+          from: '*'
+          to: 'todos'
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      upsert_donation_methods: {
+        Args: {
+          p_bank_account_name?: string
+          p_bank_account_number?: string
+          p_bank_branch?: string
+          p_bank_name?: string
+          p_bank_routing_number?: string
+          p_bkash_account_name?: string
+          p_bkash_number?: string
+          p_donation_url?: string
+          p_instructions?: string
+          p_is_preferred?: boolean
+          p_nagad_account_name?: string
+          p_nagad_number?: string
+          p_org_id: string
+          p_qr_image_url?: string
+          p_rocket_account_name?: string
+          p_rocket_number?: string
+        }
+        Returns: {
+          bank_account_name: string | null
+          bank_account_number: string | null
+          bank_branch: string | null
+          bank_name: string | null
+          bank_routing_number: string | null
+          bkash_account_name: string | null
+          bkash_number: string | null
+          created_at: string | null
+          donation_url: string | null
+          id: string
+          instructions: string | null
+          is_preferred: boolean | null
+          nagad_account_name: string | null
+          nagad_number: string | null
+          organization_id: string
+          qr_image_url: string | null
+          rocket_account_name: string | null
+          rocket_number: string | null
+          updated_at: string | null
+        }[]
+        SetofOptions: {
+          from: '*'
+          to: 'donation_methods'
           isOneToOne: false
           isSetofReturn: true
         }
       }
       validate_invite: {
-        Args: { p_token: string }
-        Returns: {
-          invite_email: string
-          invite_id: string
-          invite_role: string
-          org_id: string
-          org_name: string
-        }[]
+        Args: { p_email: string; p_token: string }
+        Returns: string
       }
+      verify_campaign: {
+        Args: { p_campaign_id: string; p_notes?: string }
+        Returns: {
+          cover_image_url: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          description: string | null
+          end_date: string | null
+          goal_amount: number | null
+          id: string
+          is_active: boolean | null
+          is_zakat_eligible: boolean | null
+          org_id: string
+          raised_amount: number
+          slug: string
+          start_date: string | null
+          status: Database['donate']['Enums']['campaign_status'] | null
+          title: string
+          updated_at: string | null
+          verification_notes: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }[]
+        SetofOptions: {
+          from: '*'
+          to: 'campaigns'
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+    }
+    Enums: {
+      campaign_status:
+        'draft' | 'pending_review' | 'live' | 'rejected' | 'closed'
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+  shared: {
+    Tables: {
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string
+          full_name: string | null
+          id: string
+          is_system_admin: boolean | null
+          metadata: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email: string
+          full_name?: string | null
+          id: string
+          is_system_admin?: boolean | null
+          metadata?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          is_system_admin?: boolean | null
+          metadata?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
@@ -1420,33 +2295,33 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] &
+        DefaultSchema['Views'])
+    ? (DefaultSchema['Tables'] &
+        DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -1455,23 +2330,22 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+    keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -1480,23 +2354,22 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+    keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -1505,44 +2378,50 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    keyof DefaultSchema['Enums'] | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
+    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
+    | keyof DefaultSchema['CompositeTypes']
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
+    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
+  donate: {
+    Enums: {
+      campaign_status: [
+        'draft',
+        'pending_review',
+        'live',
+        'rejected',
+        'closed',
+      ],
+    },
   },
-  public: {
+  shared: {
     Enums: {},
   },
 } as const
-

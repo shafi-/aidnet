@@ -1,69 +1,74 @@
 'use client'
 
-import { useAuth } from '@/hooks/useAuth'
-import { useOrganization } from '@/hooks/useOrganization'
-import { profileService } from '@/services/ProfileService'
-import { useState, useEffect } from 'react'
-import type { UserProfile } from '@/types'
+import type { ProfileController } from '@/hooks/useProfile'
 
-export function ProfileComponent() {
-  const { user } = useAuth()
-  const { currentOrg } = useOrganization()
-  const [_profile, setProfile] = useState<UserProfile | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [fullName, setFullName] = useState('')
-  const [saving, setSaving] = useState(false)
-
-  useEffect(() => {
-    async function load() {
-      const { data } = await profileService.getMyProfile()
-      if (data) {
-        setProfile(data)
-        setFullName(data.full_name ?? '')
-      }
-      setLoading(false)
-    }
-    load()
-  }, [])
-
-  const handleSave = async () => {
-    setSaving(true)
-    await profileService.updateMyProfile({ full_name: fullName })
-    const { data } = await profileService.getMyProfile()
-    if (data) setProfile(data)
-    setSaving(false)
-  }
+export function ProfileComponent({
+  controller,
+}: {
+  controller: ProfileController
+}) {
+  const {
+    email,
+    fullName,
+    setFullName,
+    orgName,
+    loading,
+    saving,
+    saved,
+    saveError,
+    save,
+  } = controller
 
   if (loading) return <div>Loading...</div>
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Profile</h1>
-      <div className="bg-white p-6 rounded-lg shadow space-y-4">
+      <div className="space-y-4 rounded-lg bg-white p-6 shadow">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Email</label>
-          <p className="mt-1 text-gray-900">{user?.email}</p>
+          <label className="block text-sm font-medium text-gray-700">
+            Email
+          </label>
+          <p className="mt-1 text-gray-900">{email}</p>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Full Name</label>
+          <label
+            htmlFor="full-name"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Full Name
+          </label>
           <input
+            id="full-name"
             type="text"
             value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+            onChange={e => setFullName(e.target.value)}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Organization</label>
-          <p className="mt-1 text-gray-900">{currentOrg?.name ?? 'None'}</p>
+          <label className="block text-sm font-medium text-gray-700">
+            Organization
+          </label>
+          <p className="mt-1 text-gray-900">{orgName ?? 'None'}</p>
         </div>
         <button
-          onClick={handleSave}
+          onClick={save}
           disabled={saving}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
+          className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
         >
           {saving ? 'Saving...' : 'Save'}
         </button>
+        {saved && (
+          <p className="text-sm text-green-600" role="status">
+            Profile saved.
+          </p>
+        )}
+        {saveError && (
+          <p className="text-sm text-red-600" role="alert">
+            {saveError}
+          </p>
+        )}
       </div>
     </div>
   )

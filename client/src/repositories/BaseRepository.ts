@@ -1,6 +1,18 @@
 import { supabaseManager } from '@/lib/supabase'
 import type { ServiceData } from '@/types'
-import { Rpc, type RpcFunction } from '@/types/rpc'
+import { type RpcFunction } from '@/types/rpc'
+
+/**
+ * Minimal structural contract the repository layer needs from the Supabase
+ * gateway. Defaults to the app singleton; tests inject a mock (src/testing).
+ */
+export interface RpcGateway {
+  rpc<T = unknown>(
+    functionName: string,
+    params?: Record<string, unknown>
+  ): Promise<{ data: T | null; error: string | null }>
+  getUserId(): Promise<string | null>
+}
 
 /**
  * Base Repository Class
@@ -8,11 +20,13 @@ import { Rpc, type RpcFunction } from '@/types/rpc'
  * Direct table access is not allowed — use database functions instead.
  */
 export abstract class BaseRepository {
-  protected supabase = supabaseManager
+  constructor(protected readonly supabase: RpcGateway = supabaseManager) {}
 
   /**
-   * Call a Supabase RPC function
-   * functionName must be from the Rpc enum — ensures type safety against database.ts
+   * Call a Supabase RPC function.
+   * functionName must be from the Rpc enum, and `params` is checked against that
+   * function's registered `Args` (see DbFunction) — so call sites can no longer
+   * pass a wrong/missing parameter without a compile error.
    */
   protected async callRpc<T = unknown>(
     functionName: RpcFunction,
@@ -46,27 +60,5 @@ export abstract class BaseRepository {
       throw new Error('Authentication required')
     }
     return userId
-  }
-
-  /**
-   * Check if current user has specific role in organization
-   * get_membership returns a table, so data is an array
-   */
-  protected async hasRoleInOrganization(
-    organizationId: string,
-    role: string
-  ): Promise<boolean> {
-    const { data } = await this.callRpc<Array<{ role: string; permissions: string[]; is_active: boolean; is_owner: boolean }>>(
-      Rpc.Member.GetMembership,
-      { p_org_id: organizationId }
-    )
-
-    if (!data || data.length === 0) return false
-
-    const roleHierarchy = ['viewer', 'member', 'admin']
-    const userRoleIndex = roleHierarchy.indexOf(data[0].role)
-    const requiredRoleIndex = roleHierarchy.indexOf(role)
-
-    return userRoleIndex >= requiredRoleIndex
   }
 }

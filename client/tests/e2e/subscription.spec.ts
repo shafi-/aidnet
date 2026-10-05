@@ -1,136 +1,173 @@
 import { test, expect } from '@playwright/test'
-import { execSync } from 'child_process'
+import { registerViaApi, signIn } from './lib/api'
 
-const ADMIN_PASSWORD = 'AdminPassword123!'
-const ADMIN_EMAIL = `sub-admin-${Date.now()}@example.com`
-const SERVICE_KEY = execSync('supabase status 2>&1 | grep "Secret key" | sed "s/.*: //"').toString().trim()
-
-async function createSystemAdmin(page: import('@playwright/test').Page) {
-  // Register user
-  await page.goto('/auth/register/')
-  await page.locator('#fullName').fill('Subscription Admin')
-  await page.locator('#email').fill(ADMIN_EMAIL)
-  await page.locator('#password').fill(ADMIN_PASSWORD)
-  await page.locator('#confirmPassword').fill(ADMIN_PASSWORD)
-  await page.getByRole('button', { name: 'Create Account' }).click()
-  await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
-
-  // Get user ID from auth token
-  const userId = await page.evaluate(() => {
-    const key = Object.keys(localStorage).find(k => k.endsWith('-auth-token'))
-    if (!key) throw new Error('No auth token key found')
-    const stored = localStorage.getItem(key)
-    if (!stored) throw new Error('No auth token stored')
-    return JSON.parse(stored).user?.id
-  })
-
-  if (!userId) throw new Error('Could not extract user ID')
-
-  // Set is_system_admin via set_system_admin RPC with service key
-  const result = await page.evaluate(async ({ userId, SERVICE_KEY }) => {
-    const res = await fetch('http://localhost:54321/rest/v1/rpc/set_system_admin', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SERVICE_KEY}`,
-        'apikey': SERVICE_KEY,
-      },
-      body: JSON.stringify({ p_user_id: userId }),
-    })
-    return { ok: res.ok, status: res.status, body: await res.text() }
-  }, { userId, SERVICE_KEY })
-
-  if (!result.ok) {
-    throw new Error(`set_system_admin failed (${result.status}): ${result.body}`)
-  }
-
-  // Reload to pick up the change
-  await page.reload()
-  await page.waitForURL(/\/dashboard/)
-}
+const SEEDED_ADMIN = { email: 'admin@donate.app', password: 'Password123!' }
+const API_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'http://127.0.0.1:55321'
+const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
 
 async function loginAsAdmin(page: import('@playwright/test').Page) {
   await page.goto('/auth/login/')
-  await page.locator('#email').fill(ADMIN_EMAIL)
-  await page.locator('#password').fill(ADMIN_PASSWORD)
+  await page.locator('#email').fill(SEEDED_ADMIN.email)
+  await page.locator('#password').fill(SEEDED_ADMIN.password)
   await page.getByRole('button', { name: 'Sign In' }).click()
-  await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+  await expect(page).toHaveURL(/\/dashboard/)
 }
 
 test.describe.serial('Subscription Management', () => {
-  test('register and setup system admin', async ({ page }) => {
-    await createSystemAdmin(page)
+  test('When system admin views /admin, Subscription Plans link is shown', async ({
+    page,
+  }) => {
+    await loginAsAdmin(page)
+    await page.goto('/admin/')
+    await expect(
+      page.getByRole('link', { name: 'Subscription Plans' })
+    ).toBeVisible()
   })
 
-  test('admin page shows Subscription Plans link', async ({ page }) => {
+  test('When admin clicks Subscription Plans, navigates to /admin/plans', async ({
+    page,
+  }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/', { waitUntil: 'networkidle' })
-    await expect(page.getByRole('link', { name: 'Subscription Plans' })).toBeVisible({ timeout: 10000 })
-  })
-
-  test('Subscription Plans link navigates to plans page', async ({ page }) => {
-    await loginAsAdmin(page)
-    await page.goto('/admin/', { waitUntil: 'networkidle' })
+    await page.goto('/admin/')
     await page.getByRole('link', { name: 'Subscription Plans' }).click()
     await expect(page).toHaveURL(/\/admin\/plans/)
   })
 
-  test('plans page loads with table', async ({ page }) => {
+  test('When admin opens /admin/plans, plans table renders with columns', async ({
+    page,
+  }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/plans/', { waitUntil: 'networkidle' })
-    await expect(page.locator('h1:has-text("Subscription Plans")')).toBeVisible({ timeout: 10000 })
+    await page.goto('/admin/plans/')
+    await expect(page.locator('h1:has-text("Subscription Plans")')).toBeVisible(
+      { timeout: 10000 }
+    )
     await expect(page.locator('th:has-text("Name")')).toBeVisible()
     await expect(page.locator('th:has-text("Monthly")')).toBeVisible()
     await expect(page.locator('th:has-text("Yearly")')).toBeVisible()
     await expect(page.locator('th:has-text("Features")')).toBeVisible()
   })
 
-  test('plans page shows Create Plan button', async ({ page }) => {
+  test('When admin opens /admin/plans, Create Plan button is shown', async ({
+    page,
+  }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/plans/', { waitUntil: 'networkidle' })
-    await expect(page.getByRole('button', { name: 'Create Plan' })).toBeVisible({ timeout: 10000 })
+    await page.goto('/admin/plans/')
+    await expect(page.getByRole('button', { name: 'Create Plan' })).toBeVisible(
+      { timeout: 10000 }
+    )
   })
 
-  test('plans page shows seed plans', async ({ page }) => {
+  test('When admin opens /admin/plans, seeded plans are listed', async ({
+    page,
+  }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/plans/', { waitUntil: 'networkidle' })
-    await expect(page.locator('td:has-text("Free")')).toBeVisible({ timeout: 10000 })
+    await page.goto('/admin/plans/')
+    await expect(page.locator('td:has-text("Free")')).toBeVisible()
     await expect(page.locator('td:has-text("Pro")')).toBeVisible()
     await expect(page.locator('td:has-text("Enterprise")')).toBeVisible()
   })
 
-  test('Create Plan opens form', async ({ page }) => {
+  test('When admin clicks Create Plan, form opens', async ({ page }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/plans/', { waitUntil: 'networkidle' })
+    await page.goto('/admin/plans/')
     await page.getByRole('button', { name: 'Create Plan' }).click()
     await expect(page.locator('h2:has-text("Create Plan")')).toBeVisible()
   })
 
-  test('admin page shows Organization Subscriptions link', async ({ page }) => {
+  test('When admin views /admin, Organization Subscriptions link is shown', async ({
+    page,
+  }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/', { waitUntil: 'networkidle' })
-    await expect(page.getByRole('link', { name: 'Organization Subscriptions' })).toBeVisible({ timeout: 10000 })
+    await page.goto('/admin/')
+    await expect(
+      page.getByRole('link', { name: 'Organization Subscriptions' })
+    ).toBeVisible()
   })
 
-  test('Organization Subscriptions link navigates to subscriptions page', async ({ page }) => {
+  test('When admin clicks Organization Subscriptions, navigates to /admin/subscriptions', async ({
+    page,
+  }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/', { waitUntil: 'networkidle' })
+    await page.goto('/admin/')
     await page.getByRole('link', { name: 'Organization Subscriptions' }).click()
     await expect(page).toHaveURL(/\/admin\/subscriptions/)
   })
 
-  test('subscriptions page loads', async ({ page }) => {
+  test('When admin opens /admin/subscriptions, table with columns renders', async ({
+    page,
+  }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/subscriptions/', { waitUntil: 'networkidle' })
-    await expect(page.locator('h1:has-text("Organization Subscriptions")')).toBeVisible({ timeout: 10000 })
+    await page.goto('/admin/subscriptions/')
+    await expect(
+      page.locator('h1:has-text("Organization Subscriptions")')
+    ).toBeVisible()
     await expect(page.locator('th:has-text("Organization")')).toBeVisible()
     await expect(page.locator('th:has-text("Plan")')).toBeVisible()
     await expect(page.locator('th:has-text("Status")')).toBeVisible()
   })
 
-  test('subscriptions page shows empty state', async ({ page }) => {
+  test('When admin opens /admin/subscriptions, shows rows or empty state', async ({
+    page,
+  }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/subscriptions/', { waitUntil: 'networkidle' })
-    await expect(page.locator('text=No subscriptions yet')).toBeVisible({ timeout: 10000 })
+    await page.goto('/admin/subscriptions/')
+    await expect(
+      page
+        .locator('table tbody tr')
+        .first()
+        .or(page.getByText('No subscriptions yet'))
+    ).toBeVisible()
+  })
+
+  test('When system admin promotes another user, grant_system_admin works', async ({
+    page,
+    request,
+  }) => {
+    const email = `grant-target-${Date.now()}@example.com`
+    const password = 'GrantTest123!'
+    await registerViaApi(page, email, password, 'Grant Target User')
+
+    const userSession = await signIn(request, email, password)
+    const profileRes = await request.post(
+      `${API_URL}/rest/v1/rpc/get_my_profile`,
+      {
+        data: {},
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: ANON_KEY,
+          Authorization: `Bearer ${userSession.access_token}`,
+        },
+      }
+    )
+    const profile = await profileRes.json()
+    const targetUserId = Array.isArray(profile) ? profile[0].id : profile.id
+
+    const adminSession = await signIn(
+      request,
+      SEEDED_ADMIN.email,
+      SEEDED_ADMIN.password
+    )
+    const grantRes = await request.post(
+      `${API_URL}/rest/v1/rpc/grant_system_admin`,
+      {
+        data: { target_user_id: targetUserId },
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: ANON_KEY,
+          Authorization: `Bearer ${adminSession.access_token}`,
+        },
+      }
+    )
+    expect(grantRes.ok()).toBeTruthy()
+    expect(await grantRes.json()).toBe(true)
+
+    await page.goto('/auth/login/')
+    await page.locator('#email').fill(email)
+    await page.locator('#password').fill(password)
+    await page.getByRole('button', { name: 'Sign In' }).click()
+    await expect(page).toHaveURL(/\/dashboard/)
+
+    await page.goto('/admin/')
+    await expect(page.locator('h1')).toContainText('System Admin')
   })
 })

@@ -56,4 +56,9 @@
   body {
     @apply bg-background text-foreground;
   }
+  a:focus-visible,
+  button:focus-visible,
+  [tabindex]:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2;
+  }
 }

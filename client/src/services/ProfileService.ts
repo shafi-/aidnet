@@ -1,22 +1,21 @@
-import { BaseRepository } from '@/repositories/BaseRepository'
 import type { ServiceData, UserProfile, UpdateProfileDto } from '@/types'
-import { Rpc } from '@/types/rpc'
+import { ProfileRepository } from '@/repositories/ProfileRepository'
 
-export class ProfileService extends BaseRepository {
+export class ProfileService {
+  constructor(
+    private profileRepo: ProfileRepository = new ProfileRepository()
+  ) {}
+
   async getMyProfile(): ServiceData<UserProfile> {
-    return this.callRpc<UserProfile>(Rpc.Profile.GetMyProfile)
+    return this.profileRepo.getMyProfile()
   }
 
   async getUserProfile(userId: string): ServiceData<UserProfile> {
-    return this.callRpc<UserProfile>(Rpc.Profile.GetUserProfile, { target_user_id: userId })
+    return this.profileRepo.getUserProfile(userId)
   }
 
   async updateMyProfile(data: UpdateProfileDto): ServiceData<UserProfile> {
-    return this.callRpc<UserProfile>(Rpc.Profile.UpdateMyProfile, {
-      new_full_name: data.full_name,
-      new_avatar_url: data.avatar_url,
-      new_metadata: data.metadata,
-    })
+    return this.profileRepo.updateMyProfile(data)
   }
 }
 

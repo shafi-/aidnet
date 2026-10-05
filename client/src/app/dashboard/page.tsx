@@ -1,113 +1,87 @@
 'use client'
 
-import { useAuth, useRequireAuth } from '@/hooks/useAuth'
+import { useRequireAuth, useAuth } from '@/hooks/useAuth'
+import { useOrganization } from '@/hooks/useOrganization'
+import { OrgDashboard } from '@/components/org/OrgDashboard'
+import { DashboardCards } from '@/components/dashboard/DashboardCards'
+import { QuickStats } from '@/components/dashboard/QuickStats'
+import { AppLayout } from '@/components/layout/AppLayout'
+import { OrgGate } from '@/components/org/OrgGate'
+import { useProfile } from '@/hooks/useProfile'
+import { usePageTitle } from '@/hooks/usePageTitle'
 import Link from 'next/link'
 
 export default function DashboardPage() {
-  const { user } = useRequireAuth()
-  const { signOut } = useAuth()
-
-  const handleSignOut = async () => {
-    try {
-      await signOut()
-    } catch (error) {
-      console.error('Sign out error:', error)
-    }
-  }
+  useRequireAuth()
+  const { user } = useAuth()
+  const { currentOrg, organizations } = useOrganization()
+  const { fullName } = useProfile()
+  usePageTitle('Dashboard')
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <Link href="/" className="text-xl font-bold text-gray-900">
-                SupaNext
-              </Link>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/dashboard"
-                className="text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Dashboard
-              </Link>
-              <Link
-                href="/profile"
-                className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Profile
-              </Link>
-              <button
-                onClick={handleSignOut}
-                className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Sign Out
-              </button>
-            </div>
+    <AppLayout>
+      <OrgGate>
+        <div className="space-y-6">
+          <div className="rounded-lg bg-white p-6 shadow">
+            <h1 className="text-2xl font-bold">Dashboard</h1>
+            {user && (
+              <p className="text-gray-600">
+                Welcome back{fullName ? `, ${fullName}` : ''}!
+              </p>
+            )}
           </div>
+
+          {/* No org at all: onboarding, not a warning */}
+          {!currentOrg && organizations.length === 0 && (
+            <div className="rounded-lg border border-indigo-100 bg-white p-6 shadow">
+              <h2 className="mb-2 text-lg font-semibold text-gray-900">
+                Get started on Donate
+              </h2>
+              <p className="mb-4 text-gray-600">
+                You are not part of an organization yet. Discover live campaigns
+                you can support, or request an organization to start raising
+                funds.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href="/campaigns"
+                  className="inline-block rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
+                >
+                  Browse Campaigns
+                </Link>
+                <Link
+                  href="/org/request"
+                  className="inline-block rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 hover:border-indigo-400 hover:text-indigo-600"
+                >
+                  Request an Organization
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {/* Security: Show suspension message if current org is suspended */}
+          {currentOrg && currentOrg.status === 'suspended' && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-6">
+              <h2 className="mb-2 text-lg font-semibold text-red-900">
+                Organization Suspended
+              </h2>
+              <p className="mb-4 text-red-800">
+                Your organization <strong>{currentOrg.name}</strong> has been
+                suspended. You have read-only access to organization
+                information.
+              </p>
+              <p className="text-sm text-red-700">
+                Please contact your organization administrator or platform
+                support for assistance.
+              </p>
+            </div>
+          )}
+
+          <QuickStats />
+          <DashboardCards />
+          {currentOrg && currentOrg.status === 'active' && <OrgDashboard />}
         </div>
-      </nav>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="mt-2 text-gray-600">Welcome back, {user?.email}!</p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">My Organizations</h3>
-            <p className="text-gray-600 mb-4">Manage your organizations and team members.</p>
-            <Link
-              href="/organizations"
-              className="text-indigo-600 hover:text-indigo-700 font-medium"
-            >
-              View Organizations →
-            </Link>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Settings</h3>
-            <p className="text-gray-600 mb-4">Update your profile information and preferences.</p>
-            <Link
-              href="/profile"
-              className="text-indigo-600 hover:text-indigo-700 font-medium"
-            >
-              Update Profile →
-            </Link>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Security</h3>
-            <p className="text-gray-600 mb-4">Manage your password and security settings.</p>
-            <Link
-              href="/security"
-              className="text-indigo-600 hover:text-indigo-700 font-medium"
-            >
-              Security Settings →
-            </Link>
-          </div>
-        </div>
-
-        <div className="mt-8 bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Stats</h3>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div className="text-center">
-              <p className="text-3xl font-bold text-indigo-600">0</p>
-              <p className="text-gray-600">Organizations</p>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-green-600">0</p>
-              <p className="text-gray-600">Team Members</p>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-blue-600">0</p>
-              <p className="text-gray-600">Active Projects</p>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
+      </OrgGate>
+    </AppLayout>
   )
 }

@@ -10,14 +10,6 @@ export interface Invite {
   created_at: string
 }
 
-export interface InviteValidation {
-  invite_id: string
-  org_id: string
-  org_name: string
-  invite_email: string
-  invite_role: string
-}
-
 export interface CreateInviteDto {
   email: string
   role?: string

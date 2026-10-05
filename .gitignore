@@ -12,6 +12,8 @@ build/
 .env
 .env.local
 .env.*.local
+# docker/.env is a committed, local-only demo config for the shared compose stack
+!docker/.env
 
 # IDE
 .vscode/
@@ -38,10 +40,21 @@ tsconfig.tsbuildinfo
 # Testing
 coverage/
 client/playwright-report
+# Playwright generated auth storage states (contain session tokens)
+client/tests/e2e/.auth/
 
 # Temp
 .temp/
 
+# Shared local Supabase stack (docker/) — live database + uploaded files
+docker/volumes/db/data/
+docker/volumes/storage/
+docker/volumes/snippets/
+docker/volumes/functions/
+
 # Misc
 *.log
 client/test-results
+
+# direnv per-project env (account-specific, not secret-bearing but not shared)
+.envrc
