@@ -19,7 +19,7 @@ export function Footer() {
   return (
     <footer className="border-t bg-white">
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-4 px-4 py-8 sm:px-6 md:flex-row md:justify-between lg:px-8">
-        <div>
+        <div className="text-center md:text-left">
           <p className="text-sm font-semibold text-gray-900">
             {t('nav.brand')}
           </p>
