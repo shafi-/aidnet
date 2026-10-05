@@ -65,16 +65,20 @@ test.describe('Landing Page', () => {
     ).toBeVisible()
   })
 
-  test('When landing has no campaigns, launch panel invites organizations', async ({
+  test('When landing has no campaigns, get-involved card routes visitors', async ({
     page,
   }) => {
     await page.goto('/')
     await expect(
-      page.getByRole('heading', { name: "We're just getting started" })
+      page.getByRole('heading', { name: 'Get involved' })
     ).toBeVisible()
     await expect(
       page.getByRole('link', { name: 'Register your organization' })
     ).toHaveAttribute('href', '/org/request')
+    await expect(page.getByRole('link', { name: 'Reach out' })).toHaveAttribute(
+      'href',
+      '/contact'
+    )
   })
 
   test('When anon loads landing, how-giving-works steps render', async ({

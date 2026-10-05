@@ -8,6 +8,7 @@ import { Check } from 'lucide-react'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { usePublicCampaigns } from '@/hooks/usePublicCampaigns'
 import { CampaignCard } from '@/components/campaign/CampaignCard'
+import { GetInvolved } from '@/components/marketing/GetInvolved'
 import { isUuid } from '@/hooks/useQueryParam'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
@@ -102,35 +103,34 @@ function CampaignsContent() {
         )}
 
         {!loading && !error && campaigns.length === 0 && (
-          <div className="space-y-4 py-12 text-center text-gray-500">
-            {!zakat && !org && (
-              <>
-                <h2 className="text-2xl font-bold text-gray-900">
-                  {t('campaigns.launchTitle')}
-                </h2>
-                <p className="mx-auto max-w-2xl leading-relaxed">
-                  {t('campaigns.launchBody')}
-                </p>
-              </>
+          <div className="space-y-6 py-12">
+            {zakat && (
+              <p className="text-center text-gray-500">
+                {t('campaigns.emptyZakat')}
+              </p>
             )}
-            {zakat && <p>{t('campaigns.emptyZakat')}</p>}
-            {org && <p>{t('campaigns.emptyOrg')}</p>}
-            <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
-              <Link
-                href="/org/request"
-                className="inline-block rounded-md bg-indigo-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-indigo-700"
-              >
-                {t('campaigns.launchCta')}
-              </Link>
-              {(zakat || org) && (
+            {org && (
+              <p className="text-center text-gray-500">
+                {t('campaigns.emptyOrg')}
+              </p>
+            )}
+            {(zakat || org) && (
+              <div className="flex flex-col items-center gap-3">
+                <Link
+                  href="/org/request"
+                  className="inline-block rounded-md bg-indigo-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-indigo-700"
+                >
+                  {t('getInvolved.orgsCta')}
+                </Link>
                 <Link
                   href="/campaigns"
                   className="text-sm text-gray-500 hover:text-gray-700 hover:underline"
                 >
                   {t('campaigns.clearFilters')}
                 </Link>
-              )}
-            </div>
+              </div>
+            )}
+            {!zakat && !org && <GetInvolved />}
           </div>
         )}
 

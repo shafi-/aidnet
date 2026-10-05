@@ -16,7 +16,7 @@ test.describe('Navigation', () => {
       await page.goto('/privacy/')
       await expect(page.locator('h1')).toContainText('Privacy Policy')
       await expect(
-        page.getByRole('heading', { name: 'We Never Sell Your Data' })
+        page.getByRole('heading', { name: 'We Do Not Sell Your Data' })
       ).toBeVisible()
     })
 

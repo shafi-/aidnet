@@ -7,36 +7,8 @@ import { usePublicCampaigns } from '@/hooks/usePublicCampaigns'
 import { CampaignCard } from '@/components/campaign/CampaignCard'
 import { Nav } from '@/components/layout/Nav'
 import { Footer } from '@/components/layout/Footer'
+import { GetInvolved } from '@/components/marketing/GetInvolved'
 import { usePageTitle } from '@/hooks/usePageTitle'
-
-function LaunchPanel() {
-  const { t } = useTranslation()
-
-  return (
-    <div className="rounded-lg border border-indigo-100 bg-white p-10 text-center shadow-sm">
-      <h3 className="text-2xl font-bold text-gray-900">
-        {t('home.launchTitle')}
-      </h3>
-      <p className="mx-auto mt-3 max-w-2xl leading-relaxed text-gray-600">
-        {t('home.launchBody')}
-      </p>
-      <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
-        <Link
-          href="/org/request"
-          className="inline-block rounded-md bg-indigo-600 px-6 py-3 text-base font-medium text-white hover:bg-indigo-700"
-        >
-          {t('home.launchCta')}
-        </Link>
-        <Link
-          href="/about"
-          className="inline-block rounded-md border border-indigo-600 bg-white px-6 py-3 text-base font-medium text-indigo-600 hover:bg-indigo-50"
-        >
-          {t('home.launchBrowse')}
-        </Link>
-      </div>
-    </div>
-  )
-}
 
 function LandingCampaigns() {
   const { t } = useTranslation()
@@ -55,7 +27,7 @@ function LandingCampaigns() {
   }
 
   if (!campaigns.length) {
-    return <LaunchPanel />
+    return <GetInvolved />
   }
 
   return (
@@ -176,10 +148,7 @@ export default function HomePage() {
 
       <main className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="text-center">
-          <p className="inline-block rounded-full border border-indigo-200 bg-white px-4 py-1 text-sm font-medium text-indigo-700">
-            {t('home.badge')}
-          </p>
-          <h1 className="mt-4 text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl">
+          <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl">
             {t('home.welcome')}
           </h1>
           <p className="mx-auto mt-5 max-w-md text-xl text-gray-500">
