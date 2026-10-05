@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/hooks/useAuth'
 import { usePublicCampaigns } from '@/hooks/usePublicCampaigns'
 import { CampaignCard } from '@/components/campaign/CampaignCard'
@@ -8,6 +9,7 @@ import { Nav } from '@/components/layout/Nav'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
 function LandingCampaigns() {
+  const { t } = useTranslation()
   const { campaigns, loading } = usePublicCampaigns({ limit: 12 })
 
   if (loading) {
@@ -17,7 +19,7 @@ function LandingCampaigns() {
         role="status"
         aria-live="polite"
       >
-        Loading campaigns...
+        {t('home.loadingCampaigns')}
       </div>
     )
   }
@@ -25,7 +27,7 @@ function LandingCampaigns() {
   if (!campaigns.length) {
     return (
       <div className="py-8 text-center text-gray-500">
-        No live campaigns yet. Check back soon.
+        {t('home.noLiveCampaigns')}
       </div>
     )
   }
@@ -41,6 +43,7 @@ function LandingCampaigns() {
 
 export default function HomePage() {
   usePageTitle('Donate — Discover campaigns that matter')
+  const { t } = useTranslation()
   const { user, loading } = useAuth()
 
   if (loading) {
@@ -52,7 +55,7 @@ export default function HomePage() {
       >
         <div className="text-center">
           <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-gray-900"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <p className="mt-4 text-gray-600">{t('common.loading')}</p>
         </div>
       </div>
     )
@@ -65,23 +68,23 @@ export default function HomePage() {
       <main className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="text-center">
           <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl">
-            Welcome to Donate
+            {t('home.welcome')}
           </h1>
           <p className="mx-auto mt-5 max-w-md text-xl text-gray-500">
-            Discover campaigns that matter and support the causes you care about
+            {t('home.tagline')}
           </p>
 
           <div className="mt-10">
             {user ? (
               <div className="space-y-4">
                 <p className="text-lg text-gray-600">
-                  Welcome back, {user.email}!
+                  {t('home.welcomeBack', { email: user.email })}
                 </p>
                 <Link
                   href="/dashboard"
                   className="inline-block rounded-md bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700"
                 >
-                  Go to Dashboard
+                  {t('home.goToDashboard')}
                 </Link>
               </div>
             ) : (
@@ -90,13 +93,13 @@ export default function HomePage() {
                   href="/auth/register"
                   className="inline-block rounded-md bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700"
                 >
-                  Get Started
+                  {t('home.getStarted')}
                 </Link>
                 <Link
                   href="/auth/login"
                   className="inline-block rounded-md border border-indigo-600 bg-white px-8 py-3 text-base font-medium text-indigo-600 hover:bg-indigo-50"
                 >
-                  Sign In
+                  {t('home.signIn')}
                 </Link>
               </div>
             )}
@@ -106,13 +109,13 @@ export default function HomePage() {
         <section className="mt-20">
           <div className="mb-6 flex items-center justify-between">
             <h2 className="text-2xl font-bold text-gray-900">
-              Latest Campaigns
+              {t('home.latestCampaigns')}
             </h2>
             <Link
               href="/campaigns"
               className="font-medium text-indigo-600 hover:text-indigo-700"
             >
-              See more →
+              {t('home.seeMore')}
             </Link>
           </div>
 
@@ -137,12 +140,9 @@ export default function HomePage() {
               </svg>
             </div>
             <h3 className="mb-2 text-lg font-semibold text-gray-900">
-              Trusted Organizations
+              {t('home.trustedTitle')}
             </h3>
-            <p className="text-gray-600">
-              Every organization is reviewed and approved before they can launch
-              campaigns.
-            </p>
+            <p className="text-gray-600">{t('home.trustedBody')}</p>
           </div>
 
           <div className="rounded-lg bg-white p-6 shadow">
@@ -162,12 +162,9 @@ export default function HomePage() {
               </svg>
             </div>
             <h3 className="mb-2 text-lg font-semibold text-gray-900">
-              Transparent Campaigns
+              {t('home.transparentTitle')}
             </h3>
-            <p className="text-gray-600">
-              Browse live campaigns with clear goals, descriptions, and donation
-              methods.
-            </p>
+            <p className="text-gray-600">{t('home.transparentBody')}</p>
           </div>
 
           <div className="rounded-lg bg-white p-6 shadow">
@@ -187,12 +184,9 @@ export default function HomePage() {
               </svg>
             </div>
             <h3 className="mb-2 text-lg font-semibold text-gray-900">
-              Easy Donations
+              {t('home.easyTitle')}
             </h3>
-            <p className="text-gray-600">
-              Multiple payment methods and a streamlined flow to get your
-              support where it matters.
-            </p>
+            <p className="text-gray-600">{t('home.easyBody')}</p>
           </div>
         </div>
       </main>

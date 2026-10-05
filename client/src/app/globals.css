@@ -62,3 +62,7 @@
     @apply outline-none ring-2 ring-ring ring-offset-2;
   }
 }
+
+body {
+  font-family: var(--font-inter), var(--font-bengali), system-ui, sans-serif;
+}

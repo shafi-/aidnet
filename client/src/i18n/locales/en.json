@@ -1,0 +1,57 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "home": "Home",
+    "backHome": "← Home",
+    "language": "Language"
+  },
+  "nav": {
+    "brand": "Donate",
+    "campaigns": "Campaigns",
+    "organizations": "Organizations",
+    "dashboard": "Dashboard",
+    "requestOrg": "Request Org",
+    "orgCampaigns": "Org Campaigns",
+    "admin": "Admin",
+    "reviewCampaigns": "Review Campaigns",
+    "reviewOrgs": "Review Orgs",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "profile": "Profile",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "home": {
+    "welcome": "Welcome to Donate",
+    "tagline": "Discover campaigns that matter and support the causes you care about",
+    "welcomeBack": "Welcome back, {{email}}!",
+    "goToDashboard": "Go to Dashboard",
+    "getStarted": "Get Started",
+    "signIn": "Sign In",
+    "latestCampaigns": "Latest Campaigns",
+    "seeMore": "See more →",
+    "loadingCampaigns": "Loading campaigns...",
+    "noLiveCampaigns": "No live campaigns yet. Check back soon.",
+    "trustedTitle": "Trusted Organizations",
+    "trustedBody": "Every organization is reviewed and approved before they can launch campaigns.",
+    "transparentTitle": "Transparent Campaigns",
+    "transparentBody": "Browse live campaigns with clear goals, descriptions, and donation methods.",
+    "easyTitle": "Easy Donations",
+    "easyBody": "Multiple payment methods and a streamlined flow to get your support where it matters."
+  },
+  "campaigns": {
+    "pageTitle": "Discover Campaigns",
+    "title": "Discover Campaigns",
+    "filter": "Filter:",
+    "zakatEligible": "Zakat Eligible",
+    "clearFilter": "Clear filter",
+    "clearFilters": "Clear filters",
+    "showingCount_one": "Showing {{count}} campaign",
+    "showingCount_other": "Showing {{count}} campaigns",
+    "loading": "Loading campaigns...",
+    "error": "Failed to load campaigns: {{message}}",
+    "emptyAll": "No campaigns found yet.",
+    "emptyZakat": "No zakat-eligible campaigns found.",
+    "emptyOrg": "No campaigns found for this organization."
+  }
+}

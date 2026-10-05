@@ -5,7 +5,9 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { useOrganization } from '@/hooks/useOrganization'
 import { useSystemAdmin } from '@/hooks/useSystemAdmin'
+import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
+import { LanguageSwitcher } from './LanguageSwitcher'
 
 interface NavLink {
   href: string
@@ -15,25 +17,26 @@ interface NavLink {
 type AuthUser = ReturnType<typeof useAuth>['user']
 type CurrentOrg = ReturnType<typeof useOrganization>['currentOrg']
 
+// Labels are i18n keys; the caller renders them through t().
 function buildNavLinks(
   user: AuthUser,
   currentOrg: CurrentOrg,
   isSystemAdmin: boolean
 ): NavLink[] {
-  const links: NavLink[] = [{ href: '/campaigns', label: 'Campaigns' }]
+  const links: NavLink[] = [{ href: '/campaigns', label: 'nav.campaigns' }]
   if (!user) return links
-  links.push({ href: '/orgs', label: 'Organizations' })
-  links.push({ href: '/dashboard', label: 'Dashboard' })
+  links.push({ href: '/orgs', label: 'nav.organizations' })
+  links.push({ href: '/dashboard', label: 'nav.dashboard' })
   if (!currentOrg) {
-    links.push({ href: '/org/request', label: 'Request Org' })
+    links.push({ href: '/org/request', label: 'nav.requestOrg' })
   }
   if (currentOrg) {
-    links.push({ href: '/dashboard/campaigns', label: 'Org Campaigns' })
+    links.push({ href: '/dashboard/campaigns', label: 'nav.orgCampaigns' })
   }
   if (isSystemAdmin) {
-    links.push({ href: '/admin', label: 'Admin' })
-    links.push({ href: '/admin/campaigns', label: 'Review Campaigns' })
-    links.push({ href: '/admin/org-requests', label: 'Review Orgs' })
+    links.push({ href: '/admin', label: 'nav.admin' })
+    links.push({ href: '/admin/campaigns', label: 'nav.reviewCampaigns' })
+    links.push({ href: '/admin/org-requests', label: 'nav.reviewOrgs' })
   }
   return links
 }
@@ -45,6 +48,7 @@ export function Nav() {
   const { user, signOut } = useAuth()
   const { currentOrg } = useOrganization()
   const { isSystemAdmin } = useSystemAdmin()
+  const { t } = useTranslation()
   const [mobileOpen, setMobileOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
@@ -82,18 +86,19 @@ export function Nav() {
                     aria-current={active ? 'page' : undefined}
                     className={`${linkClass} ${active ? 'font-semibold text-gray-900' : ''}`}
                   >
-                    {link.label}
+                    {t(link.label)}
                   </Link>
                 )
               })}
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <LanguageSwitcher />
             {user ? (
               <>
                 <Link
                   href="/profile"
-                  aria-label="Profile"
+                  aria-label={t('nav.profile')}
                   className={`hidden md:block ${linkClass}`}
                 >
                   {user.email}
@@ -103,7 +108,7 @@ export function Nav() {
                   onClick={handleSignOut}
                   className={`hidden md:block ${linkClass}`}
                 >
-                  Sign out
+                  {t('nav.signOut')}
                 </button>
               </>
             ) : (
@@ -111,7 +116,7 @@ export function Nav() {
                 href="/auth/login"
                 className={`hidden md:block ${linkClass}`}
               >
-                Sign in
+                {t('nav.signIn')}
               </Link>
             )}
             <button
@@ -119,7 +124,7 @@ export function Nav() {
               className="inline-flex items-center justify-center rounded p-2 text-gray-600 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 md:hidden"
               aria-expanded={mobileOpen}
               aria-controls="mobile-menu"
-              aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+              aria-label={mobileOpen ? t('nav.closeMenu') : t('nav.openMenu')}
               onClick={() => setMobileOpen(!mobileOpen)}
             >
               {mobileOpen ? (
@@ -161,6 +166,9 @@ export function Nav() {
       {mobileOpen && (
         <div className="border-t md:hidden" id="mobile-menu">
           <div className="space-y-1 px-4 py-2">
+            <div className="py-2">
+              <LanguageSwitcher />
+            </div>
             {user ? (
               <>
                 <Link
@@ -168,7 +176,7 @@ export function Nav() {
                   className={`block py-2 ${linkClass}`}
                   onClick={() => setMobileOpen(false)}
                 >
-                  Profile
+                  {t('nav.profile')}
                 </Link>
                 {links.map(link => {
                   const active = isActive(link.href)
@@ -180,7 +188,7 @@ export function Nav() {
                       className={`block py-2 ${linkClass} ${active ? 'font-semibold text-gray-900' : ''}`}
                       onClick={() => setMobileOpen(false)}
                     >
-                      {link.label}
+                      {t(link.label)}
                     </Link>
                   )
                 })}
@@ -189,7 +197,7 @@ export function Nav() {
                   onClick={handleSignOut}
                   className={`block w-full py-2 text-left ${linkClass}`}
                 >
-                  Sign out
+                  {t('nav.signOut')}
                 </button>
               </>
             ) : (
@@ -198,7 +206,7 @@ export function Nav() {
                 className={`block py-2 ${linkClass}`}
                 onClick={() => setMobileOpen(false)}
               >
-                Sign in
+                {t('nav.signIn')}
               </Link>
             )}
           </div>
