@@ -156,10 +156,22 @@ so run e2e manually before merging UI changes.
   # regenerate types from the linked project if the schema diverged
   supabase gen types typescript --linked > client/src/types/database.ts
   ```
-- Frontend: static export. Set `NEXT_PUBLIC_SUPABASE_URL` and
-  `NEXT_PUBLIC_SUPABASE_ANON_KEY` to the hosted project, then build and ship
-  `client/out/` to any static host (Vercel/Netlify/etc.). No deploy config is
-  committed yet — add `vercel.json` / `netlify.toml` when wiring CI.
+- Frontend: static export deployed to GitHub Pages by
+  `.github/workflows/deploy.yml` (push to `main`, or manual dispatch). Requires
+  the repo secrets `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+  The workflow builds with `NEXT_PUBLIC_BASE_PATH=/<repo>` (derived from the
+  repo name — Next bakes asset URLs at build time) so
+  `https://<owner>.github.io/<repo>/` works. App-level absolute URLs (e.g.
+  auth `redirectTo`) must go through `getAppBasePath()`
+  (`client/src/lib/basePath.ts`), which infers the deployment base path from
+  the browser at runtime; never hardcode the sub-path in app code. Manual local equivalent:
+  ```sh
+  cd client
+  NEXT_PUBLIC_BASE_PATH=/<repo> \
+  NEXT_PUBLIC_SUPABASE_URL=https://<ref>.supabase.co \
+  NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key> \
+  pnpm build   # ship client/out/
+  ```
 - After any seed change, re-run `./supabase/seed-auth.sh` against the target.
 
 ---

@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from '@/types/database'
+import { getAppBasePath } from './basePath'
 
 // Environment variables
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -133,7 +134,7 @@ export class SupabaseClientManager {
 
   public async resetPassword(email: string) {
     return supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/reset-password`,
+      redirectTo: `${window.location.origin}${getAppBasePath()}/auth/reset-password`,
     })
   }
 
