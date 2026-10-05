@@ -1,0 +1,84 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Deploying needs permission to create a Pages deployment.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Quality gates · Static export
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: client/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Quality gates mirror ci.yml. A push to main triggers both workflows
+      # in parallel, so the deploy must run its own gates rather than assume CI.
+      - name: Format check
+        run: npx prettier --check "src/**/*.{ts,tsx}"
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run type-check
+
+      - name: Unit tests
+        run: npm run test:unit:ci
+
+      - name: Build static export
+        env:
+          # Next bakes asset URLs into the HTML at build time, so Pages
+          # project-site hosting needs the repo sub-path here (derived from
+          # the repo name, never hardcoded). App-level absolute URLs infer
+          # the base path at runtime instead — see client/src/lib/basePath.ts.
+          NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: npm run build
+
+      - uses: actions/configure-pages@v5
+        with:
+          # Enable Pages on the repo automatically if not yet configured.
+          enablement: true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: client/out
+
+  deploy:
+    name: Publish
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
