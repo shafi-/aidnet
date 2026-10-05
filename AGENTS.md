@@ -156,6 +156,16 @@ so run e2e manually before merging UI changes.
   # regenerate types from the linked project if the schema diverged
   supabase gen types typescript --linked > client/src/types/database.ts
   ```
+- After the first push to a hosted project, expose the `donate` schema on its
+  Data API — hosted projects do NOT inherit `PGRST_DB_SCHEMAS` from
+  `docker/.env`. Symptom if skipped: client RPCs fail with
+  `Invalid schema: donate`. Fix once (token = personal access token):
+  ```sh
+  curl -X PATCH "https://api.supabase.com/v1/projects/<ref>/postgrest" \
+    -H "Authorization: Bearer <access-token>" \
+    -H "Content-Type: application/json" -d '{"db_schema": "donate"}'
+  ```
+  (Dashboard equivalent: Project Settings → API → Exposed schemas.)
 - Frontend: static export deployed to GitHub Pages by
   `.github/workflows/deploy.yml` (push to `main`, or manual dispatch). Requires
   the repo secrets `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.

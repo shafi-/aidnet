@@ -17,7 +17,10 @@ project_id = "donate-prod"
 [api]
 enabled = true
 port = 54321
-schemas = ["public", "graphql_public"]
+# The donate schema is the only Data API surface (see AGENTS.md §Schema layout).
+# Hosted projects don't inherit this from the CLI — mirror it via the
+# management API: PATCH /v1/projects/{ref}/postgrest {"db_schema": "donate"}.
+schemas = ["donate"]
 extra_search_path = ["public", "extensions"]
 max_rows = 1000
 
