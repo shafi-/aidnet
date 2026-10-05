@@ -74,7 +74,7 @@ export function Nav() {
               aria-current={isActive('/') ? 'page' : undefined}
               className="text-xl font-bold"
             >
-              Donate
+              {t('nav.brand')}
             </Link>
             <div className="hidden gap-4 md:flex">
               {links.map(link => {
