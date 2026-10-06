@@ -4,6 +4,8 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { systemAdminSubscriptionService } from '@/services/SystemAdminSubscriptionService'
 import { orgSubscriptionService } from '@/services/OrgSubscriptionService'
 import { useSystemAdmin } from '@/hooks/useSystemAdmin'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { useTranslation } from 'react-i18next'
 import { useState, useEffect, useCallback } from 'react'
 import type {
   OrganizationSubscriptionView,
@@ -12,6 +14,7 @@ import type {
 import Link from 'next/link'
 
 export default function AdminSubscriptionsPage() {
+  const { t } = useTranslation()
   const { isSystemAdmin, loading: adminLoading } = useSystemAdmin()
   const [subscriptions, setSubscriptions] = useState<
     OrganizationSubscriptionView[]
@@ -20,6 +23,8 @@ export default function AdminSubscriptionsPage() {
   const [selectedOrg, setSelectedOrg] = useState<string | null>(null)
   const [history, setHistory] = useState<SubscriptionHistoryView[]>([])
   const [historyLoading, setHistoryLoading] = useState(false)
+
+  usePageTitle(t('admin.subsLink'))
 
   const loadSubscriptions = useCallback(async () => {
     const { data } = await systemAdminSubscriptionService.getOrgSubscriptions()
@@ -52,7 +57,7 @@ export default function AdminSubscriptionsPage() {
   if (adminLoading)
     return (
       <AppLayout>
-        <div>Loading...</div>
+        <div>{t('common.loading')}</div>
       </AppLayout>
     )
 
@@ -60,15 +65,15 @@ export default function AdminSubscriptionsPage() {
     return (
       <AppLayout>
         <div className="py-12 text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Access Denied</h1>
-          <p className="mt-2 text-gray-600">
-            You don&apos;t have permission to access this page.
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {t('errors.accessDenied')}
+          </h1>
+          <p className="mt-2 text-gray-600">{t('errors.accessDeniedBody')}</p>
           <Link
             href="/"
             className="mt-4 inline-block text-blue-600 hover:underline"
           >
-            Back to home
+            {t('common.backToHome')}
           </Link>
         </div>
       </AppLayout>
@@ -80,40 +85,38 @@ export default function AdminSubscriptionsPage() {
       <div className="space-y-6">
         <div>
           <Link href="/admin" className="text-sm text-gray-500 hover:underline">
-            ← Back to Admin
+            {t('common.backToAdmin')}
           </Link>
-          <h1 className="mt-2 text-2xl font-bold">
-            Organization Subscriptions
-          </h1>
+          <h1 className="mt-2 text-2xl font-bold">{t('admin.subsLink')}</h1>
         </div>
 
         {loading ? (
-          <div>Loading...</div>
+          <div>{t('common.loading')}</div>
         ) : (
           <div className="overflow-hidden rounded-lg bg-white shadow">
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                    Organization
+                    {t('admin.headerOrganization')}
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                    Plan
+                    {t('common.planLabel')}
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                    Status
+                    {t('common.statusLabel')}
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                    Period
+                    {t('admin.headerPeriod')}
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                    Price
+                    {t('admin.headerPrice')}
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                    Renewal
+                    {t('admin.headerRenewal')}
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                    Actions
+                    {t('common.actionsLabel')}
                   </th>
                 </tr>
               </thead>
@@ -132,18 +135,24 @@ export default function AdminSubscriptionsPage() {
                               : 'bg-gray-100 text-gray-800'
                         }`}
                       >
-                        {sub.status}
+                        {t(`status.${sub.status}`, {
+                          defaultValue: sub.status,
+                        })}
                       </span>
                     </td>
-                    <td className="px-4 py-3 capitalize">
-                      {sub.billing_period}
+                    <td className="px-4 py-3">
+                      {t(`billing.${sub.billing_period}`, {
+                        defaultValue: sub.billing_period,
+                      })}
                     </td>
                     <td className="px-4 py-3">
                       $
                       {sub.billing_period === 'yearly'
                         ? sub.price_yearly
                         : sub.price_monthly}
-                      /{sub.billing_period === 'yearly' ? 'yr' : 'mo'}
+                      {sub.billing_period === 'yearly'
+                        ? t('billing.perYearShort')
+                        : t('billing.perMonthShort')}
                     </td>
                     <td className="px-4 py-3">
                       {sub.current_period_end
@@ -156,21 +165,21 @@ export default function AdminSubscriptionsPage() {
                           onClick={() => loadHistory(sub.organization_id)}
                           className="text-sm text-blue-600 hover:underline"
                         >
-                          History
+                          {t('billing.history')}
                         </button>
                         {sub.status === 'active' ? (
                           <button
                             onClick={() => handlePause(sub.organization_id)}
                             className="text-sm text-orange-600 hover:underline"
                           >
-                            Pause
+                            {t('status.paused')}
                           </button>
                         ) : sub.status === 'paused' ? (
                           <button
                             onClick={() => handleUnpause(sub.organization_id)}
                             className="text-sm text-green-600 hover:underline"
                           >
-                            Unpause
+                            {t('status.active')}
                           </button>
                         ) : null}
                       </div>
@@ -183,7 +192,7 @@ export default function AdminSubscriptionsPage() {
                       colSpan={7}
                       className="px-4 py-8 text-center text-gray-500"
                     >
-                      No subscriptions yet
+                      {t('billing.noSubscription')}
                     </td>
                   </tr>
                 )}
@@ -195,7 +204,7 @@ export default function AdminSubscriptionsPage() {
         {selectedOrg && (
           <div className="space-y-4 rounded-lg bg-white p-6 shadow">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Billing History</h2>
+              <h2 className="text-lg font-semibold">{t('billing.history')}</h2>
               <button
                 onClick={() => setSelectedOrg(null)}
                 className="text-gray-500 hover:text-gray-700"
@@ -204,28 +213,28 @@ export default function AdminSubscriptionsPage() {
               </button>
             </div>
             {historyLoading ? (
-              <div>Loading...</div>
+              <div>{t('common.loading')}</div>
             ) : (
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                      Date
+                      {t('common.dateLabel')}
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                      Action
+                      {t('billing.action')}
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                      Plan
+                      {t('common.planLabel')}
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                      Amount
+                      {t('common.amountLabel')}
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                      Status
+                      {t('common.statusLabel')}
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                      Notes
+                      {t('common.notesLabel')}
                     </th>
                   </tr>
                 </thead>
@@ -248,7 +257,9 @@ export default function AdminSubscriptionsPage() {
                                 : 'bg-red-100 text-red-800'
                           }`}
                         >
-                          {h.payment_status}
+                          {t(`status.${h.payment_status}`, {
+                            defaultValue: h.payment_status,
+                          })}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-gray-600">
@@ -262,7 +273,7 @@ export default function AdminSubscriptionsPage() {
                         colSpan={6}
                         className="px-4 py-8 text-center text-gray-500"
                       >
-                        No history
+                        {t('billing.noHistory')}
                       </td>
                     </tr>
                   )}

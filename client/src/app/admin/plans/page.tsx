@@ -5,11 +5,14 @@ import { systemAdminSubscriptionService } from '@/services/SystemAdminSubscripti
 import { orgSubscriptionService } from '@/services/OrgSubscriptionService'
 import { useSystemAdmin } from '@/hooks/useSystemAdmin'
 import { normalizeFeatures } from '@/lib/normalizeFeatures'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { useTranslation } from 'react-i18next'
 import { useState, useEffect, useCallback } from 'react'
 import type { SubscriptionPlan } from '@/types'
 import Link from 'next/link'
 
 export default function AdminPlansPage() {
+  const { t } = useTranslation()
   const { isSystemAdmin, loading: adminLoading } = useSystemAdmin()
   const [plans, setPlans] = useState<SubscriptionPlan[]>([])
   const [loading, setLoading] = useState(true)
@@ -23,6 +26,8 @@ export default function AdminPlansPage() {
     features: '',
   })
   const [saving, setSaving] = useState(false)
+
+  usePageTitle(t('admin.plansLink'))
 
   const loadPlans = useCallback(async () => {
     const { data } = await orgSubscriptionService.getPlans()
@@ -120,7 +125,7 @@ export default function AdminPlansPage() {
   if (adminLoading)
     return (
       <AppLayout>
-        <div>Loading...</div>
+        <div>{t('common.loading')}</div>
       </AppLayout>
     )
 
@@ -128,15 +133,15 @@ export default function AdminPlansPage() {
     return (
       <AppLayout>
         <div className="py-12 text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Access Denied</h1>
-          <p className="mt-2 text-gray-600">
-            You don&apos;t have permission to access this page.
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {t('errors.accessDenied')}
+          </h1>
+          <p className="mt-2 text-gray-600">{t('errors.accessDeniedBody')}</p>
           <Link
             href="/"
             className="mt-4 inline-block text-blue-600 hover:underline"
           >
-            Back to home
+            {t('common.backToHome')}
           </Link>
         </div>
       </AppLayout>
@@ -152,9 +157,9 @@ export default function AdminPlansPage() {
               href="/admin"
               className="text-sm text-gray-500 hover:underline"
             >
-              ← Back to Admin
+              {t('common.backToAdmin')}
             </Link>
-            <h1 className="mt-2 text-2xl font-bold">Subscription Plans</h1>
+            <h1 className="mt-2 text-2xl font-bold">{t('admin.plansLink')}</h1>
           </div>
           <button
             onClick={() => {
@@ -170,19 +175,19 @@ export default function AdminPlansPage() {
             }}
             className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
           >
-            Create Plan
+            {t('admin.createPlan')}
           </button>
         </div>
 
         {(showCreate || editingPlan) && (
           <div className="space-y-4 rounded-lg bg-white p-6 shadow">
             <h2 className="text-lg font-semibold">
-              {editingPlan ? 'Edit Plan' : 'Create Plan'}
+              {editingPlan ? t('admin.editPlan') : t('admin.createPlan')}
             </h2>
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Name
+                  {t('common.nameLabel')}
                 </label>
                 <input
                   type="text"
@@ -193,7 +198,7 @@ export default function AdminPlansPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Description
+                  {t('common.descriptionLabel')}
                 </label>
                 <input
                   type="text"
@@ -206,7 +211,7 @@ export default function AdminPlansPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Price Monthly ($)
+                  {t('admin.priceMonthly')}
                 </label>
                 <input
                   type="number"
@@ -219,7 +224,7 @@ export default function AdminPlansPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Price Yearly ($)
+                  {t('admin.priceYearly')}
                 </label>
                 <input
                   type="number"
@@ -232,13 +237,13 @@ export default function AdminPlansPage() {
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700">
-                  Features (comma-separated)
+                  {t('admin.featuresComma')}
                 </label>
                 <input
                   type="text"
                   value={form.features}
                   onChange={e => setForm({ ...form, features: e.target.value })}
-                  placeholder="todos, members, invites, settings, analytics"
+                  placeholder={t('admin.featuresPlaceholder')}
                   className="mt-1 block w-full rounded border px-3 py-2"
                 />
               </div>
@@ -249,7 +254,11 @@ export default function AdminPlansPage() {
                 disabled={saving || !form.name}
                 className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
               >
-                {saving ? 'Saving...' : editingPlan ? 'Update' : 'Create'}
+                {saving
+                  ? t('common.saving')
+                  : editingPlan
+                    ? t('admin.update')
+                    : t('admin.create')}
               </button>
               <button
                 onClick={() => {
@@ -258,39 +267,39 @@ export default function AdminPlansPage() {
                 }}
                 className="rounded bg-gray-200 px-4 py-2 hover:bg-gray-300"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
             </div>
           </div>
         )}
 
         {loading ? (
-          <div>Loading...</div>
+          <div>{t('common.loading')}</div>
         ) : (
           <div className="overflow-hidden rounded-lg bg-white shadow">
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                    Name
+                    {t('common.nameLabel')}
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                    Description
+                    {t('common.descriptionLabel')}
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                    Monthly
+                    {t('billing.monthly')}
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                    Yearly
+                    {t('billing.yearly')}
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                    Features
+                    {t('admin.headerFeatures')}
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                    Status
+                    {t('common.statusLabel')}
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                    Actions
+                    {t('common.actionsLabel')}
                   </th>
                 </tr>
               </thead>
@@ -301,8 +310,14 @@ export default function AdminPlansPage() {
                     <td className="px-4 py-3 text-gray-600">
                       {plan.description || '-'}
                     </td>
-                    <td className="px-4 py-3">${plan.price_monthly}/mo</td>
-                    <td className="px-4 py-3">${plan.price_yearly}/yr</td>
+                    <td className="px-4 py-3">
+                      ${plan.price_monthly}
+                      {t('billing.perMonthShort')}
+                    </td>
+                    <td className="px-4 py-3">
+                      ${plan.price_yearly}
+                      {t('billing.perYearShort')}
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-1">
                         {(plan.features || []).map(f => (
@@ -310,7 +325,7 @@ export default function AdminPlansPage() {
                             key={f}
                             className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-800"
                           >
-                            {f}
+                            {t(`features.${f}`, { defaultValue: f })}
                           </span>
                         ))}
                       </div>
@@ -319,7 +334,9 @@ export default function AdminPlansPage() {
                       <span
                         className={`rounded px-2 py-1 text-xs ${plan.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
                       >
-                        {plan.is_active ? 'Active' : 'Inactive'}
+                        {plan.is_active
+                          ? t('status.active')
+                          : t('status.inactive')}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -328,13 +345,15 @@ export default function AdminPlansPage() {
                           onClick={() => openEdit(plan)}
                           className="text-sm text-blue-600 hover:underline"
                         >
-                          Edit
+                          {t('common.edit')}
                         </button>
                         <button
                           onClick={() => handleToggleActive(plan)}
                           className="text-sm text-orange-600 hover:underline"
                         >
-                          {plan.is_active ? 'Deactivate' : 'Activate'}
+                          {plan.is_active
+                            ? t('admin.deactivate')
+                            : t('admin.activate')}
                         </button>
                       </div>
                     </td>
@@ -346,7 +365,7 @@ export default function AdminPlansPage() {
                       colSpan={7}
                       className="px-4 py-8 text-center text-gray-500"
                     >
-                      No plans yet
+                      {t('admin.noPlans')}
                     </td>
                   </tr>
                 )}

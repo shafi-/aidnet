@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useTranslation } from 'react-i18next'
 import { useRequireAuth } from '@/hooks/useAuth'
 import { useOrgRequests } from '@/hooks/useOrgRequests'
 import { AppLayout } from '@/components/layout/AppLayout'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 function slugify(s: string) {
   return s
@@ -16,6 +18,7 @@ function slugify(s: string) {
 
 export default function OrgRequestPage() {
   useRequireAuth()
+  const { t } = useTranslation()
   const { requests, loading, submitRequest } = useOrgRequests()
 
   const [name, setName] = useState('')
@@ -24,6 +27,8 @@ export default function OrgRequestPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+
+  usePageTitle(t('orgRequest.title'))
 
   const pendingRequest = requests.find(r => r.status === 'pending')
   const approvedRequest = requests.find(r => r.status === 'approved')
@@ -34,7 +39,7 @@ export default function OrgRequestPage() {
     setSuccess('')
 
     if (!name.trim() || !slug.trim()) {
-      setError('Organization name and slug are required')
+      setError(t('orgRequest.nameAndSlugRequired'))
       return
     }
 
@@ -47,9 +52,9 @@ export default function OrgRequestPage() {
     setSubmitting(false)
 
     if (!result.success) {
-      setError(result.error || 'Failed to submit organization request')
+      setError(result.error || t('orgRequest.submitFailed'))
     } else {
-      setSuccess('Organization request submitted successfully!')
+      setSuccess(t('orgRequest.submitSuccess'))
       setName('')
       setSlug('')
       setDescription('')
@@ -59,7 +64,7 @@ export default function OrgRequestPage() {
   if (loading) {
     return (
       <AppLayout>
-        <div className="py-12 text-center">Loading...</div>
+        <div className="py-12 text-center">{t('common.loading')}</div>
       </AppLayout>
     )
   }
@@ -71,17 +76,16 @@ export default function OrgRequestPage() {
         <div className="mx-auto max-w-2xl space-y-6 px-4 py-12">
           <div className="rounded-lg bg-green-50 p-8 text-center">
             <h1 className="text-2xl font-bold text-green-900">
-              Organization Approved!
+              {t('orgRequest.approvedTitle')}
             </h1>
             <p className="mt-2 text-green-700">
-              Your organization &ldquo;{approvedRequest.org_name}&rdquo; has
-              been approved.
+              {t('orgRequest.approvedBody', { name: approvedRequest.org_name })}
             </p>
             <Link
               href="/dashboard"
               className="mt-6 inline-block rounded-md bg-green-600 px-6 py-3 text-white hover:bg-green-700"
             >
-              Go to Dashboard
+              {t('orgRequest.goDashboard')}
             </Link>
           </div>
         </div>
@@ -96,24 +100,23 @@ export default function OrgRequestPage() {
         <div className="mx-auto max-w-2xl space-y-6 px-4 py-12">
           <div className="rounded-lg bg-yellow-50 p-8 text-center">
             <h1 className="text-2xl font-bold text-yellow-900">
-              Request Pending Review
+              {t('orgRequest.pendingTitle')}
             </h1>
             <p className="mt-2 text-yellow-700">
-              Your organization request is currently being reviewed by our
-              administrators.
+              {t('orgRequest.pendingBody')}
             </p>
             <div className="mt-6 rounded-md bg-yellow-100 p-4 text-left">
               <p className="text-sm font-medium text-yellow-900">
-                Organization Name: {pendingRequest.org_name}
+                {t('orgRequest.pendingName', { name: pendingRequest.org_name })}
               </p>
               <p className="text-sm text-yellow-800">
-                Submitted:{' '}
-                {new Date(pendingRequest.requested_at).toLocaleString()}
+                {t('orgRequest.submittedAt', {
+                  date: new Date(pendingRequest.requested_at).toLocaleString(),
+                })}
               </p>
             </div>
             <p className="mt-4 text-sm text-yellow-600">
-              You will be able to access the dashboard once your request is
-              approved.
+              {t('orgRequest.pendingNote')}
             </p>
           </div>
         </div>
@@ -126,11 +129,9 @@ export default function OrgRequestPage() {
       <div className="mx-auto max-w-2xl space-y-6 px-4 py-12">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900">
-            Create Organization
+            {t('orgRequest.title')}
           </h1>
-          <p className="mt-2 text-gray-600">
-            Submit your organization for review and approval
-          </p>
+          <p className="mt-2 text-gray-600">{t('orgRequest.subtitle')}</p>
         </div>
 
         {success && (
@@ -150,7 +151,7 @@ export default function OrgRequestPage() {
                 htmlFor="orgName"
                 className="mb-2 block text-sm font-medium text-gray-700"
               >
-                Organization Name
+                {t('orgRequest.orgName')}
               </label>
               <input
                 id="orgName"
@@ -161,7 +162,7 @@ export default function OrgRequestPage() {
                   setSlug(slugify(e.target.value))
                 }}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="My Organization"
+                placeholder={t('orgRequest.orgNamePlaceholder')}
                 required
               />
             </div>
@@ -171,7 +172,7 @@ export default function OrgRequestPage() {
                 htmlFor="orgSlug"
                 className="mb-2 block text-sm font-medium text-gray-700"
               >
-                URL Slug
+                {t('orgRequest.slugLabel')}
               </label>
               <input
                 id="orgSlug"
@@ -179,12 +180,12 @@ export default function OrgRequestPage() {
                 value={slug}
                 onChange={e => setSlug(e.target.value)}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 font-mono focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="my-organization"
+                placeholder={t('orgRequest.slugPlaceholder')}
                 pattern="[a-z0-9-]+"
                 required
               />
               <p className="mt-1 text-xs text-gray-500">
-                Lowercase letters, numbers, and hyphens only
+                {t('orgRequest.slugHelp')}
               </p>
             </div>
 
@@ -193,7 +194,7 @@ export default function OrgRequestPage() {
                 htmlFor="description"
                 className="mb-2 block text-sm font-medium text-gray-700"
               >
-                Description
+                {t('common.descriptionLabel')}
               </label>
               <textarea
                 id="description"
@@ -201,7 +202,7 @@ export default function OrgRequestPage() {
                 onChange={e => setDescription(e.target.value)}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 rows={4}
-                placeholder="Tell us about your organization..."
+                placeholder={t('orgRequest.descriptionPlaceholder')}
               />
             </div>
 
@@ -210,7 +211,7 @@ export default function OrgRequestPage() {
               disabled={submitting}
               className="w-full rounded-md bg-indigo-600 px-4 py-3 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {submitting ? 'Submitting...' : 'Submit for Review'}
+              {submitting ? t('orgRequest.submitting') : t('orgRequest.submit')}
             </button>
           </form>
         </div>
@@ -220,7 +221,7 @@ export default function OrgRequestPage() {
             href="/dashboard"
             className="text-indigo-600 hover:text-indigo-700"
           >
-            ← Back to Dashboard
+            {t('orgRequest.backToDashboard')}
           </Link>
         </div>
       </div>

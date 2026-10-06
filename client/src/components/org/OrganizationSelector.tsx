@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslation } from 'react-i18next'
 import type { OrganizationView } from '@/types'
 
 /**
@@ -16,20 +17,20 @@ export function OrganizationSelector({
   onSelect: (orgId: string) => void
   message?: string | null
 }) {
+  const { t } = useTranslation()
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
       <div className="w-full max-w-2xl space-y-6 rounded-lg bg-white p-8 shadow">
         <h1 className="text-center text-2xl font-bold">
-          Select an Organization
+          {t('selector.title')}
         </h1>
         {message && (
           <div className="rounded-md bg-amber-50 p-4 text-sm text-amber-800">
             {message}
           </div>
         )}
-        <p className="text-center text-gray-600">
-          You belong to multiple organizations. Choose one to continue.
-        </p>
+        <p className="text-center text-gray-600">{t('selector.subtitle')}</p>
         <div className="grid gap-4 md:grid-cols-2">
           {organizations.map(org => {
             const isSuspended = org.status === 'suspended'
@@ -46,11 +47,11 @@ export function OrganizationSelector({
               >
                 <h2 className="text-lg font-semibold">{org.name}</h2>
                 <p className="mt-1 text-sm text-gray-600">
-                  {org.description ?? 'No description'}
+                  {org.description ?? t('org.noDescription')}
                 </p>
                 {isSuspended && (
                   <p className="mt-1 text-xs font-medium text-red-600">
-                    Suspended
+                    {t('status.suspended')}
                   </p>
                 )}
               </button>

@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslation } from 'react-i18next'
 import type { ProfileController } from '@/hooks/useProfile'
 
 export function ProfileComponent({
@@ -7,6 +8,7 @@ export function ProfileComponent({
 }: {
   controller: ProfileController
 }) {
+  const { t } = useTranslation()
   const {
     email,
     fullName,
@@ -19,15 +21,15 @@ export function ProfileComponent({
     save,
   } = controller
 
-  if (loading) return <div>Loading...</div>
+  if (loading) return <div>{t('common.loading')}</div>
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Profile</h1>
+      <h1 className="text-2xl font-bold">{t('titles.profile')}</h1>
       <div className="space-y-4 rounded-lg bg-white p-6 shadow">
         <div>
           <label className="block text-sm font-medium text-gray-700">
-            Email
+            {t('common.emailLabel')}
           </label>
           <p className="mt-1 text-gray-900">{email}</p>
         </div>
@@ -36,7 +38,7 @@ export function ProfileComponent({
             htmlFor="full-name"
             className="block text-sm font-medium text-gray-700"
           >
-            Full Name
+            {t('auth.fullName')}
           </label>
           <input
             id="full-name"
@@ -48,20 +50,20 @@ export function ProfileComponent({
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">
-            Organization
+            {t('profile.organization')}
           </label>
-          <p className="mt-1 text-gray-900">{orgName ?? 'None'}</p>
+          <p className="mt-1 text-gray-900">{orgName ?? t('profile.noOrg')}</p>
         </div>
         <button
           onClick={save}
           disabled={saving}
           className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
         >
-          {saving ? 'Saving...' : 'Save'}
+          {saving ? t('common.saving') : t('common.saveChanges')}
         </button>
         {saved && (
           <p className="text-sm text-green-600" role="status">
-            Profile saved.
+            {t('profile.saved')}
           </p>
         )}
         {saveError && (

@@ -85,6 +85,11 @@ function CampaignsContent() {
             </p>
           )}
         </div>
+        {zakat && (
+          <p className="-mt-4 text-sm text-gray-500">
+            {t('campaigns.zakatHint')}
+          </p>
+        )}
 
         {loading && (
           <div
@@ -98,7 +103,7 @@ function CampaignsContent() {
 
         {error && (
           <div className="py-12 text-center text-red-600" role="alert">
-            {t('campaigns.error', { message: error })}
+            {t('campaigns.error')}
           </div>
         )}
 

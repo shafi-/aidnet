@@ -5,11 +5,13 @@ import { ProfileComponent } from '@/components/profile/ProfileComponent'
 import { useProfile } from '@/hooks/useProfile'
 import { useRequireAuth } from '@/hooks/useAuth'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { useTranslation } from 'react-i18next'
 
 export default function ProfilePage() {
   useRequireAuth()
+  const { t } = useTranslation()
   const controller = useProfile()
-  usePageTitle('Profile')
+  usePageTitle(t('titles.profile'))
 
   return (
     <AppLayout>

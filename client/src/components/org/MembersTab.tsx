@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useOrgMembers } from '@/hooks/useOrgMembers'
 
 export function MembersTab({ orgId }: { orgId: string }) {
+  const { t } = useTranslation()
   const {
     members,
     invites,
@@ -23,25 +25,28 @@ export function MembersTab({ orgId }: { orgId: string }) {
     'members'
   )
 
-  if (loading) return <div>Loading...</div>
+  if (loading) return <div>{t('common.loading')}</div>
 
   return (
     <div className="space-y-4">
       {isAdmin() && (
-        <div className="mb-4 flex gap-2 border-b">
-          <button
-            onClick={() => setActiveSubTab('members')}
-            className={`pb-2 ${activeSubTab === 'members' ? 'border-b-2 border-blue-600 font-medium' : ''}`}
-          >
-            Members
-          </button>
-          <button
-            onClick={() => setActiveSubTab('invites')}
-            className={`pb-2 ${activeSubTab === 'invites' ? 'border-b-2 border-blue-600 font-medium' : ''}`}
-          >
-            Pending Invites ({invites.length})
-          </button>
-        </div>
+        <>
+          <p className="text-sm text-gray-500">{t('members.hint')}</p>
+          <div className="mb-4 flex gap-2 border-b">
+            <button
+              onClick={() => setActiveSubTab('members')}
+              className={`pb-2 ${activeSubTab === 'members' ? 'border-b-2 border-blue-600 font-medium' : ''}`}
+            >
+              {t('orgTabs.members')}
+            </button>
+            <button
+              onClick={() => setActiveSubTab('invites')}
+              className={`pb-2 ${activeSubTab === 'invites' ? 'border-b-2 border-blue-600 font-medium' : ''}`}
+            >
+              {t('members.pendingInvites', { count: invites.length })}
+            </button>
+          </div>
+        </>
       )}
 
       {activeSubTab === 'members' && (
@@ -58,14 +63,14 @@ export function MembersTab({ orgId }: { orgId: string }) {
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="Add member by email..."
+                placeholder={t('members.addPlaceholder')}
                 className="flex-1 rounded-md border px-3 py-2"
               />
               <button
                 type="submit"
                 className="rounded-md bg-blue-600 px-4 py-2 text-white"
               >
-                Add
+                {t('common.add')}
               </button>
             </form>
           )}
@@ -86,24 +91,26 @@ export function MembersTab({ orgId }: { orgId: string }) {
                       onChange={e => updateRole(m.user_id, e.target.value)}
                       className="rounded border px-2 py-1 text-sm"
                     >
-                      <option value="viewer">Viewer</option>
-                      <option value="member">Member</option>
-                      <option value="admin">Admin</option>
+                      <option value="viewer">{t('roles.viewer')}</option>
+                      <option value="member">{t('roles.member')}</option>
+                      <option value="admin">{t('roles.admin')}</option>
                     </select>
                     <button
                       onClick={() => removeMember(m.user_id)}
                       className="text-sm text-red-600 hover:text-red-800"
                     >
-                      Remove
+                      {t('members.remove')}
                     </button>
                   </div>
                 ) : (
-                  <span className="text-sm text-gray-500">{m.role}</span>
+                  <span className="text-sm text-gray-500">
+                    {t(`roles.${m.role}`, { defaultValue: m.role })}
+                  </span>
                 )}
               </li>
             ))}
             {members.length === 0 && (
-              <p className="text-gray-500">No members yet.</p>
+              <p className="text-gray-500">{t('members.noMembers')}</p>
             )}
           </ul>
         </>
@@ -122,7 +129,7 @@ export function MembersTab({ orgId }: { orgId: string }) {
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder="Invite by email..."
+              placeholder={t('members.invitePlaceholder')}
               className="flex-1 rounded-md border px-3 py-2"
             />
             <select
@@ -130,15 +137,15 @@ export function MembersTab({ orgId }: { orgId: string }) {
               onChange={e => setInviteRole(e.target.value)}
               className="rounded border px-2 py-2"
             >
-              <option value="viewer">Viewer</option>
-              <option value="member">Member</option>
-              <option value="admin">Admin</option>
+              <option value="viewer">{t('roles.viewer')}</option>
+              <option value="member">{t('roles.member')}</option>
+              <option value="admin">{t('roles.admin')}</option>
             </select>
             <button
               type="submit"
               className="rounded-md bg-blue-600 px-4 py-2 text-white"
             >
-              Invite
+              {t('members.invite')}
             </button>
           </form>
           <ul className="space-y-2">
@@ -150,20 +157,24 @@ export function MembersTab({ orgId }: { orgId: string }) {
                 <div className="flex-1">
                   <p className="font-medium">{inv.email}</p>
                   <p className="text-sm text-gray-500">
-                    Role: {inv.role} · Expires:{' '}
-                    {new Date(inv.expires_at).toLocaleDateString()}
+                    {t('members.inviteMeta', {
+                      role: t(`roles.${inv.role}`, {
+                        defaultValue: inv.role,
+                      }),
+                      date: new Date(inv.expires_at).toLocaleDateString(),
+                    })}
                   </p>
                 </div>
                 <button
                   onClick={() => revokeInvite(inv.id)}
                   className="text-sm text-red-600 hover:text-red-800"
                 >
-                  Revoke
+                  {t('members.revoke')}
                 </button>
               </li>
             ))}
             {invites.length === 0 && (
-              <p className="text-gray-500">No pending invites.</p>
+              <p className="text-gray-500">{t('members.noInvites')}</p>
             )}
           </ul>
         </>

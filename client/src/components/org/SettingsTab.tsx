@@ -1,9 +1,11 @@
 'use client'
 
+import { useTranslation } from 'react-i18next'
 import { useOrgSettings } from '@/hooks/useOrgSettings'
 import { usePermissions } from '@/hooks/usePermissions'
 
 export function SettingsTab({ orgId }: { orgId: string }) {
+  const { t } = useTranslation()
   const { isOrgAdmin } = usePermissions()
   const {
     name,
@@ -17,8 +19,7 @@ export function SettingsTab({ orgId }: { orgId: string }) {
     save,
   } = useOrgSettings(orgId)
 
-  if (!isOrgAdmin())
-    return <p>You don&apos;t have permission to edit settings.</p>
+  if (!isOrgAdmin()) return <p>{t('orgSettings.noPermission')}</p>
 
   return (
     <div className="space-y-6">
@@ -34,7 +35,7 @@ export function SettingsTab({ orgId }: { orgId: string }) {
             htmlFor="org-settings-name"
             className="block text-sm font-medium text-gray-700"
           >
-            Organization Name
+            {t('orgSettings.orgName')}
           </label>
           <input
             id="org-settings-name"
@@ -50,7 +51,7 @@ export function SettingsTab({ orgId }: { orgId: string }) {
             htmlFor="org-settings-slug"
             className="block text-sm font-medium text-gray-700"
           >
-            Slug
+            {t('orgSettings.slug')}
           </label>
           <input
             id="org-settings-slug"
@@ -62,7 +63,7 @@ export function SettingsTab({ orgId }: { orgId: string }) {
             pattern="[a-z0-9-]+"
           />
           <p className="mt-1 text-xs text-gray-500">
-            Lowercase letters, numbers, and hyphens only.
+            {t('orgSettings.slugHelp')}
           </p>
         </div>
         <div>
@@ -70,7 +71,7 @@ export function SettingsTab({ orgId }: { orgId: string }) {
             htmlFor="org-settings-description"
             className="block text-sm font-medium text-gray-700"
           >
-            Description
+            {t('common.descriptionLabel')}
           </label>
           <textarea
             id="org-settings-description"
@@ -86,9 +87,11 @@ export function SettingsTab({ orgId }: { orgId: string }) {
             disabled={saving}
             className="rounded-md bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
           >
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? t('common.saving') : t('common.saveChanges')}
           </button>
-          {saved && <span className="text-sm text-green-600">Saved!</span>}
+          {saved && (
+            <span className="text-sm text-green-600">{t('common.saved')}</span>
+          )}
         </div>
       </form>
     </div>

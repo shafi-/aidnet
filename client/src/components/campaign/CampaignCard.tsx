@@ -1,7 +1,9 @@
 import Link from 'next/link'
+import { useTranslation } from 'react-i18next'
 import type { PublicCampaign } from '@/types'
 
 export function CampaignCard({ campaign }: { campaign: PublicCampaign }) {
+  const { t } = useTranslation()
   const goal = campaign.goal_amount
   const raised = campaign.raised_amount ?? 0
   const pct =
@@ -33,7 +35,7 @@ export function CampaignCard({ campaign }: { campaign: PublicCampaign }) {
           </h3>
           {campaign.is_zakat_eligible && (
             <span className="shrink-0 rounded-full bg-green-100 px-2 py-1 text-xs text-green-800">
-              Zakat
+              {t('campaignCard.zakatBadge')}
             </span>
           )}
         </div>
@@ -50,7 +52,10 @@ export function CampaignCard({ campaign }: { campaign: PublicCampaign }) {
           <div className="mt-1">
             <div className="mb-1 flex items-center justify-between text-xs text-gray-600">
               <span>
-                {raised.toLocaleString()} {campaign.currency} raised
+                {t('campaignCard.raised', {
+                  amount: raised.toLocaleString(),
+                  currency: campaign.currency,
+                })}
               </span>
               <span>{pct}%</span>
             </div>
@@ -64,7 +69,7 @@ export function CampaignCard({ campaign }: { campaign: PublicCampaign }) {
         )}
 
         <span className="mt-auto pt-2 font-medium text-indigo-600">
-          View campaign →
+          {t('campaignCard.view')}
         </span>
       </div>
     </Link>

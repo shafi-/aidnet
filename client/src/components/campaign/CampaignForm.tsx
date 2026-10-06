@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslation } from 'react-i18next'
 import type { CampaignFormController } from '@/hooks/useCampaignForm'
 
 export function CampaignForm({
@@ -7,6 +8,7 @@ export function CampaignForm({
 }: {
   controller: CampaignFormController
 }) {
+  const { t } = useTranslation()
   const {
     mode,
     form,
@@ -31,26 +33,29 @@ export function CampaignForm({
     >
       {error && <div className="text-sm text-red-600">{error}</div>}
 
-      <Field label="Title">
+      <Field label={t('campaignForm.titleLabel')}>
         <input
           required
           className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           value={form.title}
           onChange={e => set('title', e.target.value)}
-          placeholder="Clean Water for Village X"
+          placeholder={t('campaignForm.titlePlaceholder')}
         />
       </Field>
 
-      <Field label="Slug (auto from title if empty)">
+      <Field
+        label={t('campaignForm.slugLabel')}
+        hint={t('campaignForm.slugHint')}
+      >
         <input
           className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           value={form.slug}
           onChange={e => set('slug', e.target.value)}
-          placeholder="clean-water-for-village-x"
+          placeholder={t('campaignForm.slugPlaceholder')}
         />
       </Field>
 
-      <Field label="Description">
+      <Field label={t('common.descriptionLabel')}>
         <textarea
           className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           rows={4}
@@ -59,7 +64,10 @@ export function CampaignForm({
         />
       </Field>
 
-      <Field label="Cover Image URL">
+      <Field
+        label={t('campaignForm.coverImageUrl')}
+        hint={t('campaignForm.coverImageHint')}
+      >
         <input
           className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           value={form.coverImageUrl}
@@ -68,7 +76,10 @@ export function CampaignForm({
       </Field>
 
       <div className="grid grid-cols-2 gap-4">
-        <Field label="Goal Amount (display only)">
+        <Field
+          label={t('campaignForm.goalAmount')}
+          hint={t('campaignForm.goalAmountHint')}
+        >
           <input
             type="number"
             step="0.01"
@@ -77,7 +88,7 @@ export function CampaignForm({
             onChange={e => set('goalAmount', e.target.value)}
           />
         </Field>
-        <Field label="Currency">
+        <Field label={t('campaignForm.currency')}>
           <input
             className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             value={form.currency}
@@ -88,7 +99,7 @@ export function CampaignForm({
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <Field label="Start Date">
+        <Field label={t('campaignForm.startDate')}>
           <input
             type="date"
             className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -96,7 +107,7 @@ export function CampaignForm({
             onChange={e => set('startDate', e.target.value)}
           />
         </Field>
-        <Field label="End Date">
+        <Field label={t('campaignForm.endDate')}>
           <input
             type="date"
             className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -112,31 +123,37 @@ export function CampaignForm({
           checked={form.isZakatEligible}
           onChange={e => set('isZakatEligible', e.target.checked)}
         />
-        <span className="text-sm text-gray-700">Zakat eligible</span>
+        <span className="text-sm text-gray-700">
+          {t('campaignForm.zakatEligible')}
+        </span>
       </label>
 
       {/* Not a <Field>/<label>: labels must not wrap interactive chips —
           doing so hijacks every chip's accessible name. */}
       <div className="block space-y-1">
-        <span className="text-sm font-medium text-gray-700">Tags</span>
+        <span className="text-sm font-medium text-gray-700">
+          {t('campaignForm.tags')}
+        </span>
         {tagsLoading ? (
-          <p className="text-sm text-gray-500">Loading tags...</p>
+          <p className="text-sm text-gray-500">
+            {t('campaignForm.loadingTags')}
+          </p>
         ) : (
           <div className="space-y-2">
             <div className="flex flex-wrap gap-2">
-              {tags.map(t => (
+              {tags.map(tag => (
                 <button
                   type="button"
-                  key={t.id}
-                  onClick={() => toggleTag(t.id)}
-                  aria-pressed={selectedTags.includes(t.id)}
+                  key={tag.id}
+                  onClick={() => toggleTag(tag.id)}
+                  aria-pressed={selectedTags.includes(tag.id)}
                   className={`rounded-full border px-3 py-1 text-sm ${
-                    selectedTags.includes(t.id)
+                    selectedTags.includes(tag.id)
                       ? 'border-indigo-600 bg-indigo-600 text-white'
                       : 'border-gray-300 bg-white text-gray-700'
                   }`}
                 >
-                  {t.label}
+                  {tag.label}
                 </button>
               ))}
             </div>
@@ -151,17 +168,17 @@ export function CampaignForm({
           className="rounded-md bg-indigo-600 px-5 py-2 text-white hover:bg-indigo-700 disabled:opacity-50"
         >
           {saving
-            ? 'Saving...'
+            ? t('common.saving')
             : mode === 'create'
-              ? 'Create Campaign'
-              : 'Save Changes'}
+              ? t('campaignForm.create')
+              : t('common.saveChanges')}
         </button>
         <button
           type="button"
           onClick={cancel}
           className="rounded-md border border-gray-300 px-5 py-2 hover:bg-gray-50"
         >
-          Cancel
+          {t('common.cancel')}
         </button>
       </div>
     </form>
@@ -170,14 +187,17 @@ export function CampaignForm({
 
 function Field({
   label,
+  hint,
   children,
 }: {
   label: string
+  hint?: string
   children: React.ReactNode
 }) {
   return (
     <label className="block space-y-1">
       <span className="text-sm font-medium text-gray-700">{label}</span>
+      {hint && <span className="block text-xs text-gray-500">{hint}</span>}
       {children}
     </label>
   )

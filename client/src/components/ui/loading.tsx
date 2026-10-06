@@ -52,7 +52,7 @@ export function LoadingSkeleton({
   )
 }
 
-export function FullPageLoading({ text = 'Loading...' }: { text?: string }) {
+export function FullPageLoading({ text }: { text?: string }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
       <Loading text={text} size="lg" />

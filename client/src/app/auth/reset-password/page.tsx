@@ -3,11 +3,16 @@
 import { useState } from 'react'
 import { supabaseManager } from '@/lib/supabase'
 import Link from 'next/link'
+import { useTranslation } from 'react-i18next'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 export default function ResetPasswordPage() {
+  const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
   const [error, setError] = useState('')
+
+  usePageTitle(t('titles.resetPassword'))
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,12 +30,12 @@ export default function ResetPasswordPage() {
   if (sent) {
     return (
       <div className="space-y-4 text-center">
-        <h1 className="text-2xl font-bold">Check your email</h1>
+        <h1 className="text-2xl font-bold">{t('resetPassword.sentTitle')}</h1>
         <p className="text-gray-600">
-          We sent a password reset link to {email}
+          {t('resetPassword.sentBody', { email })}
         </p>
         <Link href="/auth/login" className="text-blue-600 hover:underline">
-          Back to login
+          {t('resetPassword.backToLogin')}
         </Link>
       </div>
     )
@@ -38,13 +43,17 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Reset Password</h1>
+      <h1 className="text-2xl font-bold">{t('resetPassword.title')}</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Email
+          <label
+            htmlFor="reset-email"
+            className="block text-sm font-medium text-gray-700"
+          >
+            {t('resetPassword.emailLabel')}
           </label>
           <input
+            id="reset-email"
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
@@ -57,7 +66,7 @@ export default function ResetPasswordPage() {
           type="submit"
           className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
         >
-          Send reset link
+          {t('resetPassword.sendLink')}
         </button>
       </form>
     </div>

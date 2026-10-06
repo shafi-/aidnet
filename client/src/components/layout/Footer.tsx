@@ -25,7 +25,7 @@ export function Footer() {
           </p>
           <p className="mt-1 text-sm text-gray-500">{t('footer.tagline')}</p>
         </div>
-        <nav aria-label="Footer">
+        <nav aria-label={t('footer.navAria')}>
           <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
             {links.map(link => (
               <li key={link.href}>

@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 import { useOrganization } from '@/hooks/useOrganization'
 import { campaignService } from '@/services/CampaignService'
 import { CampaignForm } from '@/components/campaign/CampaignForm'
@@ -10,9 +11,11 @@ import { useCampaignForm } from '@/hooks/useCampaignForm'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { OrgGate } from '@/components/org/OrgGate'
 import { isUuid } from '@/hooks/useQueryParam'
+import { usePageTitle } from '@/hooks/usePageTitle'
 import type { Campaign } from '@/types'
 
 function EditCampaignContent() {
+  const { t } = useTranslation()
   const searchParams = useSearchParams()
   const id = searchParams.get('id')
   const { currentOrg } = useOrganization()
@@ -20,9 +23,11 @@ function EditCampaignContent() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  usePageTitle(t('campaignEdit.title'))
+
   useEffect(() => {
     if (!id || !isUuid(id)) {
-      setError('Invalid campaign id')
+      setError(t('campaignEdit.invalidId'))
       setLoading(false)
       return
     }
@@ -33,7 +38,7 @@ function EditCampaignContent() {
         setError(err)
         setCampaign(null)
       } else if (!data) {
-        setError('Campaign not found')
+        setError(t('campaignEdit.notFound'))
         setCampaign(null)
       } else {
         setCampaign(data)
@@ -44,23 +49,27 @@ function EditCampaignContent() {
     return () => {
       active = false
     }
-  }, [id])
+  }, [id, t])
 
   return (
     <AppLayout>
       <OrgGate>
         <div className="mx-auto max-w-3xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-gray-900">Edit Campaign</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {t('campaignEdit.title')}
+            </h1>
             <Link
               href="/dashboard/campaigns"
               className="text-indigo-600 hover:underline"
             >
-              ← Back
+              {t('common.back')}
             </Link>
           </div>
 
-          {loading && <div className="py-8 text-gray-500">Loading...</div>}
+          {loading && (
+            <div className="py-8 text-gray-500">{t('common.loading')}</div>
+          )}
           {error && <div className="py-8 text-red-600">{error}</div>}
 
           {!loading && !error && campaign && currentOrg && (
@@ -91,11 +100,14 @@ function EditCampaignForm({
 }
 
 export default function EditCampaignPage() {
+  const { t } = useTranslation()
   return (
     <Suspense
       fallback={
         <AppLayout>
-          <div className="py-12 text-center text-gray-500">Loading...</div>
+          <div className="py-12 text-center text-gray-500">
+            {t('common.loading')}
+          </div>
         </AppLayout>
       }
     >

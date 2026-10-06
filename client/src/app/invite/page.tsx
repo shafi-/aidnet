@@ -2,16 +2,19 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 import { useRequiredParam, isInviteToken } from '@/hooks/useQueryParam'
 import { inviteService } from '@/services/InviteService'
 import { useAuth } from '@/hooks/useAuth'
 import { AppLayout } from '@/components/layout/AppLayout'
+import { usePageTitle } from '@/hooks/usePageTitle'
 import Link from 'next/link'
 
 type Status =
   'enter-email' | 'loading' | 'valid' | 'invalid' | 'accepted' | 'error'
 
 export default function InvitePage() {
+  const { t } = useTranslation()
   const token = useRequiredParam('token')
   const router = useRouter()
   const { user } = useAuth()
@@ -19,6 +22,8 @@ export default function InvitePage() {
   const [email, setEmail] = useState('')
   const [orgName, setOrgName] = useState('')
   const [errorMsg, setErrorMsg] = useState('')
+
+  usePageTitle(t('invite.invitedTitle'))
 
   const handleValidate = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -64,15 +69,13 @@ export default function InvitePage() {
       <div className="mx-auto max-w-md space-y-4 text-center">
         {(status === 'enter-email' || status === 'loading') && (
           <form onSubmit={handleValidate} className="space-y-4">
-            <h1 className="text-2xl font-bold">You&apos;ve been invited!</h1>
-            <p className="text-gray-600">
-              Enter your email to see which organization invited you.
-            </p>
+            <h1 className="text-2xl font-bold">{t('invite.invitedTitle')}</h1>
+            <p className="text-gray-600">{t('invite.enterEmail')}</p>
             <input
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder="you@example.com"
+              placeholder={t('common.emailPlaceholder')}
               className="w-full rounded-md border border-gray-300 px-3 py-2"
               required
             />
@@ -81,67 +84,69 @@ export default function InvitePage() {
               disabled={status === 'loading'}
               className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
             >
-              {status === 'loading' ? 'Checking invite...' : 'Check Invite'}
+              {status === 'loading'
+                ? t('invite.checking')
+                : t('invite.checkInvite')}
             </button>
           </form>
         )}
         {status === 'invalid' && (
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-red-600">Invalid Invite</h1>
-            <p className="text-gray-600">
-              This invite is invalid, expired, was already used, or was issued
-              to a different email address.
-            </p>
+            <h1 className="text-2xl font-bold text-red-600">
+              {t('invite.invalidTitle')}
+            </h1>
+            <p className="text-gray-600">{t('invite.invalidBody')}</p>
             <Link href="/" className="text-blue-600 hover:underline">
-              Go home
+              {t('common.goHome')}
             </Link>
           </div>
         )}
         {status === 'error' && (
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-red-600">Error</h1>
+            <h1 className="text-2xl font-bold text-red-600">
+              {t('invite.errorTitle')}
+            </h1>
             <p className="text-gray-600">
-              {errorMsg || 'Something went wrong.'}
+              {errorMsg || t('errors.somethingWentWrong')}
             </p>
             <Link href="/" className="text-blue-600 hover:underline">
-              Go home
+              {t('common.goHome')}
             </Link>
           </div>
         )}
         {status === 'accepted' && (
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-green-600">Welcome!</h1>
-            <p className="text-gray-600">
-              Redirecting to your organizations...
-            </p>
+            <h1 className="text-2xl font-bold text-green-600">
+              {t('invite.acceptedTitle')}
+            </h1>
+            <p className="text-gray-600">{t('invite.redirecting')}</p>
           </div>
         )}
         {status === 'valid' && !user && (
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold">You&apos;ve been invited!</h1>
+            <h1 className="text-2xl font-bold">{t('invite.invitedTitle')}</h1>
             <p className="text-gray-600">
-              Sign in with <strong>{email}</strong> to join{' '}
-              <strong>{orgName}</strong>
+              {t('invite.signInToJoin', { email, org: orgName })}
             </p>
             <Link
               href="/auth/login"
               className="inline-block rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
             >
-              Sign in
+              {t('auth.loginTitle')}
             </Link>
           </div>
         )}
         {status === 'valid' && user && (
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold">Join {orgName}</h1>
-            <p className="text-gray-600">
-              Click below to accept the invitation.
-            </p>
+            <h1 className="text-2xl font-bold">
+              {t('invite.joinTitle', { org: orgName })}
+            </h1>
+            <p className="text-gray-600">{t('invite.acceptPrompt')}</p>
             <button
               onClick={handleAccept}
               className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
             >
-              Accept Invitation
+              {t('invite.accept')}
             </button>
           </div>
         )}

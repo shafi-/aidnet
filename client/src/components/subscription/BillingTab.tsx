@@ -1,6 +1,19 @@
 'use client'
 
+import { useTranslation } from 'react-i18next'
 import { useBilling, type BillingController } from '@/hooks/useBilling'
+
+// Plan features arrive from the database as machine keys ("todos",
+// "members", ...); label them through i18n and fall back to the raw key for
+// values added later.
+function FeatureChip({ label }: { label: string }) {
+  const { t } = useTranslation()
+  return (
+    <span className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-800">
+      {t(`features.${label}`, { defaultValue: label })}
+    </span>
+  )
+}
 
 export function BillingTab({
   orgId,
@@ -20,6 +33,7 @@ export function BillingTabView({
   controller: BillingController
   isOwner: boolean
 }) {
+  const { t } = useTranslation()
   const {
     currentPlan,
     plans,
@@ -34,13 +48,19 @@ export function BillingTabView({
   } = controller
 
   if (loading)
-    return <div className="py-8 text-center text-gray-500">Loading...</div>
+    return (
+      <div className="py-8 text-center text-gray-500">
+        {t('common.loading')}
+      </div>
+    )
 
   return (
     <div className="space-y-8">
       {/* Current Plan */}
       <div className="rounded-lg bg-white p-6 shadow">
-        <h3 className="mb-4 text-lg font-semibold">Current Plan</h3>
+        <h3 className="mb-4 text-lg font-semibold">
+          {t('billing.currentPlan')}
+        </h3>
         {currentPlan ? (
           <div className="space-y-3">
             <div className="flex items-center gap-3">
@@ -56,7 +76,9 @@ export function BillingTabView({
                       : 'bg-gray-100 text-gray-800'
                 }`}
               >
-                {currentPlan.status}
+                {t(`status.${currentPlan.status}`, {
+                  defaultValue: currentPlan.status,
+                })}
               </span>
             </div>
             <p className="text-gray-600">{currentPlan.description}</p>
@@ -65,20 +87,20 @@ export function BillingTabView({
               {currentPlan.billing_period === 'yearly'
                 ? currentPlan.price_yearly
                 : currentPlan.price_monthly}
-              /{currentPlan.billing_period === 'yearly' ? 'year' : 'month'}
+              {currentPlan.billing_period === 'yearly'
+                ? t('billing.perYear')
+                : t('billing.perMonth')}
             </div>
             <div className="text-sm text-gray-500">
-              Renews:{' '}
-              {new Date(currentPlan.current_period_end).toLocaleDateString()}
+              {t('billing.renews', {
+                date: new Date(
+                  currentPlan.current_period_end
+                ).toLocaleDateString(),
+              })}
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
               {(currentPlan.features || []).map(f => (
-                <span
-                  key={f}
-                  className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-800"
-                >
-                  {f}
-                </span>
+                <FeatureChip key={f} label={f} />
               ))}
             </div>
             {isOwner && (
@@ -86,31 +108,33 @@ export function BillingTabView({
                 onClick={cancel}
                 className="mt-4 text-sm text-red-600 hover:underline"
               >
-                Cancel Subscription
+                {t('billing.cancelSubscription')}
               </button>
             )}
           </div>
         ) : (
-          <p className="text-gray-500">No active subscription</p>
+          <p className="text-gray-500">{t('billing.noSubscription')}</p>
         )}
       </div>
 
       {/* Available Plans */}
       {isOwner && (
         <div className="rounded-lg bg-white p-6 shadow">
-          <h3 className="mb-4 text-lg font-semibold">Available Plans</h3>
+          <h3 className="mb-4 text-lg font-semibold">
+            {t('billing.availablePlans')}
+          </h3>
           <div className="mb-4 flex gap-2">
             <button
               onClick={() => setBillingPeriod('monthly')}
               className={`rounded px-3 py-1 text-sm ${billingPeriod === 'monthly' ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}
             >
-              Monthly
+              {t('billing.monthly')}
             </button>
             <button
               onClick={() => setBillingPeriod('yearly')}
               className={`rounded px-3 py-1 text-sm ${billingPeriod === 'yearly' ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}
             >
-              Yearly
+              {t('billing.yearly')}
             </button>
           </div>
           <div className="grid gap-4 md:grid-cols-3">
@@ -131,7 +155,9 @@ export function BillingTabView({
                     <p className="mt-2 text-2xl font-bold">
                       ${price}
                       <span className="text-sm font-normal">
-                        /{billingPeriod === 'yearly' ? 'yr' : 'mo'}
+                        {billingPeriod === 'yearly'
+                          ? t('billing.perYearShort')
+                          : t('billing.perMonthShort')}
                       </span>
                     </p>
                     <p className="mt-2 text-sm text-gray-600">
@@ -143,14 +169,14 @@ export function BillingTabView({
                           key={f}
                           className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700"
                         >
-                          {f}
+                          {t(`features.${f}`, { defaultValue: f })}
                         </span>
                       ))}
                     </div>
                     <div className="mt-4">
                       {isCurrent ? (
                         <span className="text-sm text-blue-600">
-                          Current Plan
+                          {t('billing.currentPlan')}
                         </span>
                       ) : (
                         <button
@@ -162,7 +188,9 @@ export function BillingTabView({
                           disabled={purchasing === plan.id}
                           className="w-full rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
                         >
-                          {purchasing === plan.id ? 'Processing...' : 'Pay Now'}
+                          {purchasing === plan.id
+                            ? t('billing.processing')
+                            : t('billing.payNow')}
                         </button>
                       )}
                     </div>
@@ -175,25 +203,25 @@ export function BillingTabView({
 
       {/* Billing History */}
       <div className="rounded-lg bg-white p-6 shadow">
-        <h3 className="mb-4 text-lg font-semibold">Billing History</h3>
+        <h3 className="mb-4 text-lg font-semibold">{t('billing.history')}</h3>
         {history.length > 0 ? (
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                  Date
+                  {t('common.dateLabel')}
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                  Action
+                  {t('billing.action')}
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                  Plan
+                  {t('common.planLabel')}
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                  Amount
+                  {t('common.amountLabel')}
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">
-                  Status
+                  {t('common.statusLabel')}
                 </th>
               </tr>
             </thead>
@@ -216,7 +244,9 @@ export function BillingTabView({
                             : 'bg-red-100 text-red-800'
                       }`}
                     >
-                      {h.payment_status}
+                      {t(`status.${h.payment_status}`, {
+                        defaultValue: h.payment_status,
+                      })}
                     </span>
                   </td>
                 </tr>
@@ -224,7 +254,9 @@ export function BillingTabView({
             </tbody>
           </table>
         ) : (
-          <p className="py-4 text-center text-gray-500">No billing history</p>
+          <p className="py-4 text-center text-gray-500">
+            {t('billing.noHistory')}
+          </p>
         )}
       </div>
     </div>

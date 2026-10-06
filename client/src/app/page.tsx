@@ -123,8 +123,8 @@ function ForOrganizations() {
 }
 
 export default function HomePage() {
-  usePageTitle('AidNet — Discover campaigns that matter')
   const { t } = useTranslation()
+  usePageTitle(t('titles.home'))
   const { user, loading } = useAuth()
 
   if (loading) {

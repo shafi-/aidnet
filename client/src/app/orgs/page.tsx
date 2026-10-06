@@ -7,10 +7,12 @@ import { useRequiredParam } from '@/hooks/useQueryParam'
 import { useEffect } from 'react'
 import Link from 'next/link'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { useTranslation } from 'react-i18next'
 
 export default function OrgsPage() {
   useRequireAuth()
-  usePageTitle('Organizations')
+  const { t } = useTranslation()
+  usePageTitle(t('titles.organizations'))
   const orgId = useRequiredParam('id')
   const { selectOrgById } = useOrganization()
 
@@ -36,19 +38,20 @@ export default function OrgsPage() {
 }
 
 function OrgList() {
+  const { t } = useTranslation()
   const { organizations, loading } = useOrganization()
 
-  if (loading) return <div>Loading...</div>
+  if (loading) return <div>{t('common.loading')}</div>
 
   return (
     <>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Organizations</h1>
+        <h1 className="text-2xl font-bold">{t('orgs.title')}</h1>
         <Link
           href="/org/request"
           className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
         >
-          Request Organization
+          {t('orgs.request')}
         </Link>
       </div>
 
@@ -76,15 +79,19 @@ function OrgList() {
                   </h2>
                 )}
                 <p className="mt-1 text-sm text-gray-600">
-                  {org.description ?? 'No description'}
+                  {org.description ?? t('org.noDescription')}
                 </p>
                 <p className="mt-2 text-xs text-gray-500">
-                  Your role: {org.user_role}
+                  {t('orgs.yourRole', {
+                    role: t(`roles.${org.user_role}`, {
+                      defaultValue: org.user_role,
+                    }),
+                  })}
                 </p>
               </div>
               {org.status === 'suspended' && (
                 <span className="ml-4 shrink-0 rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
-                  Suspended
+                  {t('status.suspended')}
                 </span>
               )}
             </div>
@@ -92,15 +99,12 @@ function OrgList() {
         ))}
         {organizations.length === 0 && (
           <div className="col-span-full py-8 text-center">
-            <p className="mb-4 text-gray-500">
-              No organizations yet. Submit an organization request to get
-              started.
-            </p>
+            <p className="mb-4 text-gray-500">{t('orgs.empty')}</p>
             <Link
               href="/org/request"
               className="inline-block rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
             >
-              Request Organization
+              {t('orgs.request')}
             </Link>
           </div>
         )}

@@ -2,11 +2,14 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useTranslation } from 'react-i18next'
 import { useSystemAdmin } from '@/hooks/useSystemAdmin'
 import { useSystemAdminOrgRequests } from '@/hooks/useSystemAdminOrgRequests'
 import { AppLayout } from '@/components/layout/AppLayout'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 function OrgRequestContent() {
+  const { t } = useTranslation()
   const { isSystemAdmin, loading: adminLoading } = useSystemAdmin()
   const { requests, loading, actionLoading, approveRequest, rejectRequest } =
     useSystemAdminOrgRequests()
@@ -20,11 +23,13 @@ function OrgRequestContent() {
     message: string
   } | null>(null)
 
+  usePageTitle(t('admin.requestsTitle'))
+
   if (adminLoading) {
     return (
       <AppLayout>
         <div className="py-12 text-center text-gray-500">
-          Checking permissions...
+          {t('admin.checkingPermissions')}
         </div>
       </AppLayout>
     )
@@ -34,10 +39,12 @@ function OrgRequestContent() {
     return (
       <AppLayout>
         <div className="mx-auto max-w-3xl space-y-4 px-4 py-12 text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Access Denied</h1>
-          <p className="text-gray-600">System admin access required.</p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {t('errors.accessDenied')}
+          </h1>
+          <p className="text-gray-600">{t('errors.systemAdminRequired')}</p>
           <Link href="/" className="text-indigo-600 hover:underline">
-            Go home
+            {t('common.goHome')}
           </Link>
         </div>
       </AppLayout>
@@ -48,18 +55,30 @@ function OrgRequestContent() {
     statusFilter === 'all' ? true : r.status === statusFilter
   )
 
+  const filterLabel = (status: 'all' | 'pending' | 'approved' | 'rejected') => {
+    const count = requests.filter(
+      r => status === 'all' || r.status === status
+    ).length
+    return t(
+      `admin.filter${status.charAt(0).toUpperCase()}${status.slice(1)}`,
+      {
+        count,
+      }
+    )
+  }
+
   const handleApprove = async (requestId: string) => {
     setFeedback(null)
     const result = await approveRequest(requestId)
     if (!result.success) {
       setFeedback({
         type: 'error',
-        message: result.error || 'Failed to approve request',
+        message: result.error || t('admin.approveFailed'),
       })
     } else {
       setFeedback({
         type: 'success',
-        message: 'Organization approved and created successfully!',
+        message: t('admin.approvedMsg'),
       })
       setSelectedRequest(null)
     }
@@ -69,7 +88,7 @@ function OrgRequestContent() {
     if (!rejectionReason.trim()) {
       setFeedback({
         type: 'error',
-        message: 'Please provide a reason for rejection',
+        message: t('admin.reasonRequired'),
       })
       return
     }
@@ -79,12 +98,12 @@ function OrgRequestContent() {
     if (!result.success) {
       setFeedback({
         type: 'error',
-        message: result.error || 'Failed to reject request',
+        message: result.error || t('admin.rejectFailed'),
       })
     } else {
       setFeedback({
         type: 'success',
-        message: 'Organization request rejected.',
+        message: t('admin.requestRejectedMsg'),
       })
       setSelectedRequest(null)
       setRejectionReason('')
@@ -100,10 +119,10 @@ function OrgRequestContent() {
       <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-gray-900">
-            Organization Requests
+            {t('admin.requestsTitle')}
           </h1>
           <Link href="/admin" className="text-indigo-600 hover:underline">
-            Admin Home
+            {t('admin.adminHome')}
           </Link>
         </div>
 
@@ -131,23 +150,18 @@ function OrgRequestContent() {
                   : 'bg-white text-gray-700 hover:bg-gray-50'
               }`}
             >
-              {status.charAt(0).toUpperCase() + status.slice(1)} (
-              {
-                requests.filter(r => status === 'all' || r.status === status)
-                  .length
-              }
-              )
+              {filterLabel(status)}
             </button>
           ))}
         </div>
 
         {loading && (
-          <div className="py-8 text-gray-500">Loading requests...</div>
+          <div className="py-8 text-gray-500">{t('admin.loadingRequests')}</div>
         )}
 
         {!loading && filteredRequests.length === 0 && (
           <div className="rounded-lg bg-white p-8 text-center text-gray-500 shadow">
-            No organization requests found.
+            {t('admin.noRequests')}
           </div>
         )}
 
@@ -170,8 +184,9 @@ function OrgRequestContent() {
                               : 'bg-red-100 text-red-800'
                         }`}
                       >
-                        {request.status.charAt(0).toUpperCase() +
-                          request.status.slice(1)}
+                        {t(`status.${request.status}`, {
+                          defaultValue: request.status,
+                        })}
                       </span>
                     </div>
                     <p className="mt-1 text-sm text-gray-500">
@@ -184,15 +199,16 @@ function OrgRequestContent() {
                     )}
                     <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-600">
                       <span>
-                        <strong>Submitted:</strong>{' '}
+                        <strong>{t('admin.submittedLabel')}</strong>{' '}
                         {new Date(request.requested_at).toLocaleString()}
                       </span>
                       <span>
-                        <strong>User:</strong> {request.user_email}
+                        <strong>{t('admin.userLabel')}</strong>{' '}
+                        {request.user_email}
                       </span>
                       {request.reviewed_at && (
                         <span>
-                          <strong>Reviewed:</strong>{' '}
+                          <strong>{t('admin.reviewedLabel')}</strong>{' '}
                           {new Date(request.reviewed_at).toLocaleString()}
                         </span>
                       )}
@@ -200,7 +216,9 @@ function OrgRequestContent() {
                     {request.rejection_reason && (
                       <div className="mt-3 rounded-md bg-red-50 p-3">
                         <p className="text-sm font-medium text-red-900">
-                          Rejection Reason: {request.rejection_reason}
+                          {t('admin.rejectionReason', {
+                            reason: request.rejection_reason,
+                          })}
                         </p>
                       </div>
                     )}
@@ -214,7 +232,7 @@ function OrgRequestContent() {
                           className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
                           disabled={actionLoading}
                         >
-                          Review
+                          {t('admin.review')}
                         </button>
                       </>
                     )}
@@ -231,7 +249,7 @@ function OrgRequestContent() {
             className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
             role="dialog"
             aria-modal="true"
-            aria-label="Review organization request"
+            aria-label={t('admin.reviewModal')}
             onClick={e => {
               if (e.target === e.currentTarget) {
                 setSelectedRequest(null)
@@ -249,14 +267,14 @@ function OrgRequestContent() {
             <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
               <div className="mb-4 flex items-start justify-between">
                 <h3 className="text-xl font-semibold text-gray-900">
-                  Review Organization Request
+                  {t('admin.reviewModal')}
                 </h3>
                 <button
                   onClick={() => {
                     setSelectedRequest(null)
                     setRejectionReason('')
                   }}
-                  aria-label="Close dialog"
+                  aria-label={t('common.closeDialog')}
                   className="text-gray-400 hover:text-gray-600"
                 >
                   ✕
@@ -266,7 +284,7 @@ function OrgRequestContent() {
               <div className="space-y-4">
                 <div>
                   <p className="text-sm font-medium text-gray-700">
-                    Organization:
+                    {t('admin.orgLabel')}
                   </p>
                   <p className="text-lg font-semibold text-gray-900">
                     {selectedRequestData.org_name}
@@ -274,7 +292,9 @@ function OrgRequestContent() {
                 </div>
 
                 <div>
-                  <p className="text-sm font-medium text-gray-700">URL Slug:</p>
+                  <p className="text-sm font-medium text-gray-700">
+                    {t('admin.urlSlugLabel')}
+                  </p>
                   <p className="font-mono text-sm text-gray-900">
                     /{selectedRequestData.org_slug}
                   </p>
@@ -283,7 +303,7 @@ function OrgRequestContent() {
                 {selectedRequestData.org_description && (
                   <div>
                     <p className="text-sm font-medium text-gray-700">
-                      Description:
+                      {t('common.descriptionLabel')}:
                     </p>
                     <p className="text-gray-700">
                       {selectedRequestData.org_description}
@@ -293,7 +313,7 @@ function OrgRequestContent() {
 
                 <div>
                   <p className="text-sm font-medium text-gray-700">
-                    Submitted by:
+                    {t('admin.submittedBy')}
                   </p>
                   <p className="text-gray-900">
                     {selectedRequestData.user_email}
@@ -307,14 +327,14 @@ function OrgRequestContent() {
 
                 <div>
                   <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Rejection Reason (if rejecting):
+                    {t('admin.rejectionReasonLabel')}
                   </label>
                   <textarea
                     value={rejectionReason}
                     onChange={e => setRejectionReason(e.target.value)}
                     className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     rows={3}
-                    placeholder="Explain why this request is being rejected..."
+                    placeholder={t('admin.rejectionPlaceholder')}
                   />
                 </div>
 
@@ -324,14 +344,14 @@ function OrgRequestContent() {
                     className="flex-1 rounded-md bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:opacity-50"
                     disabled={actionLoading}
                   >
-                    Approve
+                    {t('admin.approve')}
                   </button>
                   <button
                     onClick={() => handleReject(selectedRequestData.id)}
                     className="flex-1 rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700 disabled:opacity-50"
                     disabled={actionLoading}
                   >
-                    Reject
+                    {t('admin.reject')}
                   </button>
                 </div>
               </div>

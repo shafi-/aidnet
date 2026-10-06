@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslation } from 'react-i18next'
 import { useLanguage } from '@/hooks/useLanguage'
 
 const switcherButtonClass = (active: boolean) =>
@@ -10,10 +11,15 @@ const switcherButtonClass = (active: boolean) =>
   }`
 
 export function LanguageSwitcher() {
+  const { t } = useTranslation()
   const { language, setLanguage, languages } = useLanguage()
 
   return (
-    <div role="group" aria-label="Language" className="flex items-center gap-1">
+    <div
+      role="group"
+      aria-label={t('common.language')}
+      className="flex items-center gap-1"
+    >
       {languages.map(lang => (
         <button
           key={lang.code}

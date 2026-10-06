@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/hooks/useAuth'
 import { useSystemAdmin } from '@/hooks/useSystemAdmin'
 import { resolveAccessLevel } from '@/lib/routeAccess'
@@ -15,6 +16,7 @@ import { resolveAccessLevel } from '@/lib/routeAccess'
  *   systemAdmin   → redirect anon to login; deny non-admins inline
  */
 export function RouteAccessGuard({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation()
   const pathname = usePathname()
   const router = useRouter()
   const auth = useAuth()
@@ -35,7 +37,7 @@ export function RouteAccessGuard({ children }: { children: React.ReactNode }) {
   if (auth.loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div>Loading...</div>
+        <div>{t('common.loading')}</div>
       </div>
     )
   }
@@ -51,12 +53,13 @@ export function RouteAccessGuard({ children }: { children: React.ReactNode }) {
 }
 
 function SystemAdminGate({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation()
   const { isSystemAdmin, loading } = useSystemAdmin()
 
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div>Loading...</div>
+        <div>{t('common.loading')}</div>
       </div>
     )
   }
@@ -65,15 +68,15 @@ function SystemAdminGate({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="py-12 text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Access Denied</h1>
-          <p className="mt-2 text-gray-600">
-            You don&apos;t have permission to access this page.
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {t('errors.accessDenied')}
+          </h1>
+          <p className="mt-2 text-gray-600">{t('errors.accessDeniedBody')}</p>
           <Link
             href="/"
             className="mt-4 inline-block text-indigo-600 hover:underline"
           >
-            Back to home
+            {t('common.backToHome')}
           </Link>
         </div>
       </div>

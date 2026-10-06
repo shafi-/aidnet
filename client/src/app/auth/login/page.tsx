@@ -3,10 +3,12 @@
 import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/hooks/useAuth'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
 function LoginContent() {
+  const { t } = useTranslation()
   const { signIn } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -16,14 +18,14 @@ function LoginContent() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  usePageTitle('Sign In')
+  usePageTitle(t('titles.signIn'))
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
     if (!email || !password) {
-      setError('Please fill in all fields')
+      setError(t('auth.fillAllFields'))
       return
     }
 
@@ -37,7 +39,9 @@ function LoginContent() {
         router.push(dest)
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to sign in')
+      setError(
+        error instanceof Error ? error.message : t('auth.failedToSignIn')
+      )
     } finally {
       setLoading(false)
     }
@@ -47,8 +51,10 @@ function LoginContent() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
       <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-900">Sign In</h1>
-          <p className="mt-2 text-gray-600">Welcome back</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {t('auth.loginTitle')}
+          </h1>
+          <p className="mt-2 text-gray-600">{t('auth.loginSubtitle')}</p>
         </div>
 
         {error && (
@@ -66,7 +72,7 @@ function LoginContent() {
               htmlFor="email"
               className="mb-2 block text-sm font-medium text-gray-700"
             >
-              Email Address
+              {t('auth.emailAddress')}
             </label>
             <input
               id="email"
@@ -78,7 +84,7 @@ function LoginContent() {
               }}
               required
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="you@example.com"
+              placeholder={t('common.emailPlaceholder')}
             />
           </div>
 
@@ -87,7 +93,7 @@ function LoginContent() {
               htmlFor="password"
               className="mb-2 block text-sm font-medium text-gray-700"
             >
-              Password
+              {t('auth.password')}
             </label>
             <input
               id="password"
@@ -108,7 +114,7 @@ function LoginContent() {
               href="/auth/reset-password/"
               className="text-sm text-indigo-600 hover:text-indigo-500"
             >
-              Forgot password?
+              {t('auth.forgotPassword')}
             </Link>
           </div>
 
@@ -117,25 +123,25 @@ function LoginContent() {
             disabled={loading}
             className="w-full rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? t('auth.signingIn') : t('auth.loginTitle')}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            Don&apos;t have an account?{' '}
+            {t('auth.noAccount')}{' '}
             <Link
               href="/auth/register"
               className="font-medium text-indigo-600 hover:text-indigo-500"
             >
-              Sign up
+              {t('auth.signUp')}
             </Link>
           </p>
         </div>
 
         <div className="mt-4 text-center">
           <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
-            ← Back to home
+            {t('common.backToHome')}
           </Link>
         </div>
       </div>
@@ -144,11 +150,12 @@ function LoginContent() {
 }
 
 export default function LoginPage() {
+  const { t } = useTranslation()
   return (
     <Suspense
       fallback={
         <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-          <div className="text-center text-gray-600">Loading...</div>
+          <div className="text-center text-gray-600">{t('common.loading')}</div>
         </div>
       }
     >

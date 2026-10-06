@@ -9,24 +9,28 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { OrgGate } from '@/components/org/OrgGate'
 import { useProfile } from '@/hooks/useProfile'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { useTranslation } from 'react-i18next'
 import Link from 'next/link'
 
 export default function DashboardPage() {
   useRequireAuth()
+  const { t } = useTranslation()
   const { user } = useAuth()
   const { currentOrg, organizations } = useOrganization()
   const { fullName } = useProfile()
-  usePageTitle('Dashboard')
+  usePageTitle(t('titles.dashboard'))
 
   return (
     <AppLayout>
       <OrgGate>
         <div className="space-y-6">
           <div className="rounded-lg bg-white p-6 shadow">
-            <h1 className="text-2xl font-bold">Dashboard</h1>
+            <h1 className="text-2xl font-bold">{t('dashboard.title')}</h1>
             {user && (
               <p className="text-gray-600">
-                Welcome back{fullName ? `, ${fullName}` : ''}!
+                {fullName
+                  ? t('dashboard.welcomeBackName', { name: fullName })
+                  : t('dashboard.welcomeBack')}
               </p>
             )}
           </div>
@@ -35,25 +39,23 @@ export default function DashboardPage() {
           {!currentOrg && organizations.length === 0 && (
             <div className="rounded-lg border border-indigo-100 bg-white p-6 shadow">
               <h2 className="mb-2 text-lg font-semibold text-gray-900">
-                Get started on AidNet
+                {t('dashboard.getStartedTitle')}
               </h2>
               <p className="mb-4 text-gray-600">
-                You are not part of an organization yet. Discover live campaigns
-                you can support, or request an organization to start raising
-                funds.
+                {t('dashboard.getStartedBody')}
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link
                   href="/campaigns"
                   className="inline-block rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
                 >
-                  Browse Campaigns
+                  {t('dashboard.browseCampaigns')}
                 </Link>
                 <Link
                   href="/org/request"
                   className="inline-block rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 hover:border-indigo-400 hover:text-indigo-600"
                 >
-                  Request an Organization
+                  {t('dashboard.requestOrganization')}
                 </Link>
               </div>
             </div>
@@ -63,16 +65,13 @@ export default function DashboardPage() {
           {currentOrg && currentOrg.status === 'suspended' && (
             <div className="rounded-lg border border-red-200 bg-red-50 p-6">
               <h2 className="mb-2 text-lg font-semibold text-red-900">
-                Organization Suspended
+                {t('dashboard.suspendedTitle')}
               </h2>
               <p className="mb-4 text-red-800">
-                Your organization <strong>{currentOrg.name}</strong> has been
-                suspended. You have read-only access to organization
-                information.
+                {t('dashboard.suspendedBody', { name: currentOrg.name })}
               </p>
               <p className="text-sm text-red-700">
-                Please contact your organization administrator or platform
-                support for assistance.
+                {t('dashboard.suspendedContact')}
               </p>
             </div>
           )}

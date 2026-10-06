@@ -5,17 +5,22 @@ import { systemAdminService } from '@/services/SystemAdminService'
 import { organizationService } from '@/services/OrganizationService'
 import { useSystemAdmin } from '@/hooks/useSystemAdmin'
 import { usePaginatedList } from '@/hooks/usePaginatedList'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { useTranslation } from 'react-i18next'
 import { useState, useCallback } from 'react'
 import type { OrganizationDetailView } from '@/types'
 import Link from 'next/link'
 
 export default function AdminOrgsPage() {
+  const { t } = useTranslation()
   const { isSystemAdmin, loading: adminLoading } = useSystemAdmin()
   const [actionLoading, setActionLoading] = useState(false)
   const [feedback, setFeedback] = useState<{
     type: 'success' | 'error'
     message: string
   } | null>(null)
+
+  usePageTitle(t('admin.allOrgs'))
 
   const fetcher = useCallback(
     async (params: { limit?: number; cursor?: string | null }) => {
@@ -49,12 +54,14 @@ export default function AdminOrgsPage() {
     if (error) {
       setFeedback({
         type: 'error',
-        message: error || 'Failed to update organization status',
+        message: error || t('admin.failedStatusUpdate'),
       })
     } else {
       setFeedback({
         type: 'success',
-        message: `Organization status updated to ${status}.`,
+        message: t('admin.statusUpdated', {
+          status: t(`status.${status}`, { defaultValue: status }),
+        }),
       })
       await refresh()
     }
@@ -63,7 +70,7 @@ export default function AdminOrgsPage() {
   if (adminLoading)
     return (
       <AppLayout>
-        <div>Loading...</div>
+        <div>{t('common.loading')}</div>
       </AppLayout>
     )
 
@@ -71,15 +78,15 @@ export default function AdminOrgsPage() {
     return (
       <AppLayout>
         <div className="py-12 text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Access Denied</h1>
-          <p className="mt-2 text-gray-600">
-            You don&apos;t have permission to access this page.
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {t('errors.accessDenied')}
+          </h1>
+          <p className="mt-2 text-gray-600">{t('errors.accessDeniedBody')}</p>
           <Link
             href="/"
             className="mt-4 inline-block text-blue-600 hover:underline"
           >
-            Back to home
+            {t('common.backToHome')}
           </Link>
         </div>
       </AppLayout>
@@ -89,7 +96,7 @@ export default function AdminOrgsPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">All Organizations</h1>
+        <h1 className="text-2xl font-bold">{t('admin.allOrgs')}</h1>
         {feedback && (
           <div
             className={`rounded-md p-4 ${
@@ -103,26 +110,26 @@ export default function AdminOrgsPage() {
         )}
         {error && <p className="text-red-600">{error}</p>}
         {loading ? (
-          <div>Loading...</div>
+          <div>{t('common.loading')}</div>
         ) : (
           <div className="overflow-hidden rounded-lg bg-white shadow">
             <table className="min-w-full">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">
-                    Name
+                    {t('common.nameLabel')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">
-                    Slug
+                    {t('admin.headerSlug')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">
-                    Members
+                    {t('admin.headerMembers')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">
-                    Status
+                    {t('common.statusLabel')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">
-                    Actions
+                    {t('common.actionsLabel')}
                   </th>
                 </tr>
               </thead>
@@ -148,7 +155,9 @@ export default function AdminOrgsPage() {
                               : 'bg-green-100 text-green-800'
                           }`}
                         >
-                          {isSuspended ? 'Suspended' : 'Active'}
+                          {isSuspended
+                            ? t('status.suspended')
+                            : t('status.active')}
                         </span>
                       </td>
                       <td className="whitespace-nowrap px-6 py-4">
@@ -166,7 +175,9 @@ export default function AdminOrgsPage() {
                               : 'bg-red-600 hover:bg-red-700'
                           } disabled:opacity-50`}
                         >
-                          {isSuspended ? 'Activate' : 'Suspend'}
+                          {isSuspended
+                            ? t('admin.activate')
+                            : t('admin.suspend')}
                         </button>
                       </td>
                     </tr>
@@ -180,7 +191,9 @@ export default function AdminOrgsPage() {
                         disabled={loadingMore}
                         className="text-blue-600 hover:text-blue-800 disabled:opacity-50"
                       >
-                        {loadingMore ? 'Loading...' : 'Load More'}
+                        {loadingMore
+                          ? t('common.loading')
+                          : t('admin.loadMore')}
                       </button>
                     </td>
                   </tr>

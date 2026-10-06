@@ -3,10 +3,15 @@
 import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { Trans, useTranslation } from 'react-i18next'
 import { useAuth } from '@/hooks/useAuth'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
+const consentLinkClass =
+  'font-medium text-indigo-600 hover:text-indigo-700 hover:underline'
+
 function RegisterContent() {
+  const { t } = useTranslation()
   const { signUp } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -18,24 +23,24 @@ function RegisterContent() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  usePageTitle('Create Account')
+  usePageTitle(t('titles.createAccount'))
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
     if (!email || !password || !confirmPassword) {
-      setError('Please fill in all required fields')
+      setError(t('auth.fillRequiredFields'))
       return
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match')
+      setError(t('auth.passwordsDoNotMatch'))
       return
     }
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters')
+      setError(t('auth.passwordTooShort'))
       return
     }
 
@@ -50,7 +55,7 @@ function RegisterContent() {
       }
     } catch (error) {
       setError(
-        error instanceof Error ? error.message : 'Failed to create account'
+        error instanceof Error ? error.message : t('auth.failedToCreateAccount')
       )
     } finally {
       setLoading(false)
@@ -61,8 +66,10 @@ function RegisterContent() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
       <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-900">Create Account</h1>
-          <p className="mt-2 text-gray-600">Join AidNet today</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {t('auth.registerTitle')}
+          </h1>
+          <p className="mt-2 text-gray-600">{t('auth.joinTagline')}</p>
         </div>
 
         {error && (
@@ -80,7 +87,8 @@ function RegisterContent() {
               htmlFor="fullName"
               className="mb-2 block text-sm font-medium text-gray-700"
             >
-              Full Name <span className="text-gray-400">(optional)</span>
+              {t('auth.fullName')}{' '}
+              <span className="text-gray-400">{t('auth.optional')}</span>
             </label>
             <input
               id="fullName"
@@ -88,7 +96,7 @@ function RegisterContent() {
               value={fullName}
               onChange={e => setFullName(e.target.value)}
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="John Doe"
+              placeholder={t('auth.fullNamePlaceholder')}
             />
           </div>
 
@@ -97,7 +105,7 @@ function RegisterContent() {
               htmlFor="email"
               className="mb-2 block text-sm font-medium text-gray-700"
             >
-              Email Address
+              {t('auth.emailAddress')}
             </label>
             <input
               id="email"
@@ -106,7 +114,7 @@ function RegisterContent() {
               onChange={e => setEmail(e.target.value)}
               required
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="you@example.com"
+              placeholder={t('common.emailPlaceholder')}
             />
           </div>
 
@@ -115,7 +123,7 @@ function RegisterContent() {
               htmlFor="password"
               className="mb-2 block text-sm font-medium text-gray-700"
             >
-              Password
+              {t('auth.password')}
             </label>
             <input
               id="password"
@@ -133,7 +141,7 @@ function RegisterContent() {
               htmlFor="confirmPassword"
               className="mb-2 block text-sm font-medium text-gray-700"
             >
-              Confirm Password
+              {t('auth.confirmPassword')}
             </label>
             <input
               id="confirmPassword"
@@ -148,14 +156,17 @@ function RegisterContent() {
 
           <div className="text-sm text-gray-600">
             <p>
-              By creating an account, you agree to our Terms of Service and{' '}
-              <Link
-                href="/privacy/"
-                className="font-medium text-indigo-600 hover:text-indigo-700 hover:underline"
-              >
-                Privacy Policy
-              </Link>
-              .
+              <Trans
+                i18nKey="auth.agreeToTerms"
+                components={{
+                  termsLink: (
+                    <Link href="/terms/" className={consentLinkClass} />
+                  ),
+                  privacyLink: (
+                    <Link href="/privacy/" className={consentLinkClass} />
+                  ),
+                }}
+              />
             </p>
           </div>
 
@@ -164,25 +175,25 @@ function RegisterContent() {
             disabled={loading}
             className="w-full rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading ? 'Creating account...' : 'Create Account'}
+            {loading ? t('auth.creatingAccount') : t('auth.registerTitle')}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            Already have an account?{' '}
+            {t('auth.haveAccount')}{' '}
             <Link
               href="/auth/login"
               className="font-medium text-indigo-600 hover:text-indigo-500"
             >
-              Sign in
+              {t('nav.signIn')}
             </Link>
           </p>
         </div>
 
         <div className="mt-4 text-center">
           <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
-            ← Back to home
+            {t('common.backToHome')}
           </Link>
         </div>
       </div>
@@ -191,11 +202,12 @@ function RegisterContent() {
 }
 
 export default function RegisterPage() {
+  const { t } = useTranslation()
   return (
     <Suspense
       fallback={
         <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-          <div className="text-center text-gray-600">Loading...</div>
+          <div className="text-center text-gray-600">{t('common.loading')}</div>
         </div>
       }
     >
