@@ -38,8 +38,10 @@ export type {
   CreateCampaignDto,
   DonationMethod,
   DonationMethodDto,
+  DonationReport,
   PublicCampaign,
   PublicCampaignFilters,
+  PublicDonationReport,
   UpdateCampaignDto,
 } from './campaign'
 export type {

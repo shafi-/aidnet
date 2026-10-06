@@ -216,4 +216,36 @@ WHERE c.slug = 'demo-draft-tagged'
 ON CONFLICT DO NOTHING;
 "
 
+# --- confirmed donation reports (donor-reported ledger) ---------------
+# Demo campaigns show non-zero raised totals, sourced from CONFIRMED
+# reports only — the same rule the production RPCs apply. Reset per run:
+# e2e confirms/rejects reports, so the demo state must not accumulate.
+echo "==> seeding demo donation reports"
+psql -c "
+DO \$\$
+DECLARE v_org UUID; v_owner_id UUID; v_camp RECORD;
+BEGIN
+  SELECT id INTO v_org FROM organizations WHERE slug = 'demo-org';
+  SELECT id INTO v_owner_id FROM profiles WHERE email = '${OWNER_EMAIL}';
+  FOR v_camp IN
+    SELECT id, slug FROM campaigns
+    WHERE org_id = v_org AND slug IN ('demo-campaign-1', 'demo-campaign-2')
+  LOOP
+    DELETE FROM donation_reports WHERE campaign_id = v_camp.id;
+    INSERT INTO donation_reports (campaign_id, org_id, amount, currency, method, reference, donor_name, status, reviewed_by, reviewed_at)
+    SELECT v_camp.id, v_org, 500 * g, 'BDT', 'bkash', 'SEED-TRX-' || g,
+           CASE g WHEN 1 THEN 'Rahim' WHEN 2 THEN 'Ayesha' ELSE 'Kamal' END,
+           'confirmed', v_owner_id, NOW()
+    FROM generate_series(1, 3) g;
+  END LOOP;
+
+  UPDATE campaigns c
+  SET raised_amount = COALESCE((
+        SELECT SUM(amount) FROM donation_reports r
+        WHERE r.campaign_id = c.id AND r.status = 'confirmed'
+      ), 0)
+  WHERE c.slug IN ('demo-campaign-1', 'demo-campaign-2');
+END \$\$;
+"
+
 echo "==> done."

@@ -16,6 +16,13 @@ export type RpcReturn<F extends DbFunction> =
   Database['donate']['Functions'][F]['Returns']
 
 export const Rpc = {
+  DonationReport: {
+    Propose: 'propose_donation' satisfies DbFunction,
+    List: 'list_donation_reports' satisfies DbFunction,
+    PublicForCampaign: 'get_public_donation_reports' satisfies DbFunction,
+    Confirm: 'confirm_donation_report' satisfies DbFunction,
+    Reject: 'reject_donation_report' satisfies DbFunction,
+  },
   Profile: {
     GetMyProfile: 'get_my_profile' satisfies DbFunction,
     GetUserProfile: 'get_user_profile' satisfies DbFunction,
@@ -130,5 +137,6 @@ export type RpcFunction =
   | (typeof Rpc.Campaign)[keyof typeof Rpc.Campaign]
   | (typeof Rpc.SystemAdminCampaign)[keyof typeof Rpc.SystemAdminCampaign]
   | (typeof Rpc.DonationMethod)[keyof typeof Rpc.DonationMethod]
+  | (typeof Rpc.DonationReport)[keyof typeof Rpc.DonationReport]
   | (typeof Rpc.CampaignTag)[keyof typeof Rpc.CampaignTag]
   | (typeof Rpc.PublicCampaign)[keyof typeof Rpc.PublicCampaign]

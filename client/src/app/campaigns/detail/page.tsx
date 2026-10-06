@@ -3,9 +3,12 @@
 import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { publicCampaignService } from '@/services/PublicCampaignService'
-import type { PublicCampaign } from '@/types'
+import { donationReportService } from '@/services/DonationReportService'
+import { ReportDonationDialog } from '@/components/campaign/ReportDonationDialog'
+import type { PublicCampaign, PublicDonationReport } from '@/types'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useAuth } from '@/hooks/useAuth'
 import { useOrganization } from '@/hooks/useOrganization'
@@ -22,13 +25,18 @@ function donationUrlLabel(url: string) {
 }
 
 function CampaignDetailContent() {
+  const { t } = useTranslation()
   const searchParams = useSearchParams()
   const slug = searchParams.get('slug')
   const [campaign, setCampaign] = useState<PublicCampaign | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [confirmedReports, setConfirmedReports] = useState<
+    PublicDonationReport[]
+  >([])
+  const [showReportDialog, setShowReportDialog] = useState(false)
 
-  usePageTitle(campaign ? campaign.title : 'Campaign')
+  usePageTitle(campaign ? campaign.title : t('titles.campaign'))
 
   const { user } = useAuth()
   const { currentOrg } = useOrganization()
@@ -44,9 +52,25 @@ function CampaignDetailContent() {
   const pct =
     goal && goal > 0 ? Math.min(100, Math.round((raised / goal) * 100)) : 0
 
+  // Public confirmed donations: the org-reviewed ledger behind the
+  // raised total. Reload when the dialog closes (a confirm elsewhere
+  // changes it, but the common case is returning to a fresh page).
+  useEffect(() => {
+    if (!campaign?.id) return
+    let active = true
+    const load = async () => {
+      const { data } = await donationReportService.listPublic(campaign.id)
+      if (active) setConfirmedReports(data ?? [])
+    }
+    void load()
+    return () => {
+      active = false
+    }
+  }, [campaign?.id, showReportDialog])
+
   useEffect(() => {
     if (!slug) {
-      setError('Missing campaign slug')
+      setError(t('campaignDetail.notFound'))
       setLoading(false)
       return
     }
@@ -60,7 +84,7 @@ function CampaignDetailContent() {
           setError(err)
           setCampaign(null)
         } else if (!data) {
-          setError('Campaign not found or not yet live')
+          setError(t('campaignDetail.notFound'))
           setCampaign(null)
         } else {
           setCampaign(data)
@@ -71,7 +95,7 @@ function CampaignDetailContent() {
     return () => {
       active = false
     }
-  }, [slug])
+  }, [slug, t])
 
   return (
     <AppLayout>
@@ -80,7 +104,7 @@ function CampaignDetailContent() {
           href="/campaigns"
           className="font-medium text-indigo-600 hover:text-indigo-700"
         >
-          ← Back to campaigns
+          {t('campaignDetail.back')}
         </Link>
 
         {loading && (
@@ -89,14 +113,14 @@ function CampaignDetailContent() {
             role="status"
             aria-live="polite"
           >
-            Loading...
+            {t('common.loading')}
           </div>
         )}
 
         {error && (
           <div className="space-y-4 py-12 text-center" role="alert">
             <h1 className="text-2xl font-bold text-gray-900">
-              Campaign Not Available
+              {t('campaignDetail.notAvailableTitle')}
             </h1>
             <p className="text-gray-600">{error}</p>
           </div>
@@ -111,12 +135,12 @@ function CampaignDetailContent() {
                 </h1>
                 {campaign.is_zakat_eligible && (
                   <span className="shrink-0 rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800">
-                    Zakat Eligible
+                    {t('campaignDetail.zakatEligible')}
                   </span>
                 )}
               </div>
               <p className="text-gray-500">
-                by{' '}
+                {t('campaignDetail.by')}{' '}
                 <Link
                   href={`/orgs/public?slug=${encodeURIComponent(campaign.org_slug)}`}
                   className="text-indigo-600 hover:underline"
@@ -129,7 +153,7 @@ function CampaignDetailContent() {
                   href={`/dashboard/campaigns/edit?id=${campaign.id}`}
                   className="inline-block rounded-md bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-200"
                 >
-                  Edit campaign
+                  {t('campaignDetail.editCampaign')}
                 </Link>
               )}
             </header>
@@ -154,14 +178,17 @@ function CampaignDetailContent() {
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-sm text-gray-600">
                   <span>
-                    {campaign.raised_amount != null
-                      ? campaign.raised_amount.toLocaleString()
-                      : 0}{' '}
-                    {campaign.currency} raised
+                    {t('campaignCard.raised', {
+                      amount: (campaign.raised_amount ?? 0).toLocaleString(),
+                      currency: campaign.currency,
+                    })}
                   </span>
                   <span>
-                    {pct}% of {campaign.goal_amount.toLocaleString()}{' '}
-                    {campaign.currency}
+                    {t('campaignDetail.raisedOfGoal', {
+                      pct,
+                      goal: campaign.goal_amount.toLocaleString(),
+                      currency: campaign.currency,
+                    })}
                   </span>
                 </div>
                 <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
@@ -176,48 +203,97 @@ function CampaignDetailContent() {
             <div className="flex flex-wrap gap-4 text-sm text-gray-600">
               {campaign.goal_amount != null && (
                 <span className="rounded-md bg-gray-100 px-3 py-1">
-                  Goal: {campaign.goal_amount.toLocaleString()}{' '}
-                  {campaign.currency}
+                  {t('campaignDetail.goal', {
+                    amount: campaign.goal_amount.toLocaleString(),
+                    currency: campaign.currency,
+                  })}
                 </span>
               )}
               {campaign.start_date && (
                 <span className="rounded-md bg-gray-100 px-3 py-1">
-                  Starts: {new Date(campaign.start_date).toLocaleDateString()}
+                  {t('campaignDetail.starts', {
+                    date: new Date(campaign.start_date).toLocaleDateString(),
+                  })}
                 </span>
               )}
               {campaign.end_date && (
                 <span className="rounded-md bg-gray-100 px-3 py-1">
-                  Ends: {new Date(campaign.end_date).toLocaleDateString()}
+                  {t('campaignDetail.ends', {
+                    date: new Date(campaign.end_date).toLocaleDateString(),
+                  })}
                 </span>
               )}
             </div>
 
             {campaign.tags && campaign.tags.length > 0 && (
               <div className="flex flex-wrap gap-2">
-                {campaign.tags.map(t => (
+                {campaign.tags.map(tag => (
                   <span
-                    key={t.id}
+                    key={tag.id}
                     className="rounded-full bg-indigo-50 px-3 py-1 text-sm text-indigo-700"
                   >
-                    {t.label}
+                    {tag.label}
                   </span>
                 ))}
               </div>
             )}
 
             <section className="space-y-4 rounded-lg bg-white p-6 shadow">
-              <h2 className="text-xl font-semibold text-gray-900">
-                Donate Directly
-              </h2>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  {t('campaignDetail.donateTitle')}
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => setShowReportDialog(true)}
+                  className="rounded-md border border-indigo-600 px-4 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50"
+                >
+                  {t('donationReport.cta')}
+                </button>
+              </div>
               <p className="text-sm text-gray-600">
-                This platform does not process payments. Please donate directly
-                to the organization using the methods below.
+                {t('campaignDetail.donateNote')}
               </p>
               <DonationMethods methods={campaign.donation_methods} />
+              {raised > 0 && (
+                <p className="text-xs text-gray-500">
+                  {t('campaignDetail.raisedNote')}
+                </p>
+              )}
+              {confirmedReports.length > 0 && (
+                <div className="space-y-2 border-t pt-4">
+                  <h3 className="text-sm font-semibold text-gray-900">
+                    {t('donationReport.confirmedHeading')}
+                  </h3>
+                  <ul className="space-y-1">
+                    {confirmedReports.map(r => (
+                      <li
+                        key={r.id}
+                        className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600"
+                      >
+                        <span>
+                          {r.currency} {r.amount.toLocaleString()} · {r.method}
+                          {r.donor_name ? ` · ${r.donor_name}` : ''}
+                        </span>
+                        <span className="text-xs text-gray-400">
+                          {new Date(r.created_at).toLocaleDateString()}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </section>
           </article>
         )}
       </div>
+      {showReportDialog && campaign && (
+        <ReportDonationDialog
+          campaignId={campaign.id}
+          orgName={campaign.org_name}
+          onClose={() => setShowReportDialog(false)}
+        />
+      )}
     </AppLayout>
   )
 }
@@ -227,8 +303,10 @@ function DonationMethods({
 }: {
   methods: PublicCampaign['donation_methods']
 }) {
+  const { t } = useTranslation()
+
   if (!methods || methods.length === 0) {
-    return <p className="text-gray-500">No donation methods listed yet.</p>
+    return <p className="text-gray-500">{t('campaignDetail.noMethods')}</p>
   }
 
   return (
@@ -265,7 +343,7 @@ function DonationMethods({
           <div key={m.id ?? i} className="space-y-3 rounded-md border p-4">
             {m.is_preferred && (
               <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-800">
-                Preferred
+                {t('campaignDetail.preferred')}
               </span>
             )}
             {m.donation_url && (
@@ -275,7 +353,9 @@ function DonationMethods({
                 rel="noreferrer"
                 className="inline-block rounded-md bg-indigo-600 px-6 py-3 font-medium text-white hover:bg-indigo-700"
               >
-                Donate via {donationUrlLabel(m.donation_url)}
+                {t('campaignDetail.donateVia', {
+                  host: donationUrlLabel(m.donation_url),
+                })}
               </a>
             )}
             {rows.map(r => (
@@ -293,7 +373,7 @@ function DonationMethods({
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={m.qr_image_url}
-                alt="Donation QR code"
+                alt={t('campaignDetail.qrAlt')}
                 loading="lazy"
                 className="h-40 w-40 rounded border object-contain"
               />
@@ -306,6 +386,7 @@ function DonationMethods({
 }
 
 export default function CampaignDetailPage() {
+  const { t } = useTranslation()
   return (
     <Suspense
       fallback={
@@ -315,7 +396,7 @@ export default function CampaignDetailPage() {
             role="status"
             aria-live="polite"
           >
-            Loading...
+            {t('common.loading')}
           </div>
         </AppLayout>
       }

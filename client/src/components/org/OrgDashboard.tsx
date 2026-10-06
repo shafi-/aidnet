@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useOrganization } from '@/hooks/useOrganization'
 import { usePermissions } from '@/hooks/usePermissions'
 import { useSubscription } from '@/hooks/useSubscription'
@@ -8,14 +9,16 @@ import { BillingTab } from '@/components/subscription/BillingTab'
 import { TodosTab } from '@/components/org/TodosTab'
 import { MembersTab } from '@/components/org/MembersTab'
 import { SettingsTab } from '@/components/org/SettingsTab'
+import { DonationsTab } from '@/components/org/DonationsTab'
 
 export function OrgDashboard() {
+  const { t } = useTranslation()
   const { currentOrg } = useOrganization()
   const { isOrgAdmin, isOrgOwner } = usePermissions()
   const { hasFeature } = useSubscription(currentOrg?.id ?? '')
-  const [tab, setTab] = useState<'todos' | 'members' | 'settings' | 'billing'>(
-    'todos'
-  )
+  const [tab, setTab] = useState<
+    'todos' | 'members' | 'settings' | 'billing' | 'donations'
+  >('todos')
 
   if (!currentOrg) return null
 
@@ -25,7 +28,7 @@ export function OrgDashboard() {
         <div>
           <h1 className="text-2xl font-bold">{currentOrg.name}</h1>
           <p className="text-gray-600">
-            {currentOrg.description ?? 'No description'}
+            {currentOrg.description ?? t('org.noDescription')}
           </p>
         </div>
       </div>
@@ -35,7 +38,7 @@ export function OrgDashboard() {
             onClick={() => setTab('todos')}
             className={`pb-2 ${tab === 'todos' ? 'border-b-2 border-blue-600 font-medium' : ''}`}
           >
-            Todos
+            {t('orgTabs.todos')}
           </button>
         )}
         {hasFeature('members') && (
@@ -43,7 +46,7 @@ export function OrgDashboard() {
             onClick={() => setTab('members')}
             className={`pb-2 ${tab === 'members' ? 'border-b-2 border-blue-600 font-medium' : ''}`}
           >
-            Members
+            {t('orgTabs.members')}
           </button>
         )}
         {hasFeature('settings') && isOrgAdmin() && (
@@ -51,7 +54,15 @@ export function OrgDashboard() {
             onClick={() => setTab('settings')}
             className={`pb-2 ${tab === 'settings' ? 'border-b-2 border-blue-600 font-medium' : ''}`}
           >
-            Settings
+            {t('orgTabs.settings')}
+          </button>
+        )}
+        {isOrgAdmin() && (
+          <button
+            onClick={() => setTab('donations')}
+            className={`pb-2 ${tab === 'donations' ? 'border-b-2 border-blue-600 font-medium' : ''}`}
+          >
+            {t('orgTabs.donations')}
           </button>
         )}
         {isOrgOwner() && (
@@ -59,7 +70,7 @@ export function OrgDashboard() {
             onClick={() => setTab('billing')}
             className={`pb-2 ${tab === 'billing' ? 'border-b-2 border-blue-600 font-medium' : ''}`}
           >
-            Billing
+            {t('orgTabs.billing')}
           </button>
         )}
       </div>
@@ -71,6 +82,9 @@ export function OrgDashboard() {
       )}
       {tab === 'settings' && hasFeature('settings') && (
         <SettingsTab orgId={currentOrg.id} />
+      )}
+      {tab === 'donations' && isOrgAdmin() && (
+        <DonationsTab orgId={currentOrg.id} />
       )}
       {tab === 'billing' && isOrgOwner() && (
         <BillingTab orgId={currentOrg.id} isOwner={isOrgOwner()} />

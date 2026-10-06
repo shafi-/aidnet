@@ -1092,6 +1092,55 @@ export type Database = {
       }
     }
     Functions: {
+      confirm_donation_report: {
+        Args: { p_report_id: string }
+        Returns: boolean
+      }
+      get_public_donation_reports: {
+        Args: { p_campaign_id: string; p_limit?: number }
+        Returns: {
+          amount: number
+          created_at: string
+          currency: string
+          donor_name: string | null
+          id: string
+          method: string
+        }[]
+      }
+      list_donation_reports: {
+        Args: { p_campaign_id: string; p_status?: string }
+        Returns: {
+          amount: number
+          created_at: string
+          currency: string
+          donor_name: string | null
+          id: string
+          message: string | null
+          method: string
+          reference: string | null
+          status: string
+        }[]
+      }
+      propose_donation: {
+        Args: {
+          p_amount: number
+          p_campaign_id: string
+          p_donor_name?: string | null
+          p_message?: string | null
+          p_method?: string
+          p_reference?: string | null
+          p_turnstile_token?: string | null
+        }
+        Returns: {
+          created_at: string
+          id: string
+          status: string
+        }[]
+      }
+      reject_donation_report: {
+        Args: { p_note?: string | null; p_report_id: string }
+        Returns: boolean
+      }
       accept_invite: { Args: { p_token: string }; Returns: boolean }
       add_organization_member: {
         Args: {

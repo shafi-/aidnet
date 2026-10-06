@@ -3,6 +3,29 @@
 export type CampaignStatus =
   'draft' | 'pending_review' | 'live' | 'rejected' | 'closed'
 
+/** A donor's claim that they sent money outside the platform. */
+export type DonationReport = {
+  id: string
+  amount: number
+  currency: string
+  method: string
+  reference: string | null
+  donor_name: string | null
+  message: string | null
+  status: 'pending' | 'confirmed' | 'rejected'
+  created_at: string
+}
+
+/** Public (confirmed-only) projection — no reference or review data. */
+export type PublicDonationReport = {
+  id: string
+  amount: number
+  currency: string
+  method: string
+  donor_name: string | null
+  created_at: string
+}
+
 export type Campaign = {
   id: string
   org_id: string
