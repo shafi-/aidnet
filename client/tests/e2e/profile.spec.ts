@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { USERS, signIn, getMyProfile, SUPABASE_URL } from './lib/api'
+import { openNavMenu, orgReady } from './lib/ui'
 
 const ADMIN_EMAIL = 'admin@donate.app'
 
@@ -61,6 +62,9 @@ test.describe('Profile Page', () => {
     page,
   }) => {
     await page.goto('/profile')
+    // Fill must land after hydration: a pre-hydration fill is wiped when
+    // React mounts the controlled input (slowest on WebKit engines).
+    await orgReady(page)
 
     // Target the Full Name field via its label (input[type=text].first()
     // is order-fragile if other text inputs appear on the page)
@@ -70,6 +74,9 @@ test.describe('Profile Page', () => {
 
     await nameField.fill(updated)
     await page.getByRole('button', { name: 'Save' }).click()
+    // Wait for the save RPC to land — reloading mid-flight loses the write
+    // (races on slower engines).
+    await expect(page.getByText('Profile saved.')).toBeVisible()
 
     // Reload to prove the value was persisted, not just held in the input.
     await page.reload()
@@ -93,7 +100,12 @@ test.describe('Profile Page', () => {
   }) => {
     // Use a page with AppLayout nav — dashboard has no nav
     await page.goto('/campaigns/')
-    await page.locator('nav').getByRole('link', { name: 'Profile' }).click()
+    await openNavMenu(page)
+    // Desktop: link labelled "Profile"; mobile: drawer link "Profile <email>"
+    await page
+      .locator('nav')
+      .getByRole('link', { name: /Profile/ })
+      .click()
     await expect(page).toHaveURL(/\/profile/)
     await expect(page.getByText('Full Name')).toBeVisible()
   })

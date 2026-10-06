@@ -1,4 +1,9 @@
 import { test, expect } from '@playwright/test'
+// Clicking a Next Link mid-hydration can swallow the navigation (flaked in
+// WebKit): wait out the initial JS work before clicking footer links.
+async function waitStable(page: import('@playwright/test').Page) {
+  await page.waitForLoadState('networkidle')
+}
 
 test.describe('Navigation', () => {
   // Page-render assertions for /about, /privacy, /terms and /contact live in
@@ -6,10 +11,13 @@ test.describe('Navigation', () => {
   // behavior: the footer links and 404 handling.
 
   test.describe('Footer', () => {
+    // Every test waits for org-provider readiness: clicking a Next Link
+    // mid-hydration can swallow the navigation (seen flaking in WebKit).
     test('When anon clicks the footer About link, about page renders', async ({
       page,
     }) => {
       await page.goto('/')
+      await waitStable(page)
       await page
         .getByRole('navigation', { name: 'Footer' })
         .getByRole('link', { name: 'About Us' })
@@ -22,6 +30,7 @@ test.describe('Navigation', () => {
       page,
     }) => {
       await page.goto('/')
+      await waitStable(page)
       await page
         .getByRole('navigation', { name: 'Footer' })
         .getByRole('link', { name: 'Privacy Policy' })
@@ -34,6 +43,7 @@ test.describe('Navigation', () => {
       page,
     }) => {
       await page.goto('/')
+      await waitStable(page)
       await page
         .getByRole('navigation', { name: 'Footer' })
         .getByRole('link', { name: 'Terms of Service' })
@@ -46,6 +56,7 @@ test.describe('Navigation', () => {
       page,
     }) => {
       await page.goto('/')
+      await waitStable(page)
       await page
         .getByRole('navigation', { name: 'Footer' })
         .getByRole('link', { name: 'Contact' })

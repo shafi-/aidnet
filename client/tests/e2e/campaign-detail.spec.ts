@@ -12,12 +12,14 @@ test.describe('Campaign Detail Page - error states', () => {
     ).toBeVisible()
   })
 
-  test('When slug missing, missing-slug error is shown', async ({ page }) => {
+  test('When slug missing, not-available error is shown', async ({ page }) => {
     await page.goto('/campaigns/detail')
     await expect(
       page.getByRole('heading', { name: 'Campaign Not Available' })
     ).toBeVisible()
-    await expect(page.getByText('Missing campaign slug')).toBeVisible()
+    await expect(
+      page.getByText('Campaign not found or not yet live')
+    ).toBeVisible()
   })
 
   test('When user clicks back link, navigates to campaigns list', async ({
@@ -45,7 +47,7 @@ test.describe.serial('Campaign lifecycle - public visibility rules', () => {
     await page
       .getByLabel('Description', { exact: true })
       .fill('E2E campaign for detail-page behaviour')
-    const goal = page.getByLabel(/Goal Amount/)
+    const goal = page.getByLabel(/Goal amount/)
     if ((await goal.count()) > 0) await goal.fill('100000')
     await page.getByText('Zakat eligible', { exact: true }).click()
     await page.getByRole('button', { name: /Create/i }).click()
@@ -56,7 +58,7 @@ test.describe.serial('Campaign lifecycle - public visibility rules', () => {
       .getByRole('button', { name: 'Submit for Review' })
       .first()
       .click()
-    await expect(page.getByText(/pending/).first()).toBeVisible()
+    await expect(page.getByText(/pending/i).first()).toBeVisible()
 
     slug = title
       .toLowerCase()

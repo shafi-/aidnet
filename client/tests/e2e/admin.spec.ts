@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { registerViaApi } from './lib/api'
+import { openNavMenu } from './lib/ui'
 
 const ADMIN_PASSWORD = 'Password123!'
 const ADMIN_EMAIL = 'admin@donate.app'
@@ -32,11 +33,14 @@ test.describe.serial('Admin Pages - Org Request Workflow', () => {
     await loginAsAdmin(page)
     await page.goto('/admin/')
 
+    // Scope to main: on mobile the nav "Organizations" link is display:none
+    // but still first in DOM order, which would win over the stat card.
+    const main = page.locator('main')
     await expect(page.locator('h1')).toContainText('System Admin')
-    await expect(page.locator('text=Organizations').first()).toBeVisible()
-    await expect(page.locator('text=Users').first()).toBeVisible()
-    await expect(page.locator('text=Members').first()).toBeVisible()
-    await expect(page.locator('text=Recent Signups')).toBeVisible()
+    await expect(main.getByText('Organizations', { exact: true })).toBeVisible()
+    await expect(main.getByText('Users', { exact: true })).toBeVisible()
+    await expect(main.getByText('Members', { exact: true })).toBeVisible()
+    await expect(main.getByText('Recent Signups')).toBeVisible()
   })
 
   test('When system admin views /admin, Review Orgs link is shown', async ({
@@ -45,6 +49,8 @@ test.describe.serial('Admin Pages - Org Request Workflow', () => {
     await loginAsAdmin(page)
     await page.goto('/admin/')
     await expect(page.locator('h1')).toContainText('System Admin')
+    // Admin links live in the top nav on desktop, in the drawer on mobile
+    await openNavMenu(page)
     await expect(page.getByRole('link', { name: 'Review Orgs' })).toBeVisible()
   })
 
@@ -54,6 +60,7 @@ test.describe.serial('Admin Pages - Org Request Workflow', () => {
     await loginAsAdmin(page)
     await page.goto('/admin/')
     await expect(page.locator('h1')).toContainText('System Admin')
+    await openNavMenu(page)
     await page.getByRole('link', { name: 'Review Orgs' }).click()
     await expect(page).toHaveURL(/\/admin\/org-requests/)
   })
@@ -190,6 +197,7 @@ test.describe.serial('Admin Pages - Org Request Workflow', () => {
     await page.getByPlaceholder('My Organization').fill(orgName)
     await page.getByPlaceholder('my-organization').fill(orgSlug)
     await page.getByRole('button', { name: 'Submit for Review' }).click()
+    await expect(page.getByText('Request Pending Review')).toBeVisible()
 
     // Login as system admin and approve
     await loginAsAdmin(page)
@@ -198,7 +206,9 @@ test.describe.serial('Admin Pages - Org Request Workflow', () => {
     const approveCard = page.locator('div.rounded-lg.bg-white', {
       hasText: orgName,
     })
-    await expect(approveCard).toBeVisible()
+    // The queue can hold dozens of pending requests: give the list fetch +
+    // render extra headroom on emulated mobile browsers.
+    await expect(approveCard).toBeVisible({ timeout: 15000 })
     await approveCard.getByRole('button', { name: 'Review' }).click()
     await page.getByRole('button', { name: 'Approve', exact: true }).click()
     await expect(

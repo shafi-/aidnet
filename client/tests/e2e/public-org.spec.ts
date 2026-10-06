@@ -37,7 +37,7 @@ test.describe.serial('Public Org Page', () => {
     page,
   }) => {
     await page.goto(`/orgs/public/?slug=${testSlug}`)
-    await expect(page.locator('text=Created')).toBeVisible()
+    await expect(page.getByText('On AidNet since')).toBeVisible()
   })
 
   test('When invalid slug opened, Organization Not Found is shown', async ({

@@ -52,7 +52,7 @@ test.describe('Protected Pages', () => {
       // Request-flow UX: creation happens via the request CTA (link), not an
       // inline Create Organization button.
       await expect(
-        page.getByRole('link', { name: 'Request Organization' })
+        page.getByRole('link', { name: 'Request an organization' })
       ).toBeVisible()
     })
   })

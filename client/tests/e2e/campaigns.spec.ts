@@ -137,7 +137,7 @@ test.describe.serial('Founder + Admin lifecycle', () => {
         .first()
         .click()
       await expect(
-        page.getByText(/pending_review|pending/).first()
+        page.getByText(/pending_review|pending/i).first()
       ).toBeVisible()
 
       slug = title

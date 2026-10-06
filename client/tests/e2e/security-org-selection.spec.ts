@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { registerViaApi } from './lib/api'
+import { openNavMenu } from './lib/ui'
 
 const TEST_PASSWORD = 'SecurityTest123!'
 
@@ -70,7 +71,7 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     // card (0 orgs) — both prove the restore ran.
     await expect(
       page.getByRole('heading', {
-        name: /Security Test User|Get started on Donate/,
+        name: /Security Test User|Get started on AidNet/,
       })
     ).toBeVisible({ timeout: 10000 })
 
@@ -224,6 +225,7 @@ test.describe.serial('Security: Organization Selection Protection', () => {
 
     // Logout user1
     await page.goto('/profile')
+    await openNavMenu(page)
     await page.getByRole('button', { name: 'Sign out' }).click()
 
     // user2 is a different, non-member user -> the org must NOT appear for them

@@ -50,10 +50,12 @@ test.describe('Dashboard Campaigns', () => {
     await expect(
       page.getByRole('textbox', { name: 'Title', exact: true })
     ).toBeVisible()
-    await expect(page.getByRole('textbox', { name: /Slug/ })).toBeVisible()
+    await expect(
+      page.getByRole('textbox', { name: /Campaign link/ })
+    ).toBeVisible()
     await expect(page.getByLabel('Description')).toBeVisible()
-    await expect(page.getByLabel('Cover Image URL')).toBeVisible()
-    await expect(page.getByLabel('Goal Amount (display only)')).toBeVisible()
+    await expect(page.getByLabel('Cover image link')).toBeVisible()
+    await expect(page.getByLabel('Goal amount')).toBeVisible()
     await expect(page.getByLabel('Currency')).toBeVisible()
     await expect(page.getByLabel('Start Date')).toBeVisible()
     await expect(page.getByLabel('End Date')).toBeVisible()
@@ -227,6 +229,20 @@ test.describe('Dashboard Campaigns', () => {
       .sort()
 
     expect(storedIds).toEqual(expectedIds)
+
+    // Restore the seeded fixture (Education + Health): this test saved a
+    // modified selection, and every later browser project re-runs this file
+    // against the same database — without the restore, their 142 sees the
+    // mutated tags and fails.
+    await openEditForSlug(page, 'demo-draft-tagged')
+    await tagChip(page, 'Education').click() // re-select
+    await page.getByRole('button', { name: 'Save Changes' }).click()
+    await expect(page).toHaveURL(/\/dashboard\/campaigns\/?$/)
+    await openEditForSlug(page, 'demo-draft-tagged')
+    await expect(tagChip(page, 'Education')).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
   })
 
   test('When owner creates a campaign with a tag selected, the tag persists on the created campaign', async ({

@@ -5,13 +5,13 @@ const OWNER_STATE = 'tests/e2e/.auth/orgOwner.json'
 test.use({ storageState: OWNER_STATE })
 
 test.describe('Orgs Page - Updated for Request Flow', () => {
-  test('When owner loads /orgs, shows Request Organization button instead of Create', async ({
+  test('When owner loads /orgs, shows request CTA instead of an inline Create button', async ({
     page,
   }) => {
     await page.goto('/orgs')
 
     await expect(
-      page.getByRole('link', { name: 'Request Organization' })
+      page.getByRole('link', { name: 'Request an organization' })
     ).toBeVisible()
     await expect(
       page.getByRole('button', { name: 'Create Organization' })
@@ -35,10 +35,10 @@ test.describe('Orgs Page - Updated for Request Flow', () => {
   }) => {
     await page.goto('/orgs')
 
-    await page.getByRole('link', { name: 'Request Organization' }).click()
+    await page.getByRole('link', { name: 'Request an organization' }).click()
     await expect(page).toHaveURL(/\/org\/request/)
     await expect(
-      page.getByRole('heading', { name: 'Create Organization' })
+      page.getByRole('heading', { name: 'Request an organization' })
     ).toBeVisible()
     await expect(
       page.getByText('Submit your organization for review and approval')

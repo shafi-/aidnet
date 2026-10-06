@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { registerViaApi } from './lib/api'
+import { orgReady } from './lib/ui'
 
 const TEST_PASSWORD = 'UserTest123!'
 
@@ -54,9 +55,12 @@ test.describe.serial('Organization Metadata Management', () => {
     await loginAsUser(page, userEmail, TEST_PASSWORD)
 
     await page.goto('/org/request')
+    // Fill must land after hydration or React wipes the controlled inputs
+    await orgReady(page)
     await page.getByPlaceholder('My Organization').fill(orgName)
     await page.getByPlaceholder('my-organization').fill(orgSlug)
     await page.getByRole('button', { name: 'Submit for Review' }).click()
+    await expect(page.getByText('Request Pending Review')).toBeVisible()
 
     // Seeded admin approves
     await approveRequest(page, orgName)
@@ -81,9 +85,12 @@ test.describe.serial('Organization Metadata Management', () => {
     await loginAsUser(page, userEmail, TEST_PASSWORD)
 
     await page.goto('/org/request')
+    // Fill must land after hydration or React wipes the controlled inputs
+    await orgReady(page)
     await page.getByPlaceholder('My Organization').fill(orgName)
     await page.getByPlaceholder('my-organization').fill(orgSlug)
     await page.getByRole('button', { name: 'Submit for Review' }).click()
+    await expect(page.getByText('Request Pending Review')).toBeVisible()
 
     // Seeded admin approves
     await approveRequest(page, orgName)
@@ -167,6 +174,7 @@ test.describe.serial('Organization Metadata Management', () => {
     await page.getByPlaceholder('My Organization').fill(org1Name)
     await page.getByPlaceholder('my-organization').fill(org1Slug)
     await page.getByRole('button', { name: 'Submit for Review' }).click()
+    await expect(page.getByText('Request Pending Review')).toBeVisible()
 
     await approveRequest(page, org1Name)
 
@@ -179,6 +187,7 @@ test.describe.serial('Organization Metadata Management', () => {
     await page.getByPlaceholder('My Organization').fill(org2Name)
     await page.getByPlaceholder('my-organization').fill(org2Slug)
     await page.getByRole('button', { name: 'Submit for Review' }).click()
+    await expect(page.getByText('Request Pending Review')).toBeVisible()
 
     await approveRequest(page, org2Name)
 
@@ -208,9 +217,12 @@ test.describe.serial('Organization Metadata Management', () => {
     await loginAsUser(page, userEmail, TEST_PASSWORD)
 
     await page.goto('/org/request')
+    // Fill must land after hydration or React wipes the controlled inputs
+    await orgReady(page)
     await page.getByPlaceholder('My Organization').fill(orgName)
     await page.getByPlaceholder('my-organization').fill(orgSlug)
     await page.getByRole('button', { name: 'Submit for Review' }).click()
+    await expect(page.getByText('Request Pending Review')).toBeVisible()
 
     // Seeded admin approves
     await approveRequest(page, orgName)

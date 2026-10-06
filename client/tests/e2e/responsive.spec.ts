@@ -35,8 +35,13 @@ test.describe('Responsive Design', () => {
     }) => {
       await page.goto('/')
       await expect(page.locator('h1')).toContainText('AidNet')
-      const cards = page.locator('.grid > div')
-      await expect(cards).toHaveCount(3)
+      // Scope by content: the "how giving works" grid shares the same
+      // md:grid-cols-3 classes, and the latest-campaigns grid is kept
+      // populated by the seed.
+      const grid = page.locator('div.grid', {
+        has: page.getByRole('heading', { name: 'Trusted Organizations' }),
+      })
+      await expect(grid.locator(':scope > div')).toHaveCount(3)
     })
 
     test('When desktop viewport and authed, dashboard renders', async ({

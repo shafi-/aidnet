@@ -109,7 +109,7 @@ test.describe('Organizations List reflects Requests', () => {
     await page.goto('/orgs')
     // With no personal org auto-created, the list shows the request CTA
     await expect(
-      page.getByRole('link', { name: 'Request Organization' }).first()
+      page.getByRole('link', { name: 'Request an organization' }).first()
     ).toBeVisible()
     await expect(
       page.getByRole('button', { name: 'Create Organization' })
@@ -212,9 +212,11 @@ test.describe.serial('Suspended Organization Behavior', () => {
     )
     await expect(suspendedLink).toHaveCount(0)
 
-    // The org name is present with a Suspended badge
+    // The org name is present with a Suspended badge. Exact match: the
+    // requester's email ("suspended-owner-…@example.com") also contains the
+    // word and would win `.first()` in DOM order on mobile.
     await expect(page.getByText('Suspended Org').first()).toBeVisible()
-    await expect(page.getByText('Suspended').first()).toBeVisible()
+    await expect(page.getByText('Suspended', { exact: true })).toBeVisible()
   })
 
   test('When localStorage holds a suspended org id, it is cleared on load', async ({
@@ -237,23 +239,27 @@ test.describe.serial('Suspended Organization Behavior', () => {
       .not.toBe(orgId)
   })
 
-  test('When user opens ?id= of a suspended org, it is not selected and selector blocks it', async ({
+  test('When user opens ?id= of a suspended org, it is not selected', async ({
     page,
   }) => {
     await loginAsUser(page, requesterEmail, requesterPassword)
 
     await page.goto(`/orgs/?id=${orgId}`)
 
-    // Suspended org cannot become current -> selection modal is shown
-    // Overlay appears once the ?id= fetch resolves and the provider reacts
+    // selectOrgById refuses suspended orgs, so the id is never persisted:
+    // the orgs list renders with the org blocked (non-link + badge) instead
+    // of the org becoming current.
     await expect(
-      page.getByRole('heading', { name: 'Select an Organization' })
+      page.getByRole('heading', { name: 'Organizations' })
     ).toBeVisible()
+    await expect(
+      page.locator(`a[href^="/orgs/?id="]:has-text("Suspended Org")`)
+    ).toHaveCount(0)
+    await expect(page.getByText('Suspended', { exact: true })).toBeVisible()
 
-    // The suspended org appears in the selector but its button is disabled
-    const suspendedButton = page
-      .locator('button', { has: page.getByText('Suspended Org') })
-      .first()
-    await expect(suspendedButton).toBeDisabled()
+    const storedOrgId = await page.evaluate(() =>
+      localStorage.getItem('supanext.currentOrgId')
+    )
+    expect(storedOrgId).not.toBe(orgId)
   })
 })

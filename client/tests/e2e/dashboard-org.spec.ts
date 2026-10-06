@@ -146,7 +146,7 @@ test.describe('OrgDashboard', () => {
 
     await settingsTab.click()
     await expect(page.getByLabel('Organization Name')).toBeVisible()
-    await expect(page.getByLabel('Slug')).toBeVisible()
+    await expect(page.getByLabel('Web address')).toBeVisible()
     await expect(page.getByLabel('Description')).toBeVisible()
     await expect(
       page.getByRole('button', { name: 'Save Changes' })
