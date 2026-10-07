@@ -6,13 +6,17 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Trans, useTranslation } from 'react-i18next'
 import { useAuth } from '@/hooks/useAuth'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import {
+  EmailVerificationNotice,
+  ResendState,
+} from '@/components/auth/EmailVerificationNotice'
 
 const consentLinkClass =
   'font-medium text-indigo-600 hover:text-indigo-700 hover:underline'
 
 function RegisterContent() {
   const { t } = useTranslation()
-  const { signUp } = useAuth()
+  const { signUp, resendVerificationEmail } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const next = searchParams.get('next')
@@ -21,6 +25,9 @@ function RegisterContent() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState('')
+  const [resendState, setResendState] = useState<ResendState>('idle')
+  const [resendError, setResendError] = useState('')
   const [loading, setLoading] = useState(false)
 
   usePageTitle(t('titles.createAccount'))
@@ -46,9 +53,14 @@ function RegisterContent() {
 
     try {
       setLoading(true)
-      const { error } = await signUp(email, password, fullName || undefined)
-      if (error) {
-        setError(error)
+      const result = await signUp(email, password, fullName || undefined)
+      if (result.needsVerification) {
+        // Email confirmation is enabled: no session was issued, so keep the
+        // user here and tell them to verify instead of bouncing them into
+        // the dashboard unauthenticated.
+        setPendingVerificationEmail(email)
+      } else if (result.error) {
+        setError(result.error)
       } else {
         const dest = next || '/dashboard'
         router.push(dest)
@@ -60,6 +72,47 @@ function RegisterContent() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleResend = async () => {
+    setResendError('')
+    setResendState('sending')
+    const { error } = await resendVerificationEmail(pendingVerificationEmail)
+    if (error) {
+      setResendError(error)
+      setResendState('idle')
+    } else {
+      setResendState('sent')
+    }
+  }
+
+  if (pendingVerificationEmail) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+        <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
+          <EmailVerificationNotice
+            email={pendingVerificationEmail}
+            resendState={resendState}
+            resendError={resendError}
+            onResend={handleResend}
+            footer={
+              <Link href="/auth/login" className={consentLinkClass}>
+                {t('auth.backToLogin')}
+              </Link>
+            }
+          />
+
+          <div className="text-center">
+            <Link
+              href="/"
+              className="text-sm text-gray-500 hover:text-gray-700"
+            >
+              {t('common.backToHome')}
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (

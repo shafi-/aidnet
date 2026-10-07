@@ -6,16 +6,23 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/hooks/useAuth'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import {
+  EmailVerificationNotice,
+  ResendState,
+} from '@/components/auth/EmailVerificationNotice'
 
 function LoginContent() {
   const { t } = useTranslation()
-  const { signIn } = useAuth()
+  const { signIn, resendVerificationEmail } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const next = searchParams.get('next')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [needsVerification, setNeedsVerification] = useState(false)
+  const [resendState, setResendState] = useState<ResendState>('idle')
+  const [resendError, setResendError] = useState('')
   const [loading, setLoading] = useState(false)
 
   usePageTitle(t('titles.signIn'))
@@ -23,6 +30,9 @@ function LoginContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setNeedsVerification(false)
+    setResendState('idle')
+    setResendError('')
 
     if (!email || !password) {
       setError(t('auth.fillAllFields'))
@@ -31,9 +41,11 @@ function LoginContent() {
 
     try {
       setLoading(true)
-      const { error } = await signIn(email, password)
-      if (error) {
-        setError(error)
+      const result = await signIn(email, password)
+      if (result.needsVerification) {
+        setNeedsVerification(true)
+      } else if (result.error) {
+        setError(result.error)
       } else {
         const dest = next || '/dashboard'
         router.push(dest)
@@ -47,6 +59,18 @@ function LoginContent() {
     }
   }
 
+  const handleResend = async () => {
+    setResendError('')
+    setResendState('sending')
+    const { error } = await resendVerificationEmail(email)
+    if (error) {
+      setResendError(error)
+      setResendState('idle')
+    } else {
+      setResendState('sent')
+    }
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
       <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
@@ -57,13 +81,22 @@ function LoginContent() {
           <p className="mt-2 text-gray-600">{t('auth.loginSubtitle')}</p>
         </div>
 
-        {error && (
-          <div
-            className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-red-700"
-            role="alert"
-          >
-            {error}
-          </div>
+        {needsVerification ? (
+          <EmailVerificationNotice
+            email={email}
+            resendState={resendState}
+            resendError={resendError}
+            onResend={handleResend}
+          />
+        ) : (
+          error && (
+            <div
+              className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-red-700"
+              role="alert"
+            >
+              {error}
+            </div>
+          )
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
