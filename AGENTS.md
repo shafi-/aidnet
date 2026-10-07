@@ -7,6 +7,9 @@ changing anything. Canonical companions:
 - `CLAUDE.md` — pointer to this file (authoritative rules; do not duplicate content there)
 - `supabase/README.md` — database architecture philosophy
 - `client/tests/test-creation-guideline.md` — testing law (both tiers)
+- `../platform/` — the shared Supabase layer, its own sibling repo: charter
+  (`../platform/README.md`), schema/exposure registry (`SCHEMAS.md`), and the
+  co-living playbook (`PLAYBOOK.md`) that every other product deploys by
 
 ---
 
@@ -29,12 +32,18 @@ changing anything. Canonical companions:
   `BaseRepository`. Every `callRpc` lives there. Services NEVER call `callRpc`.
 - **Schema layout (multi-product)**: product objects (tables, views, RPC
   functions) live in the `donate` schema — that is the only API surface
-  (`PGRST_DB_SCHEMAS=donate` in `docker/.env`). The platform data layer lives
+  (`PGRST_DB_SCHEMAS=donate` in the platform repo's `../platform/docker/.env`).
+  The platform data layer lives
   in `shared` (`shared.profiles`, auth onboarding trigger) and is NOT exposed;
   it is reachable only through SECURITY DEFINER product functions. `public` is
   retired. A future product ships its own schema + its own migration stream;
   every function pins `SET search_path = donate, shared, extensions` (its own
-  schema first), and service roles carry the same chain at role level.
+  schema first), and service roles carry the same chain at role level. The
+  platform layer itself is a sibling repo (`../platform/`) — onboarding
+  guidelines for new products, the schema/exposure registry, and its own
+  migration stream (`../platform/supabase/migrations/`) for platform-level
+  changes; never edit the frozen initial platform objects in this repo's
+  migration stream.
 - **RPC function names are a repository-layer secret.** Only repositories know
   them: a service calls a domain method (`todoRepo.getTodos(orgId)`), the
   repository translates it to the actual function
@@ -157,8 +166,8 @@ so run e2e manually before merging UI changes.
   supabase gen types typescript --linked > client/src/types/database.ts
   ```
 - After the first push to a hosted project, expose the `donate` schema on its
-  Data API — hosted projects do NOT inherit `PGRST_DB_SCHEMAS` from
-  `docker/.env`. Symptom if skipped: client RPCs fail with
+  Data API — hosted projects do NOT inherit `PGRST_DB_SCHEMAS` from the shared
+  local stack (`../platform/docker/.env`). Symptom if skipped: client RPCs fail with
   `Invalid schema: donate`. Fix once (token = personal access token):
   ```sh
   curl -X PATCH "https://api.supabase.com/v1/projects/<ref>/postgrest" \

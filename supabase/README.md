@@ -2,6 +2,12 @@
 
 This directory contains the database migrations and configuration for the Supabase backend following a **function-first architecture**. (No custom edge functions are used — `functions/` is empty.)
 
+> This is the **donate product's** migration stream. The shared Supabase
+> project itself — multi-product schema registry, platform-level migrations,
+> and the co-living guidelines other products deploy by — lives in the
+> sibling [`platform` repo](../../platform/README.md) (`../platform` from the
+> repo root).
+
 ## Architecture Overview
 
 This project implements a database-driven architecture where:

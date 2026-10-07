@@ -23,22 +23,25 @@ OWNER_EMAIL="owner@donate.app"
 MEMBER_EMAIL="member@donate.app"
 
 # --- resolve service role key + db container -------------------------
-# Key resolution order: SUPABASE_SERVICE_ROLE_KEY env -> docker/.env (the
-# custom docker/ compose stack) -> `supabase status` (CLI-managed stack).
-# DB access order: DB_CONTAINER env -> docker compose -> CLI project label.
+# The shared docker/ stack lives in the sibling platform repo
+# ($ROOT/../platform/docker). Key resolution order:
+# SUPABASE_SERVICE_ROLE_KEY env -> that stack's .env -> `supabase status`
+# (CLI-managed stack). DB access order: DB_CONTAINER env -> docker compose
+# -> CLI project label.
+PLATFORM_DOCKER="$ROOT/../platform/docker"
 SERVICE_ROLE_KEY="${SUPABASE_SERVICE_ROLE_KEY:-}"
-if [ -z "$SERVICE_ROLE_KEY" ] && [ -f "$ROOT/docker/.env" ]; then
-  SERVICE_ROLE_KEY="$(grep -E '^SERVICE_ROLE_KEY=' "$ROOT/docker/.env" | cut -d= -f2-)"
+if [ -z "$SERVICE_ROLE_KEY" ] && [ -f "$PLATFORM_DOCKER/.env" ]; then
+  SERVICE_ROLE_KEY="$(grep -E '^SERVICE_ROLE_KEY=' "$PLATFORM_DOCKER/.env" | cut -d= -f2-)"
 fi
 if [ -z "$SERVICE_ROLE_KEY" ]; then
   SERVICE_ROLE_KEY="$(supabase status --output env 2>/dev/null | awk -F'"' '/SERVICE_ROLE_KEY/{print $2}' | tr -d '[:space:]' || true)"
 fi
 if [ -z "$SERVICE_ROLE_KEY" ]; then
-  echo "ERROR: could not resolve SERVICE_ROLE_KEY (set SUPABASE_SERVICE_ROLE_KEY, or run the docker/ stack, or 'supabase start')" >&2
+  echo "ERROR: could not resolve SERVICE_ROLE_KEY (set SUPABASE_SERVICE_ROLE_KEY, or run the platform repo's docker/ stack, or 'supabase start')" >&2
   exit 1
 fi
 
-COMPOSE="docker compose -f $ROOT/docker/docker-compose.yml --env-file $ROOT/docker/.env"
+COMPOSE="docker compose -f $PLATFORM_DOCKER/docker-compose.yml --env-file $PLATFORM_DOCKER/.env"
 # Product schema chain (donate strategy) — psql sessions here are the table
 # owner (RLS bypass), but unqualified table refs still need the chain.
 PGOPTIONS_SQL="-c search_path=donate,shared,extensions"
@@ -49,7 +52,7 @@ elif [ -n "$($COMPOSE ps -q db 2>/dev/null || true)" ]; then
 else
   DB_CONTAINER="$(docker ps --filter "label=com.supabase.cli.project=${PROJECT}" --format '{{.Names}}' 2>/dev/null | grep -E 'db_' | head -1 || true)"
   if [ -z "$DB_CONTAINER" ]; then
-    echo "ERROR: no db container found — start the docker/ stack (sh docker/bootstrap.sh) or 'supabase start'" >&2
+    echo "ERROR: no db container found — start the platform repo's docker/ stack (sh ../platform/docker/bootstrap.sh) or 'supabase start'" >&2
     exit 1
   fi
   psql() { docker exec -i -e PGOPTIONS="$PGOPTIONS_SQL" "$DB_CONTAINER" psql -U postgres -d postgres -v ON_ERROR_STOP=1 "$@"; }

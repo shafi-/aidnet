@@ -19,9 +19,10 @@
 # Usage:
 #   bash supabase/tests/security/authz-probe.sh
 #
-# Environment (all optional — defaults fit the docker/ local stack):
+# Environment (all optional — defaults fit the shared docker/ local stack
+# that lives in the sibling platform repo, ../platform/docker):
 #   SUPABASE_API_URL   default http://127.0.0.1:55321
-#   SUPABASE_ANON_KEY  default: read from docker/.env, then client/.env.local
+#   SUPABASE_ANON_KEY  default: read from ../platform/docker/.env, then client/.env.local
 #   ADMIN_EMAIL / OWNER_EMAIL / MEMBER_EMAIL / PASSWORD   seeded actors
 #
 # Requires: bash 3.2+, curl, node (JSON parsing — a client devDependency).
@@ -46,16 +47,16 @@ ADMIN_EMAIL="${ADMIN_EMAIL:-admin@donate.app}"
 OWNER_EMAIL="${OWNER_EMAIL:-owner@donate.app}"
 MEMBER_EMAIL="${MEMBER_EMAIL:-member@donate.app}"
 
-# --- resolve anon key (env → docker/.env → client/.env.local) ----------
+# --- resolve anon key (env → ../platform/docker/.env → client/.env.local) ---
 ANON_KEY="${SUPABASE_ANON_KEY:-}"
-if [ -z "$ANON_KEY" ] && [ -f "$ROOT/docker/.env" ]; then
-  ANON_KEY="$(grep -E '^ANON_KEY=' "$ROOT/docker/.env" | cut -d= -f2-)"
+if [ -z "$ANON_KEY" ] && [ -f "$ROOT/../platform/docker/.env" ]; then
+  ANON_KEY="$(grep -E '^ANON_KEY=' "$ROOT/../platform/docker/.env" | cut -d= -f2-)"
 fi
 if [ -z "$ANON_KEY" ] && [ -f "$ROOT/client/.env.local" ]; then
   ANON_KEY="$(grep -E '^NEXT_PUBLIC_SUPABASE_ANON_KEY=' "$ROOT/client/.env.local" | cut -d= -f2-)"
 fi
 if [ -z "$ANON_KEY" ]; then
-  echo "ERROR: no anon key (set SUPABASE_ANON_KEY or run from the repo with docker/.env)" >&2
+  echo "ERROR: no anon key (set SUPABASE_ANON_KEY, or ensure ../platform/docker/.env exists)" >&2
   exit 1
 fi
 
