@@ -32,3 +32,26 @@ export async function openNavMenu(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Open menu' }).click()
   await expect(page.getByRole('button', { name: 'Close menu' })).toBeVisible()
 }
+
+/**
+ * System-admin links live in the Admin dropdown on desktop and flat inside
+ * the drawer's System section on mobile. Opens the desktop dropdown; no-op
+ * on mobile where openNavMenu already surfaces the links. Call openNavMenu
+ * first on flows that must work in both viewports.
+ */
+export async function openSystemMenu(page: Page): Promise<void> {
+  if (isMobileViewport(page)) return
+  await page.getByRole('button', { name: 'Admin menu' }).click()
+  await expect(page.getByRole('link', { name: 'Admin overview' })).toBeVisible()
+}
+
+/**
+ * Account controls (Profile / Sign out) live in the account dropdown on
+ * desktop and flat inside the drawer on mobile. Same contract as
+ * openSystemMenu: call openNavMenu first for mobile flows.
+ */
+export async function openAccountMenu(page: Page): Promise<void> {
+  if (isMobileViewport(page)) return
+  await page.getByRole('button', { name: 'Account menu' }).click()
+  await expect(page.getByRole('link', { name: 'Profile' })).toBeVisible()
+}

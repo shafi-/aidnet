@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { openNavMenu } from './lib/ui'
+import { openAccountMenu, openNavMenu } from './lib/ui'
 
 const ADMIN_STATE = 'tests/e2e/.auth/systemAdmin.json'
 
@@ -112,20 +112,24 @@ test.describe('Landing Page', () => {
       await expect(nav.getByRole('link', { name: 'Sign In' })).toBeVisible()
     })
 
-    test('When anon clicks hero Sign In, navigates to login', async ({
+    test('When anon clicks the hero primary CTA, navigates to campaigns', async ({
       page,
     }) => {
       await page.goto('/')
-      await page.getByRole('link', { name: 'Sign In' }).first().click()
-      await expect(page).toHaveURL(/\/auth\/login/)
-      await expect(page.locator('h1')).toContainText('Sign In')
+      // The tagline promises discovery: the primary hero action browses
+      // campaigns without requiring an account.
+      await page
+        .locator('main')
+        .getByRole('link', { name: 'Browse campaigns' })
+        .click()
+      await expect(page).toHaveURL(/\/campaigns/)
     })
 
-    test('When anon clicks hero Get Started, navigates to register', async ({
+    test('When anon clicks the hero Sign up, navigates to register', async ({
       page,
     }) => {
       await page.goto('/')
-      await page.getByRole('link', { name: 'Get Started' }).first().click()
+      await page.getByRole('link', { name: 'Sign up' }).first().click()
       await expect(page).toHaveURL(/\/auth\/register/)
       await expect(page.locator('h1')).toContainText('Create Account')
     })
@@ -160,7 +164,9 @@ test.describe('Landing Page', () => {
       await expect(
         page.locator('nav').getByRole('link', { name: 'Dashboard' })
       ).toBeVisible()
-      // Desktop: aria-label "Profile"; mobile: drawer link "Profile <email>"
+      // Desktop: Profile lives in the account dropdown (openAccountMenu
+      // opens it); mobile: drawer link "Profile <email>".
+      await openAccountMenu(page)
       await expect(
         page.locator('nav').getByRole('link', { name: /Profile/ })
       ).toBeVisible()

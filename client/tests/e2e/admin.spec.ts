@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { registerViaApi } from './lib/api'
-import { openNavMenu } from './lib/ui'
+import { openNavMenu, openSystemMenu } from './lib/ui'
 
 const ADMIN_PASSWORD = 'Password123!'
 const ADMIN_EMAIL = 'admin@donate.app'
@@ -49,8 +49,10 @@ test.describe.serial('Admin Pages - Org Request Workflow', () => {
     await loginAsAdmin(page)
     await page.goto('/admin/')
     await expect(page.locator('h1')).toContainText('System Admin')
-    // Admin links live in the top nav on desktop, in the drawer on mobile
+    // Admin links live in the Admin dropdown on desktop, flat in the drawer
+    // on mobile: openNavMenu surfaces the drawer, openSystemMenu the dropdown.
     await openNavMenu(page)
+    await openSystemMenu(page)
     await expect(page.getByRole('link', { name: 'Review Orgs' })).toBeVisible()
   })
 
@@ -61,6 +63,7 @@ test.describe.serial('Admin Pages - Org Request Workflow', () => {
     await page.goto('/admin/')
     await expect(page.locator('h1')).toContainText('System Admin')
     await openNavMenu(page)
+    await openSystemMenu(page)
     await page.getByRole('link', { name: 'Review Orgs' }).click()
     await expect(page).toHaveURL(/\/admin\/org-requests/)
   })

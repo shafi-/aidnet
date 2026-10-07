@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { USERS, signIn, getMyProfile, SUPABASE_URL } from './lib/api'
-import { openNavMenu, orgReady } from './lib/ui'
+import { openAccountMenu, openNavMenu, orgReady } from './lib/ui'
 
 const ADMIN_EMAIL = 'admin@donate.app'
 
@@ -101,7 +101,8 @@ test.describe('Profile Page', () => {
     // Use a page with AppLayout nav — dashboard has no nav
     await page.goto('/campaigns/')
     await openNavMenu(page)
-    // Desktop: link labelled "Profile"; mobile: drawer link "Profile <email>"
+    await openAccountMenu(page)
+    // Desktop: link in the account dropdown; mobile: drawer link "Profile <email>"
     await page
       .locator('nav')
       .getByRole('link', { name: /Profile/ })

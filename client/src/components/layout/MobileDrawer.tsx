@@ -9,18 +9,30 @@ export interface DrawerLink {
   /** i18n key — the drawer renders it through t(). */
   label: string
   active: boolean
+  icon?: React.ReactNode
+}
+
+export interface DrawerGroup {
+  /** i18n key for the section label, or null for the primary group */
+  label: string | null
+  /** System-administration group: distinct accent treatment */
+  system?: boolean
+  links: DrawerLink[]
 }
 
 interface MobileDrawerProps {
   open: boolean
   onClose: () => void
-  links: DrawerLink[]
+  groups: DrawerGroup[]
   user: { email: string } | null
   onSignOut: () => void
 }
 
 const linkClass =
-  'block rounded px-3 py-2.5 text-gray-700 hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500'
+  'flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+const linkActiveClass = 'bg-primary/10 font-semibold text-primary'
+const groupLabelClass =
+  'px-3 pb-1 pt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground'
 
 // Mobile app-style drawer: slides in from the right over a dimmed backdrop.
 // Stays mounted for enter/exit transitions; hidden state is inert via
@@ -28,7 +40,7 @@ const linkClass =
 export function MobileDrawer({
   open,
   onClose,
-  links,
+  groups,
   user,
   onSignOut,
 }: MobileDrawerProps) {
@@ -87,20 +99,22 @@ export function MobileDrawer({
         role="dialog"
         aria-modal="true"
         aria-label={t('nav.openMenu')}
-        className={`fixed inset-y-0 right-0 z-50 flex w-4/5 max-w-xs flex-col bg-white shadow-xl transition-transform duration-300 ease-out ${
+        className={`fixed inset-y-0 right-0 z-50 flex w-4/5 max-w-xs flex-col bg-background shadow-overlay transition-transform duration-300 ease-out ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {contentMounted && (
           <>
-            <div className="flex h-16 items-center justify-between border-b px-4">
-              <span className="text-xl font-bold">{t('nav.brand')}</span>
+            <div className="flex h-16 flex-none items-center justify-between border-b px-4">
+              <span className="text-xl font-bold tracking-tight">
+                {t('nav.brand')}
+              </span>
               <button
                 ref={closeButtonRef}
                 type="button"
                 onClick={onClose}
                 aria-label={t('nav.closeMenu')}
-                className="rounded p-2 text-gray-600 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                className="rounded p-2 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <svg
                   className="h-6 w-6"
@@ -119,25 +133,48 @@ export function MobileDrawer({
               </button>
             </div>
 
-            <nav className="flex-1 overflow-y-auto px-3 py-4">
-              <ul className="space-y-1">
-                {links.map(link => (
-                  <li key={link.href}>
-                    <Link
-                      href={link.href}
-                      aria-current={link.active ? 'page' : undefined}
-                      className={`${linkClass} ${
-                        link.active
-                          ? 'bg-indigo-50 font-semibold text-gray-900'
-                          : ''
-                      }`}
-                      onClick={onClose}
+            <nav className="flex-1 overflow-y-auto px-3 py-2">
+              {groups.map(group => (
+                <div key={group.label ?? 'primary'}>
+                  {group.label && (
+                    <p
+                      className={`${
+                        group.system ? 'text-warning' : ''
+                      } ${groupLabelClass}`}
                     >
-                      {t(link.label)}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+                      {t(group.label)}
+                    </p>
+                  )}
+                  <ul className="space-y-1">
+                    {group.links.map(link => (
+                      <li key={link.href}>
+                        <Link
+                          href={link.href}
+                          aria-current={link.active ? 'page' : undefined}
+                          className={`${linkClass} ${
+                            link.active ? linkActiveClass : ''
+                          }`}
+                          onClick={onClose}
+                        >
+                          {link.icon && (
+                            <span
+                              className={`flex-none ${
+                                link.active
+                                  ? 'text-primary'
+                                  : 'text-muted-foreground'
+                              }`}
+                              aria-hidden="true"
+                            >
+                              {link.icon}
+                            </span>
+                          )}
+                          {t(link.label)}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
 
               <div className="my-4 border-t" />
 
@@ -150,7 +187,7 @@ export function MobileDrawer({
                       onClick={onClose}
                     >
                       {t('nav.profile')}
-                      <span className="block truncate text-sm text-gray-500">
+                      <span className="block truncate text-sm text-muted-foreground">
                         {user.email}
                       </span>
                     </Link>

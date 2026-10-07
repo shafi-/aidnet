@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/hooks/useAuth'
 import { usePublicCampaigns } from '@/hooks/usePublicCampaigns'
 import { CampaignCard } from '@/components/campaign/CampaignCard'
+import { Button } from '@/components/ui/button'
 import { Nav } from '@/components/layout/Nav'
 import { Footer } from '@/components/layout/Footer'
 import { GetInvolved } from '@/components/marketing/GetInvolved'
@@ -169,19 +170,21 @@ export default function HomePage() {
                 </Link>
               </div>
             ) : (
-              <div className="flex justify-center space-x-4">
-                <Link
-                  href="/auth/register"
-                  className="inline-block rounded-md bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700"
+              // The tagline promises discovery, so the primary action is
+              // browsing — no account required. Sign-up stays secondary and
+              // plainly named (DESIGN.md §1 voice rule).
+              <div className="flex flex-col items-center justify-center gap-3 sm:flex-row sm:space-x-4 sm:space-y-0">
+                <Button asChild size="lg" className="w-full sm:w-auto">
+                  <Link href="/campaigns">{t('home.browseCampaigns')}</Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="lg"
+                  className="w-full border-input bg-background text-foreground hover:bg-accent hover:text-accent-foreground sm:w-auto"
                 >
-                  {t('home.getStarted')}
-                </Link>
-                <Link
-                  href="/auth/login"
-                  className="inline-block rounded-md border border-indigo-600 bg-white px-8 py-3 text-base font-medium text-indigo-600 hover:bg-indigo-50"
-                >
-                  {t('home.signIn')}
-                </Link>
+                  <Link href="/auth/register">{t('nav.signUp')}</Link>
+                </Button>
               </div>
             )}
           </div>

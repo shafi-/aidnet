@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { registerViaApi } from './lib/api'
-import { openNavMenu } from './lib/ui'
+import { openAccountMenu, openNavMenu } from './lib/ui'
 
 const TEST_PASSWORD = 'SecurityTest123!'
 
@@ -226,6 +226,7 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     // Logout user1
     await page.goto('/profile')
     await openNavMenu(page)
+    await openAccountMenu(page)
     await page.getByRole('button', { name: 'Sign out' }).click()
 
     // user2 is a different, non-member user -> the org must NOT appear for them

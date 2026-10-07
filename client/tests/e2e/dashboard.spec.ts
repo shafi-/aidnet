@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { openNavMenu } from './lib/ui'
+import { openAccountMenu, openNavMenu } from './lib/ui'
 
 const OWNER = { email: 'owner@donate.app', password: 'Password123!' }
 
@@ -112,6 +112,7 @@ test.describe('Dashboard', () => {
     // Dashboard has no nav — use a page with AppLayout nav
     await page.goto('/campaigns/')
     await openNavMenu(page)
+    await openAccountMenu(page)
     await page.getByRole('button', { name: 'Sign out' }).click()
     await expect(page).toHaveURL(/\/auth\/login\//)
   })
