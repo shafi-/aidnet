@@ -14,7 +14,7 @@
 BEGIN;
 SELECT plan(30);
 
-INSERT INTO auth.users (id, email, encrypted_password, confirmed_at) VALUES
+INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at) VALUES
   ('9a1a1a1a-1111-4111-8111-a1a1a1a1a1a1', 'sweep-owner@test.local',    '', now()),
   ('9a2a2a2a-2222-4222-8222-a2a2a2a2a2a2', 'sweep-outsider@test.local','' , now())
 ON CONFLICT (id) DO NOTHING;
@@ -29,7 +29,7 @@ INSERT INTO organization_members (organization_id, user_id, role, status, is_own
    'admin', 'active', true)
 ON CONFLICT DO NOTHING;
 
-INSERT INTO auth.users (id, email, encrypted_password, confirmed_at)
+INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at)
 VALUES ('9b9b9b9b-9999-4999-8999-b9b9b9b9b9b9', 'orphan-profile@test.local', '', now())
 ON CONFLICT (id) DO NOTHING;
 

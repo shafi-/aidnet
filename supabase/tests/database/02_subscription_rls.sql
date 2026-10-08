@@ -10,7 +10,7 @@ SELECT plan(8);
 -- SETUP
 -- ====================================================================
 
-INSERT INTO auth.users (id, email, encrypted_password, confirmed_at) VALUES
+INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at) VALUES
   ('11111111-1111-1111-1111-111111111111', 'creator@test.com', '', now()),
   ('22222222-2222-2222-2222-222222222222', 'admin2@test.com', '', now()),
   ('33333333-3333-3333-3333-333333333333', 'member@test.com', '', now())

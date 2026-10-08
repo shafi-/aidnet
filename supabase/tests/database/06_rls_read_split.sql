@@ -15,7 +15,7 @@
 BEGIN;
 SELECT plan(15);
 
-INSERT INTO auth.users (id, email, encrypted_password, confirmed_at) VALUES
+INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at) VALUES
   ('c1c1c1c1-1111-4111-8111-c1c1c1c1c1c1', 'rls-owner@test.local',    '', now()),
   ('c2c2c2c2-2222-4222-8222-c2c2c2c2c2c2', 'rls-member@test.local',  '', now()),
   ('c3c3c3c3-3333-4333-8333-c3c3c3c3c3c3', 'rls-sysadmin@test.local','', now()),

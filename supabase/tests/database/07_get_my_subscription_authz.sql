@@ -14,7 +14,7 @@
 BEGIN;
 SELECT plan(4);
 
-INSERT INTO auth.users (id, email, encrypted_password, confirmed_at) VALUES
+INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at) VALUES
   ('e1e1e1e1-1111-4111-8111-e1e1e1e1e1e1', 'sub-owner@test.local',     '', now()),
   ('e2e2e2e2-2222-4222-8222-e2e2e2e2e2e2', 'sub-member@test.local',   '', now()),
   ('e3e3e3e3-3333-4333-8333-e3e3e3e3e3e3', 'sub-sysadmin@test.local','', now()),

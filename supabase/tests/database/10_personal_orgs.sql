@@ -18,7 +18,7 @@
 BEGIN;
 SELECT plan(22);
 
-INSERT INTO auth.users (id, email, encrypted_password, confirmed_at) VALUES
+INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at) VALUES
   ('b1b1b1b1-1111-4111-8111-b1b1b1b1b1b1', 'pg-individual@test.local', '', now()),
   ('b2b2b2b2-2222-4222-8222-b2b2b2b2b2b2', 'pg-outsider@test.local',  '', now())
 ON CONFLICT (id) DO NOTHING;

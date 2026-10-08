@@ -18,7 +18,7 @@ SELECT plan(18);
 -- ----------------------------------------------------------------------------
 -- FIXTURES (superuser context)
 -- ----------------------------------------------------------------------------
-INSERT INTO auth.users (id, email, encrypted_password, confirmed_at) VALUES
+INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at) VALUES
   ('a1a1a1a1-1111-4111-8111-a1a1a1a1a1a1', 'pgtap-owner@test.local',   '', now()),
   ('a2a2a2a2-2222-4222-8222-a2a2a2a2a2a2', 'pgtap-member@test.local',  '', now()),
   ('a3a3a3a3-3333-4333-8333-a3a3a3a3a3a3', 'pgtap-sysadmin@test.local','', now()),
