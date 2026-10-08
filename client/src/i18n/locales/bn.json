@@ -233,7 +233,8 @@
     "resendVerificationEmail": "যাচাইকরণ ইমেইল আবার পাঠান",
     "verificationEmailSending": "পাঠানো হচ্ছে...",
     "verificationEmailSent": "{{email}} ঠিকানায় যাচাইকরণ ইমেইল পাঠানো হয়েছে। ইনবক্স (এবং স্প্যাম ফোল্ডার) দেখুন।",
-    "backToLogin": "সাইন ইনে ফিরুন"
+    "backToLogin": "সাইন ইনে ফিরুন",
+    "brandLine": "প্রতিটি সংগঠন যাচাইকৃত। প্রতিটি অনুদান সরাসরি উদ্যোগেই পৌঁছে যায়।"
   },
   "resetPassword": {
     "title": "পাসওয়ার্ড রিসেট",

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Trans, useTranslation } from 'react-i18next'
 import { useAuth } from '@/hooks/useAuth'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { AuthLayout } from '@/components/layout/AuthLayout'
 import {
   EmailVerificationNotice,
   ResendState,
@@ -88,8 +89,8 @@ function RegisterContent() {
 
   if (pendingVerificationEmail) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
-        <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
+      <AuthLayout>
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
           <EmailVerificationNotice
             email={pendingVerificationEmail}
             resendState={resendState}
@@ -101,156 +102,155 @@ function RegisterContent() {
               </Link>
             }
           />
-
-          <div className="text-center">
-            <Link
-              href="/"
-              className="text-sm text-gray-500 hover:text-gray-700"
-            >
-              {t('common.backToHome')}
-            </Link>
-          </div>
         </div>
-      </div>
+
+        <div className="mt-4 text-center">
+          <Link
+            href="/"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            {t('common.backToHome')}
+          </Link>
+        </div>
+      </AuthLayout>
     )
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
-      <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-900">
-            {t('auth.registerTitle')}
-          </h1>
-          <p className="mt-2 text-gray-600">{t('auth.joinTagline')}</p>
+    <AuthLayout>
+      <div className="mb-8 text-center">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
+          {t('auth.registerTitle')}
+        </h1>
+        <p className="mt-2 text-muted-foreground">{t('auth.joinTagline')}</p>
+      </div>
+
+      {error && (
+        <div
+          className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-red-700"
+          role="alert"
+        >
+          {error}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <label
+            htmlFor="fullName"
+            className="mb-2 block text-sm font-medium text-gray-700"
+          >
+            {t('auth.fullName')}{' '}
+            <span className="text-gray-400">{t('auth.optional')}</span>
+          </label>
+          <input
+            id="fullName"
+            type="text"
+            value={fullName}
+            onChange={e => setFullName(e.target.value)}
+            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder={t('auth.fullNamePlaceholder')}
+          />
         </div>
 
-        {error && (
-          <div
-            className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-red-700"
-            role="alert"
+        <div>
+          <label
+            htmlFor="email"
+            className="mb-2 block text-sm font-medium text-gray-700"
           >
-            {error}
-          </div>
-        )}
+            {t('auth.emailAddress')}
+          </label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            required
+            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder={t('common.emailPlaceholder')}
+          />
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label
-              htmlFor="fullName"
-              className="mb-2 block text-sm font-medium text-gray-700"
-            >
-              {t('auth.fullName')}{' '}
-              <span className="text-gray-400">{t('auth.optional')}</span>
-            </label>
-            <input
-              id="fullName"
-              type="text"
-              value={fullName}
-              onChange={e => setFullName(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder={t('auth.fullNamePlaceholder')}
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="email"
-              className="mb-2 block text-sm font-medium text-gray-700"
-            >
-              {t('auth.emailAddress')}
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder={t('common.emailPlaceholder')}
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="password"
-              className="mb-2 block text-sm font-medium text-gray-700"
-            >
-              {t('auth.password')}
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="••••••••"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="confirmPassword"
-              className="mb-2 block text-sm font-medium text-gray-700"
-            >
-              {t('auth.confirmPassword')}
-            </label>
-            <input
-              id="confirmPassword"
-              type="password"
-              value={confirmPassword}
-              onChange={e => setConfirmPassword(e.target.value)}
-              required
-              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="••••••••"
-            />
-          </div>
-
-          <div className="text-sm text-gray-600">
-            <p>
-              <Trans
-                i18nKey="auth.agreeToTerms"
-                components={{
-                  termsLink: (
-                    <Link href="/terms/" className={consentLinkClass} />
-                  ),
-                  privacyLink: (
-                    <Link href="/privacy/" className={consentLinkClass} />
-                  ),
-                }}
-              />
-            </p>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        <div>
+          <label
+            htmlFor="password"
+            className="mb-2 block text-sm font-medium text-gray-700"
           >
-            {loading ? t('auth.creatingAccount') : t('auth.registerTitle')}
-          </button>
-        </form>
+            {t('auth.password')}
+          </label>
+          <input
+            id="password"
+            type="password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
+            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="••••••••"
+          />
+        </div>
 
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600">
-            {t('auth.haveAccount')}{' '}
-            <Link
-              href="/auth/login"
-              className="font-medium text-indigo-600 hover:text-indigo-500"
-            >
-              {t('nav.signIn')}
-            </Link>
+        <div>
+          <label
+            htmlFor="confirmPassword"
+            className="mb-2 block text-sm font-medium text-gray-700"
+          >
+            {t('auth.confirmPassword')}
+          </label>
+          <input
+            id="confirmPassword"
+            type="password"
+            value={confirmPassword}
+            onChange={e => setConfirmPassword(e.target.value)}
+            required
+            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="••••••••"
+          />
+        </div>
+
+        <div className="text-sm text-gray-600">
+          <p>
+            <Trans
+              i18nKey="auth.agreeToTerms"
+              components={{
+                termsLink: <Link href="/terms/" className={consentLinkClass} />,
+                privacyLink: (
+                  <Link href="/privacy/" className={consentLinkClass} />
+                ),
+              }}
+            />
           </p>
         </div>
 
-        <div className="mt-4 text-center">
-          <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
-            {t('common.backToHome')}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {loading ? t('auth.creatingAccount') : t('auth.registerTitle')}
+        </button>
+      </form>
+
+      <div className="mt-6 text-center">
+        <p className="text-sm text-gray-600">
+          {t('auth.haveAccount')}{' '}
+          <Link
+            href="/auth/login"
+            className="font-medium text-indigo-600 hover:text-indigo-500"
+          >
+            {t('nav.signIn')}
           </Link>
-        </div>
+        </p>
       </div>
-    </div>
+
+      <div className="mt-4 text-center">
+        <Link
+          href="/"
+          className="text-sm text-muted-foreground hover:text-foreground"
+        >
+          {t('common.backToHome')}
+        </Link>
+      </div>
+    </AuthLayout>
   )
 }
 

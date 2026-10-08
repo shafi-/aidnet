@@ -78,6 +78,14 @@
   }
 }
 
+@layer utilities {
+  /* Brand gradient (DESIGN.md §2.1) — indigo-600 → violet-600. Brand
+     moments only: auth split panel, landing hero accents, the mark. */
+  .bg-brand-gradient {
+    background-image: linear-gradient(135deg, #4f46e5, #7c3aed);
+  }
+}
+
 body {
   font-family: var(--font-inter), var(--font-bengali), system-ui, sans-serif;
 }

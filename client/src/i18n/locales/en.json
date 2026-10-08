@@ -233,7 +233,8 @@
     "resendVerificationEmail": "Resend verification email",
     "verificationEmailSending": "Sending...",
     "verificationEmailSent": "Verification email sent to {{email}}. Check your inbox (and spam folder).",
-    "backToLogin": "Back to login"
+    "backToLogin": "Back to login",
+    "brandLine": "Every organization verified. Every gift goes straight to the cause."
   },
   "resetPassword": {
     "title": "Reset Password",
