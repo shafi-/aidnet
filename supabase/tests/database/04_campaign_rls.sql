@@ -101,7 +101,7 @@ SELECT is(
 -- ====================================================================
 
 SELECT is(
-  (SELECT count(*) FROM get_public_campaigns(NULL::uuid, 12)),
+  (SELECT count(*) FROM get_public_campaigns(NULL::boolean, NULL::uuid, 12)),
   12::bigint,
   'Landing limit returns exactly 12 campaigns'
 );
