@@ -1288,7 +1288,10 @@ export type Database = {
         }
         Returns: string
       }
-      bootstrap_system_admin: { Args: never; Returns: boolean }
+      bootstrap_system_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       can_perform: {
         Args: { p_org_id: string; permission_name: string }
         Returns: boolean
@@ -1442,9 +1445,12 @@ export type Database = {
       }
       delete_campaign: { Args: { p_campaign_id: string }; Returns: boolean }
       delete_organization: { Args: { target_org_id: string }; Returns: boolean }
-      ensure_my_personal_org: { Args: never; Returns: string }
+      ensure_my_personal_org: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_all_org_requests: {
-        Args: never
+        Args: Record<PropertyKey, never>
         Returns: {
           created_org_id: string
           id: string
@@ -1583,7 +1589,7 @@ export type Database = {
         Returns: string[]
       }
       get_campaign_tags: {
-        Args: never
+        Args: Record<PropertyKey, never>
         Returns: {
           id: string
           label: string
@@ -1689,7 +1695,7 @@ export type Database = {
         }[]
       }
       get_my_org_requests: {
-        Args: never
+        Args: Record<PropertyKey, never>
         Returns: {
           created_org_id: string
           id: string
@@ -1728,7 +1734,7 @@ export type Database = {
         }[]
       }
       get_my_profile: {
-        Args: never
+        Args: Record<PropertyKey, never>
         Returns: unknown[]
         SetofOptions: {
           from: '*'
@@ -1819,7 +1825,7 @@ export type Database = {
         }
       }
       get_organization_subscriptions: {
-        Args: never
+        Args: Record<PropertyKey, never>
         Returns: {
           billing_period: string
           created_at: string
@@ -1835,7 +1841,7 @@ export type Database = {
         }[]
       }
       get_pending_campaigns: {
-        Args: never
+        Args: Record<PropertyKey, never>
         Returns: {
           address: string | null
           cover_image_url: string | null
@@ -1890,64 +1896,36 @@ export type Database = {
           title: string
         }[]
       }
-      get_public_campaigns:
-        | {
-            Args: {
-              org_filter?: string
-              result_limit?: number
-              zakat_filter?: boolean
-            }
-            Returns: {
-              cover_image_url: string
-              currency: string
-              description: string
-              donation_methods: Json
-              end_date: string
-              goal_amount: number
-              id: string
-              is_zakat_eligible: boolean
-              org_description: string
-              org_id: string
-              org_logo_url: string
-              org_name: string
-              org_slug: string
-              raised_amount: number
-              slug: string
-              start_date: string
-              tags: Json
-              title: string
-            }[]
-          }
-        | {
-            Args: {
-              org_filter?: string
-              result_limit?: number
-              zakat_filter?: boolean
-            }
-            Returns: {
-              address: string
-              cover_image_url: string
-              created_at: string
-              currency: string
-              description: string
-              donation_methods: Json
-              end_date: string
-              goal_amount: number
-              id: string
-              is_zakat_eligible: boolean
-              org_description: string
-              org_id: string
-              org_logo_url: string
-              org_name: string
-              org_slug: string
-              raised_amount: number
-              slug: string
-              start_date: string
-              tags: Json
-              title: string
-              updated_at: string
-            }[]
-          }
+      get_public_campaigns: {
+        Args: {
+          org_filter?: string
+          result_limit?: number
+          zakat_filter?: boolean
+        }
+        Returns: {
+          address: string
+          cover_image_url: string
+          created_at: string
+          currency: string
+          description: string
+          donation_methods: Json
+          end_date: string
+          goal_amount: number
+          id: string
+          is_zakat_eligible: boolean
+          org_description: string
+          org_id: string
+          org_logo_url: string
+          org_name: string
+          org_slug: string
+          raised_amount: number
+          slug: string
+          start_date: string
+          tags: Json
+          title: string
+          updated_at: string
+        }[]
+      }
       get_public_donation_reports: {
         Args: { p_campaign_id: string; p_limit?: number }
         Returns: {
@@ -1985,7 +1963,7 @@ export type Database = {
         }[]
       }
       get_subscription_plans: {
-        Args: never
+        Args: Record<PropertyKey, never>
         Returns: {
           created_at: string | null
           description: string | null
@@ -2005,7 +1983,7 @@ export type Database = {
         }
       }
       get_system_admins: {
-        Args: never
+        Args: Record<PropertyKey, never>
         Returns: {
           avatar_url: string | null
           created_at: string | null
@@ -2023,7 +2001,7 @@ export type Database = {
         }
       }
       get_system_stats: {
-        Args: never
+        Args: Record<PropertyKey, never>
         Returns: {
           recent_signups: number
           total_members: number
@@ -2054,7 +2032,7 @@ export type Database = {
         Args: { p_feature: string; p_org_id: string }
         Returns: boolean
       }
-      is_system_admin: { Args: never; Returns: boolean }
+      is_system_admin: { Args: Record<PropertyKey, never>; Returns: boolean }
       list_donation_reports: {
         Args: { p_campaign_id: string; p_status?: string }
         Returns: {
