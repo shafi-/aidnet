@@ -9,7 +9,9 @@ export function usePublicCampaigns(filters: PublicCampaignFilters = {}) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const zakat = filters.zakat ?? null
+  // `false` must mean "no zakat filter" (show everything), not "exclude
+  // zakat campaigns" — the RPC only filters when the arg is non-null.
+  const zakat = filters.zakat ? true : null
   const org = filters.org ?? null
   const limit = filters.limit ?? null
 
