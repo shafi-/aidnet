@@ -45,7 +45,14 @@ export function OrganizationSelector({
                     : 'hover:border-blue-500 hover:bg-blue-50'
                 }`}
               >
-                <h2 className="text-lg font-semibold">{org.name}</h2>
+                <h2 className="text-lg font-semibold">
+                  {org.name}{' '}
+                  {org.kind === 'personal' && (
+                    <span className="ml-1 rounded bg-indigo-50 px-1.5 py-0.5 align-middle text-xs font-medium text-indigo-700">
+                      {t('selector.personalBadge')}
+                    </span>
+                  )}
+                </h2>
                 <p className="mt-1 text-sm text-gray-600">
                   {org.description ?? t('org.noDescription')}
                 </p>

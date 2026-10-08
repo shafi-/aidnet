@@ -82,12 +82,19 @@ export function buildNavModel(input: NavModelInput): NavModel {
     })
   }
 
-  // Members without an organization are still discovery-first users.
+  // Members without an organization are still discovery-first users, but
+  // they can start fundraising as individuals — /dashboard/campaigns/new
+  // lazily provisions their personal org (create-as-individual CTA).
   if (!currentOrg) {
     return {
       items: [
         { kind: 'link', href: '/campaigns', label: 'nav.campaigns' },
         ...(systemMenu ? [{ kind: 'system-menu' } as const] : []),
+        {
+          kind: 'link',
+          href: '/dashboard/campaigns/new',
+          label: 'nav.startCampaign',
+        },
         { kind: 'organizations-menu' },
         { kind: 'link', href: '/dashboard', label: 'nav.dashboard' },
       ],
@@ -105,6 +112,7 @@ export function buildNavModel(input: NavModelInput): NavModel {
           system: false,
           links: [
             { href: '/campaigns', label: 'nav.campaigns' },
+            { href: '/dashboard/campaigns/new', label: 'nav.startCampaign' },
             { href: '/orgs', label: 'nav.organizations' },
             { href: '/org/request', label: 'nav.requestOrg' },
             { href: '/dashboard', label: 'nav.dashboard' },

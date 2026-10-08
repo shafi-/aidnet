@@ -29,7 +29,7 @@ describe('buildNavModel', () => {
     ])
   })
 
-  it('When member without org, discovery leads and org request is reachable', () => {
+  it('When member without org, discovery leads, org request is reachable, and individual fundraising is one click', () => {
     const model = buildNavModel({
       user: USER,
       currentOrg: null,
@@ -38,6 +38,7 @@ describe('buildNavModel', () => {
 
     expect(hrefs(model)).toEqual([
       '/campaigns',
+      '/dashboard/campaigns/new',
       'organizations-menu',
       '/dashboard',
     ])
@@ -51,6 +52,7 @@ describe('buildNavModel', () => {
     })
     expect(model.drawerGroups[0].links.map(l => l.href)).toEqual([
       '/campaigns',
+      '/dashboard/campaigns/new',
       '/orgs',
       '/org/request',
       '/dashboard',
@@ -126,6 +128,7 @@ describe('buildNavModel', () => {
     expect(hrefs(model)).toEqual([
       '/campaigns',
       'system-menu',
+      '/dashboard/campaigns/new',
       'organizations-menu',
       '/dashboard',
     ])

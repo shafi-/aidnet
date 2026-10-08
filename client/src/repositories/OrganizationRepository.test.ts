@@ -115,4 +115,16 @@ describe('OrganizationRepository', () => {
 
     expect(res).toEqual({ data: null, error: 'jwt expired' })
   })
+
+  it('ensurePersonalOrg calls ensure_my_personal_org with no params and returns the org id', async () => {
+    const personalOrgId = '44444444-4444-4444-4444-444444444444'
+    const gw = createMockRpcGateway({
+      ensure_my_personal_org: { data: personalOrgId },
+    })
+    const res = await new OrganizationRepository(gw).ensurePersonalOrg()
+
+    expect(res.data).toBe(personalOrgId)
+    expect(gw.callsTo('ensure_my_personal_org')).toHaveLength(1)
+    expect(gw.callsTo('ensure_my_personal_org')[0].params).toBeUndefined()
+  })
 })

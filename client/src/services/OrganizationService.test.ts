@@ -84,4 +84,17 @@ describe('OrganizationService', () => {
     })
     expect(del).toEqual(ok(true))
   })
+
+  it('ensurePersonalOrg delegates untouched and returns the org id', async () => {
+    const personalOrgId = '44444444-4444-4444-4444-444444444444'
+    const ensurePersonalOrg = vi.fn().mockResolvedValue(ok(personalOrgId))
+    const svc = new OrganizationService(
+      mockRepository<OrganizationRepository>({ ensurePersonalOrg })
+    )
+
+    const res = await svc.ensurePersonalOrg()
+
+    expect(ensurePersonalOrg).toHaveBeenCalledWith()
+    expect(res).toEqual(ok(personalOrgId))
+  })
 })

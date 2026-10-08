@@ -34,6 +34,7 @@
     "dashboard": "Dashboard",
     "requestOrg": "Request an organization",
     "orgCampaigns": "Our campaigns",
+    "startCampaign": "Start a campaign",
     "admin": "Admin",
     "reviewCampaigns": "Review Campaigns",
     "reviewOrgs": "Review Orgs",
@@ -249,9 +250,10 @@
     "welcomeBack": "Welcome back!",
     "welcomeBackName": "Welcome back, {{name}}!",
     "getStartedTitle": "Get started on AidNet",
-    "getStartedBody": "You are not part of an organization yet. Discover live campaigns you can support, or request an organization to start raising funds.",
+    "getStartedBody": "You're not part of an organization yet. Support a live campaign, or start raising funds — on your own, with a new organization, or through an invite.",
     "browseCampaigns": "Browse Campaigns",
-    "requestOrganization": "Request an Organization",
+    "createOrganization": "Register a new organization",
+    "joinOrganization": "I have an invite",
     "suspendedTitle": "Organization Suspended",
     "suspendedBody": "Your organization {{name}} has been suspended. You have read-only access to organization information.",
     "suspendedContact": "Please contact your organization administrator or platform support for assistance.",
@@ -369,7 +371,8 @@
   },
   "selector": {
     "title": "Select an Organization",
-    "subtitle": "You belong to multiple organizations. Choose one to continue."
+    "subtitle": "You belong to multiple organizations. Choose one to continue.",
+    "personalBadge": "Personal"
   },
   "status": {
     "draft": "Draft",
@@ -420,7 +423,7 @@
     "addressHint": "Shown on the public campaign page.",
     "addressPlaceholder": "e.g. Rangpur, Bangladesh",
     "payTitle": "Payment details",
-    "payHint": "Donation channels shown to donors on the campaign page. Prefilled from your organization's saved methods.",
+    "payHint": "Donation channels shown to donors on the campaign page. Saved with this campaign — editing it later loads its current channels.",
     "bkashNumber": "bKash number",
     "nagadNumber": "Nagad number",
     "rocketNumber": "Rocket number",
@@ -467,7 +470,16 @@
   },
   "campaignNew": {
     "title": "New Campaign",
-    "selectOrg": "Select an organization before creating a campaign."
+    "choiceTitle": "How do you want to raise funds?",
+    "choiceBody": "Pick the option that fits you — you can always do the others later.",
+    "startOwn": "Start my own fundraiser",
+    "startOwnHelp": "Raise money yourself, without an organization.",
+    "registerOrg": "Register a new organization",
+    "registerOrgHelp": "For charities and groups that raise funds together. New organizations are reviewed before going live.",
+    "haveInvite": "I have an invite",
+    "haveInviteHelp": "An organization invited you by email — paste your invite link or code.",
+    "creatingIndividual": "Setting up your fundraiser…",
+    "individualError": "Could not set up your fundraiser. Please try again."
   },
   "campaignEdit": {
     "title": "Edit Campaign",
@@ -490,6 +502,12 @@
     "saved": "Profile saved."
   },
   "invite": {
+    "pasteTitle": "Were you invited to an organization?",
+    "pasteHint": "Paste the invite link or code from your email invitation.",
+    "pastePlaceholder": "Paste invite link or code",
+    "pasteInvalid": "That doesn't look like an invite link or code. Check the email and try again.",
+    "joinButton": "Continue",
+    "noInviteHelp": "Don't have an invite? Organizations invite members by email. You can also start your own fundraiser:",
     "invitedTitle": "You've been invited!",
     "enterEmail": "Enter your email to see which organization invited you.",
     "checkInvite": "Check Invite",

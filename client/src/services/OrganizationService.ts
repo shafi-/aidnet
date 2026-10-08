@@ -22,6 +22,12 @@ export class OrganizationService {
     return this.orgRepo.createOrganization(name, slug, description, settings)
   }
 
+  // Lazily provisions (or returns) the caller's own personal org. Returns
+  // the org id; callers reload getMyOrganizations afterwards.
+  async ensurePersonalOrg(): ServiceData<string> {
+    return this.orgRepo.ensurePersonalOrg()
+  }
+
   async getMyOrganizations(
     params?: PaginationParams
   ): ServiceData<OrganizationView[]> {

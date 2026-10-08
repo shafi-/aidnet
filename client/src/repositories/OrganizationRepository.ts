@@ -28,6 +28,12 @@ export class OrganizationRepository extends BaseRepository {
     })
   }
 
+  // Lazily provisions (or returns) the caller's own personal org — the
+  // self-serve path for individual fundraisers with no organization.
+  async ensurePersonalOrg(): ServiceData<string> {
+    return this.callRpc<string>(Rpc.Org.EnsurePersonalOrg)
+  }
+
   async getMyOrganizations(
     params?: CursorPaginationParams
   ): ServiceData<OrganizationView[]> {
