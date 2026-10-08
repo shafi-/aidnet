@@ -11,6 +11,7 @@ export function useOrgMembers(orgId: string) {
   const [members, setMembers] = useState<MemberView[]>([])
   const [invites, setInvites] = useState<Invite[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   // One shared draft: the add-member and invite forms historically bind the
   // same input state — preserved so switching sub-tabs keeps the text.
   const [email, setEmail] = useState('')
@@ -18,12 +19,17 @@ export function useOrgMembers(orgId: string) {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const [{ data: memberData }, { data: inviteData }] = await Promise.all([
-      memberService.getMembers(orgId),
-      isOrgAdmin()
-        ? inviteService.getInvites(orgId)
-        : Promise.resolve({ data: [] }),
-    ])
+    setError(null)
+    const [{ data: memberData, error: memberError }, { data: inviteData }] =
+      await Promise.all([
+        memberService.getMembers(orgId),
+        isOrgAdmin()
+          ? inviteService.getInvites(orgId)
+          : Promise.resolve({ data: [] }),
+      ])
+    // Surface failures: an empty list is indistinguishable from a denied
+    // request and reads as "broken" — show why instead.
+    if (memberError) setError(memberError)
     if (memberData) setMembers(memberData)
     if (inviteData) setInvites(inviteData)
     setLoading(false)
@@ -83,6 +89,7 @@ export function useOrgMembers(orgId: string) {
     members,
     invites,
     loading,
+    error,
     isAdmin: isOrgAdmin,
     email,
     setEmail,

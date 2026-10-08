@@ -28,7 +28,7 @@ interface OrganizationContextType {
   selectionRequired: boolean
   suspensionMessage: string | null
   setCurrentOrg: (org: OrganizationDetailView | null) => void
-  selectOrgById: (orgId: string) => Promise<void>
+  selectOrgById: (orgId: string) => Promise<boolean>
   refreshOrg: () => Promise<void>
   clearSuspensionMessage: () => void
 }
@@ -221,9 +221,10 @@ export function OrganizationProvider({
 
   // Select an org by id from a URL param (e.g. invite links). Suspended or
   // unknown orgs never become current: suspended forces the selector so the
-  // suspension is visible; unknown ids are cleared from storage.
+  // suspension is visible; unknown ids are cleared from storage. Resolves
+  // true only when the org became current, so callers can navigate.
   const selectOrgById = useCallback(
-    async (targetId: string) => {
+    async (targetId: string): Promise<boolean> => {
       const { data } = await organizationService.getOrganization(targetId)
       if (!data) {
         try {
@@ -231,12 +232,12 @@ export function OrganizationProvider({
         } catch {
           // Ignore storage access errors
         }
-        return
+        return false
       }
       if (data.status === 'suspended') {
         console.warn('Cannot select suspended organization:', data.id)
         markSuspended(data.id)
-        return
+        return false
       }
       try {
         localStorage.setItem(CURRENT_ORG_STORAGE_KEY, targetId)
@@ -244,6 +245,7 @@ export function OrganizationProvider({
         // Ignore storage access errors
       }
       setCurrentOrg(data)
+      return true
     },
     [setCurrentOrg, markSuspended]
   )

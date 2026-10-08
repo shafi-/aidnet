@@ -10,6 +10,7 @@ export function MembersTab({ orgId }: { orgId: string }) {
     members,
     invites,
     loading,
+    error,
     isAdmin,
     email,
     setEmail,
@@ -26,6 +27,17 @@ export function MembersTab({ orgId }: { orgId: string }) {
   )
 
   if (loading) return <div>{t('common.loading')}</div>
+
+  if (error) {
+    return (
+      <div
+        role="alert"
+        className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+      >
+        {t('members.loadError', { message: error })}
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">

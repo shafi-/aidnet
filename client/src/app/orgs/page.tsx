@@ -5,6 +5,7 @@ import { useRequireAuth } from '@/hooks/useAuth'
 import { useOrganization } from '@/hooks/useOrganization'
 import { useRequiredParam } from '@/hooks/useQueryParam'
 import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useTranslation } from 'react-i18next'
@@ -14,18 +15,28 @@ export default function OrgsPage() {
   const { t } = useTranslation()
   usePageTitle(t('titles.organizations'))
   const orgId = useRequiredParam('id')
+  const router = useRouter()
   const { selectOrgById } = useOrganization()
 
-  // Handle initial selection from ?id= (e.g., invite links). The hook only
-  // persists and applies verified, non-suspended organizations; anything else
-  // forces (or keeps) the selector visible.
+  // Handle initial selection from ?id= (e.g., invite links, org cards). A
+  // successful selection takes the user INTO the org workspace; suspended
+  // or unknown orgs stay here with the selector/suspension state visible.
   useEffect(() => {
     if (!orgId) return
-    selectOrgById(orgId).then(() => {
-      // Redirect to clean URL after the selection attempt
-      window.history.replaceState({}, '', '/orgs')
+    let cancelled = false
+    selectOrgById(orgId).then(success => {
+      if (cancelled) return
+      if (success) {
+        router.replace('/dashboard')
+      } else {
+        // Clean the ?id so a reload doesn't retry a dead selection
+        window.history.replaceState({}, '', '/orgs')
+      }
     })
-  }, [orgId, selectOrgById])
+    return () => {
+      cancelled = true
+    }
+  }, [orgId, selectOrgById, router])
 
   // Render the org list (provider handles blocking when multiple orgs & none selected)
   return (
