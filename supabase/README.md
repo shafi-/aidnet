@@ -69,10 +69,21 @@ LANGUAGE sql SECURITY DEFINER -- Bypasses RLS, applies own logic
 ### Core Tables
 
 - **`profiles`** - Extends auth.users with additional user information
-- **`organizations`** - Teams, companies, workspaces for multi-tenancy
+- **`organizations`** - Teams, companies, workspaces for multi-tenancy (`kind`: 'organization' or 'personal')
 - **`organization_members`** - Many-to-many user-organization relationships
 - **`roles`** - System and organization role definitions
+- **`campaign_payment_methods`** - Per-campaign payout channels donors pay into (1:1 with campaigns, deny-all RLS; access via gated functions)
 - **`audit_logs`** - Comprehensive activity tracking
+
+### Personal organizations (individual fundraisers)
+
+A user with no organization can still fundraise: `ensure_my_personal_org()`
+lazily provisions their OWN org (`kind = 'personal'`, sole owner-admin, Free
+plan auto-attached by trigger). Every gate then works unchanged — `can_perform`,
+review queue, donation confirmation, suspension. Personal orgs are tenancy
+containers, not listing entries; the client labels them in the org selector
+and they surface publicly only through their campaigns. One per user is
+enforced by a partial unique index.
 
 ### Relationships
 
