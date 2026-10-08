@@ -250,7 +250,7 @@
     "welcomeBack": "Welcome back!",
     "welcomeBackName": "Welcome back, {{name}}!",
     "getStartedTitle": "Get started on AidNet",
-    "getStartedBody": "You're not part of an organization yet. Support a live campaign, or start raising funds — on your own, with a new organization, or through an invite.",
+    "getStartedBody": "Support a live campaign, or start fundraising.",
     "browseCampaigns": "Browse Campaigns",
     "createOrganization": "Register a new organization",
     "joinOrganization": "I have an invite",
