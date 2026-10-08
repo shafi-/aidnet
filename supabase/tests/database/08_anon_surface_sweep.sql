@@ -12,7 +12,7 @@
 -- ============================================================================
 
 BEGIN;
-SELECT plan(30);
+SELECT plan(40);
 
 INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at) VALUES
   ('9a1a1a1a-1111-4111-8111-a1a1a1a1a1a1', 'sweep-owner@test.local',    '', now()),
@@ -112,6 +112,20 @@ SELECT is((SELECT count(*) FROM subscription_history),0::bigint, 'anon: subscrip
 SELECT is((SELECT count(*) FROM subscription_plans WHERE name = 'Sweep Plan'), 0::bigint,
   'anon: subscription_plans hidden');
 
+-- Views run with OWNER privileges (no security_invoker), so any SELECT
+-- grant on them bypasses base-table RLS entirely. Direct access is
+-- revoked (20261008180847); these stay locked or the suite fails.
+SELECT throws_ok('SELECT count(*) FROM profile_view', '42501', NULL,
+  'anon: profile_view revoked (owner-rights view)');
+SELECT throws_ok('SELECT count(*) FROM member_view', '42501', NULL,
+  'anon: member_view revoked (owner-rights view)');
+SELECT throws_ok('SELECT count(*) FROM organization_view', '42501', NULL,
+  'anon: organization_view revoked (owner-rights view)');
+SELECT throws_ok('SELECT count(*) FROM organization_detail_view', '42501', NULL,
+  'anon: organization_detail_view revoked (owner-rights view)');
+SELECT throws_ok('SELECT count(*) FROM role_view', '42501', NULL,
+  'anon: role_view revoked (owner-rights view)');
+
 -- The ONE deliberate public surface: live campaigns only.
 SELECT is(
   (SELECT count(*) FROM campaigns WHERE slug IN ('sweep-draft','sweep-live')),
@@ -166,6 +180,19 @@ SELECT is((SELECT count(*) FROM profiles WHERE id <> auth.uid()), 0::bigint,
 SELECT is((SELECT count(*) FROM subscription_history),0::bigint, 'auth-outsider: subscription_history hidden');
 SELECT is((SELECT count(*) FROM campaigns WHERE slug = 'sweep-draft'),
   0::bigint, 'auth-outsider: drafts hidden even when live ones exist');
+
+-- Same view lockout as the anon section: authenticated roles have no
+-- direct view access either (function-only API surface).
+SELECT throws_ok('SELECT count(*) FROM profile_view', '42501', NULL,
+  'auth-outsider: profile_view revoked (owner-rights view)');
+SELECT throws_ok('SELECT count(*) FROM member_view', '42501', NULL,
+  'auth-outsider: member_view revoked (owner-rights view)');
+SELECT throws_ok('SELECT count(*) FROM organization_view', '42501', NULL,
+  'auth-outsider: organization_view revoked (owner-rights view)');
+SELECT throws_ok('SELECT count(*) FROM organization_detail_view', '42501', NULL,
+  'auth-outsider: organization_detail_view revoked (owner-rights view)');
+SELECT throws_ok('SELECT count(*) FROM role_view', '42501', NULL,
+  'auth-outsider: role_view revoked (owner-rights view)');
 
 SELECT set_config('request.jwt.claim.sub', '', false);
 SELECT * FROM finish();
