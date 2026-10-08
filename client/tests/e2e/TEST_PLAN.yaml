@@ -35,7 +35,7 @@ architecture:
     enforced fail-closed by RouteAccessGuard in root layout. Unknown
     routes default to 'authenticated'. Admin denials are inline
     (Access Denied), not redirects.
-  pages_query_param_contract: "/orgs?id=, /orgs/public?id=, /campaigns/detail?id=, /invite?token=, /dashboard/campaigns/edit?id="
+  pages_query_param_contract: '/orgs?id=, /orgs/public?id=, /campaigns/detail?id=, /invite?token=, /dashboard/campaigns/edit?id='
   test_infra:
     global_setup: tests/e2e/global-setup.mjs (seeds auth users + demo data, idempotent)
     storage_states: tests/e2e/.auth/*.json (per role, regenerated per run, gitignored)
@@ -43,9 +43,11 @@ architecture:
     projects: setup → chromium, firefox, webkit, Mobile Chrome (responsive only), Mobile Safari
 
     seeded_users:
-      admin@donate.app:  system admin, NO org membership            (Password123!)
-      owner@donate.app:  org owner of demo-org, Pro plan            (Password123!)
+      admin@donate.app: system admin, NO org membership            (Password123!)
+      owner@donate.app: org owner of demo-org, Pro plan            (Password123!)
       member@donate.app: plain member of demo-org                   (Password123!)
+      individual@donate.app: org-less (personal-campaigns e2e; any personal
+        org left by earlier runs is swept at seed time) (Password123!)
     seeded_data:
       - demo-org (slug: demo-org) with donation methods (bKash/Nagad/bank/url)
       - 14 live demo campaigns (demo-campaign-1..14); demo-campaign-1 is zakat eligible
@@ -66,48 +68,91 @@ auth_flow:
     systemAdmin: '"/admin/*" — inline deny for non-admins'
   fail_closed: unknown/unlisted routes require authentication.
   flows_under_test:
-    register:      valid signup → session → redirect to dashboard;
-                   mismatched passwords and short password rejected client-side.
-    login:         valid creds → dashboard; invalid creds → visible error;
-                   cross-links to register / reset-password / home.
-    reset:         submit email → "check your email" state; repeatable.
-    session_nav:   signed-in nav shows Dashboard/Profile/email + Sign out;
-                   sign out → login. Signed-out access to gated routes →
-                   redirect to /auth/login.
+    register: valid signup → session → redirect to dashboard;
+      mismatched passwords and short password rejected client-side.
+    login: valid creds → dashboard; invalid creds → visible error;
+      cross-links to register / reset-password / home.
+    reset: submit email → "check your email" state; repeatable.
+    session_nav: signed-in nav shows Dashboard/Profile/email + Sign out;
+      sign out → login. Signed-out access to gated routes →
+      redirect to /auth/login.
 
 # ---------------------------------------------------------------------
 # 3. PAGE INVENTORY
 # ---------------------------------------------------------------------
 pages:
-  - { route: "/",                     access: public,        suite: landing.spec.ts }
-  - { route: "/about",                access: public,        suite: about-privacy.spec.ts }
-  - { route: "/privacy",              access: public,        suite: about-privacy.spec.ts }
-  - { route: "/auth/login",           access: public,        suite: auth.spec.ts }
-  - { route: "/auth/register",        access: public,        suite: auth.spec.ts }
-  - { route: "/auth/reset-password",  access: public,        suite: auth.spec.ts }
-  - { route: "/campaigns",            access: public,        suite: campaigns.spec.ts }
-  - { route: "/campaigns/detail",     access: public,        suite: campaign-detail.spec.ts }
-  - { route: "/orgs/public",          access: public,        suite: public-org.spec.ts }
-  - { route: "/invite",               access: public,        suite: dashboard-org.spec.ts (invite accept) }
-  - { route: "/orgs",                 access: authenticated, suite: orgs-management.spec.ts }
-  - { route: "/org/request",          access: authenticated, suite: org-request-flow.spec.ts }
-  - { route: "/dashboard",            access: authenticated, suite: dashboard.spec.ts }
-  - { route: "/dashboard/campaigns(/new|/edit)", access: authenticated, suite: dashboard-campaigns.spec.ts }
-  - { route: "/dashboard org tabs (members/settings/billing)", access: authenticated, suite: dashboard-org.spec.ts + subscription.spec.ts }
-  - { route: "/profile",              access: authenticated, suite: profile.spec.ts }
-  - { route: "/admin",                access: systemAdmin,   suite: admin.spec.ts }
-  - { route: "/admin/org-requests",   access: systemAdmin,   suite: admin-management.spec.ts + org-provisioning.spec.ts }
-  - { route: "/admin/orgs",           access: systemAdmin,   suite: admin-management.spec.ts }
-  - { route: "/admin/plans",          access: systemAdmin,   suite: admin-management.spec.ts }
-  - { route: "/admin/subscriptions",  access: systemAdmin,   suite: admin-management.spec.ts }
-  - { route: "/admin/campaigns",      access: systemAdmin,   suite: admin-management.spec.ts + campaigns.spec.ts (verify journey) }
-  - { route: "unknown route (404)",   access: fail-closed,   suite: navigation.spec.ts }
+  - { route: '/', access: public, suite: landing.spec.ts }
+  - { route: '/about', access: public, suite: about-privacy.spec.ts }
+  - { route: '/privacy', access: public, suite: about-privacy.spec.ts }
+  - { route: '/auth/login', access: public, suite: auth.spec.ts }
+  - { route: '/auth/register', access: public, suite: auth.spec.ts }
+  - { route: '/auth/reset-password', access: public, suite: auth.spec.ts }
+  - { route: '/campaigns', access: public, suite: campaigns.spec.ts }
+  - {
+      route: '/campaigns/detail',
+      access: public,
+      suite: campaign-detail.spec.ts,
+    }
+  - { route: '/orgs/public', access: public, suite: public-org.spec.ts }
+  - {
+      route: '/invite',
+      access: public,
+      suite: protected-pages.spec.ts (paste-join journey + error states),
+    }
+  - { route: '/orgs', access: authenticated, suite: orgs-management.spec.ts }
+  - {
+      route: '/org/request',
+      access: authenticated,
+      suite: org-request-flow.spec.ts,
+    }
+  - { route: '/dashboard', access: authenticated, suite: dashboard.spec.ts }
+  - {
+      route: '/dashboard/campaigns(/new|/edit)',
+      access: authenticated,
+      suite: dashboard-campaigns.spec.ts + personal-campaigns.spec.ts (individual journey),
+    }
+  - {
+      route: '/dashboard org tabs (members/settings/billing)',
+      access: authenticated,
+      suite: dashboard-org.spec.ts + subscription.spec.ts,
+    }
+  - { route: '/profile', access: authenticated, suite: profile.spec.ts }
+  - { route: '/admin', access: systemAdmin, suite: admin.spec.ts }
+  - {
+      route: '/admin/org-requests',
+      access: systemAdmin,
+      suite: admin-management.spec.ts + org-provisioning.spec.ts,
+    }
+  - {
+      route: '/admin/orgs',
+      access: systemAdmin,
+      suite: admin-management.spec.ts,
+    }
+  - {
+      route: '/admin/plans',
+      access: systemAdmin,
+      suite: admin-management.spec.ts,
+    }
+  - {
+      route: '/admin/subscriptions',
+      access: systemAdmin,
+      suite: admin-management.spec.ts,
+    }
+  - {
+      route: '/admin/campaigns',
+      access: systemAdmin,
+      suite: admin-management.spec.ts + campaigns.spec.ts (verify journey),
+    }
+  - {
+      route: 'unknown route (404)',
+      access: fail-closed,
+      suite: navigation.spec.ts,
+    }
 
 # ---------------------------------------------------------------------
 # 4. FEATURE DOMAINS & SCENARIOS (when → expected behaviour)
 # ---------------------------------------------------------------------
 features:
-
   auth:
     owns: auth.spec.ts
     scenarios:
@@ -179,6 +224,19 @@ features:
         expect: NOT publicly visible (only verified live campaigns are public)
       - status: covered
 
+  individual_campaign_journey:
+    owns: personal-campaigns.spec.ts
+    scenarios:
+      - when: org-less user opens /dashboard/campaigns/new
+        expect: plain-language choice screen — "Start my own fundraiser" (primary), "Register a new organization", "I have an invite"
+      - when: own-fundraiser option clicked
+        expect: personal org lazily provisioned + selected; regular form renders
+      - when: campaign created with payment channels as individual
+        expect: 'campaign listed under the personal org; channels saved per campaign (contract via RPC: kind=personal, admin/owner membership, get_campaign_payment_methods)'
+      - when: admin verifies the personal campaign
+        expect: live publicly; anon detail serves the campaign's own payment channels
+      - status: covered
+
   public_org_profile:
     owns: public-org.spec.ts
     scenarios:
@@ -230,6 +288,15 @@ features:
         expect: org settings form saves
       - when: invite accepted at /invite
         expect: token validated then membership granted via accept_invite
+      - status: covered
+
+  join_via_invite:
+    owns: protected-pages.spec.ts
+    scenarios:
+      - when: user opens /invite with no token (from "I have an invite")
+        expect: paste-entry form; pasted code or full invite link routes into the token flow; help text offers the own-fundraiser path when there is no invite
+      - when: invited user pastes a valid invite and accepts
+        expect: membership granted; user redirected to /orgs (shared joiner fixture restored to org-less afterwards)
       - status: covered
 
   campaigns_owner_workspace:
@@ -357,4 +424,3 @@ definition_of_done:
   - playwright test --list parses for every touched spec
   - e2e green locally: supabase start && supabase db reset && ./supabase/seed-auth.sh && pnpm test:e2e
   - every scenario above traces to exactly one owning spec
-

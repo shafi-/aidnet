@@ -24,9 +24,25 @@ meta:
   seed:
     script: supabase/seed-auth.sh
     users:
-      - { email: admin@donate.app,  password: Password123!, role: systemAdmin }
-      - { email: owner@donate.app,  password: Password123!, role: orgOwner, org: demo-org }
-      - { email: member@donate.app, password: Password123!, role: orgMember, org: demo-org }
+      - { email: admin@donate.app, password: Password123!, role: systemAdmin }
+      - {
+          email: owner@donate.app,
+          password: Password123!,
+          role: orgOwner,
+          org: demo-org,
+        }
+      - {
+          email: member@donate.app,
+          password: Password123!,
+          role: orgMember,
+          org: demo-org,
+        }
+      - {
+          email: individual@donate.app,
+          password: Password123!,
+          role: individual,
+          org: null,
+        }
     data:
       - 14 live demo campaigns (demo-campaign-1..14, one zakat-eligible)
       - draft campaign demo-draft-tagged with tags [education, health]
@@ -34,24 +50,96 @@ meta:
       - donation methods for demo-org
 
 scenarios:
-
   # ------------------------------------------------ auth.spec.ts
   - spec: auth.spec.ts
     area: Authentication
     notes: auth-flow spec — logs in via UI, never uses cached states
     scenarios:
-      - { title: When anon opens register, form fields render,             actor: anon, type: ui, setup: seeded }
-      - { title: When passwords do not match, error is shown,              actor: anon, type: ui, setup: seeded }
-      - { title: When password too short, error is shown,                  actor: anon, type: ui, setup: seeded }
-      - { title: When user clicks Sign in, navigates to login,             actor: anon, type: ui, setup: seeded }
-      - { title: When user clicks Back to home, navigates to /,            actor: anon, type: ui, setup: seeded }
-      - { title: When anon submits valid registration, redirected to dashboard, actor: newUser, type: ui, setup: fresh }
-      - { title: When anon opens login, form fields render,                actor: anon, type: ui, setup: seeded }
-      - { title: When invalid credentials submitted, error message is shown, actor: anon, type: ui, setup: seeded }
-      - { title: When user clicks Forgot password?, navigates to reset-password, actor: anon, type: ui, setup: seeded }
-      - { title: When valid credentials submitted, redirected to dashboard, actor: orgOwner, type: api+ui, setup: seeded, contract: signIn() returns access_token before UI login }
-      - { title: When anon opens reset-password, email form renders,       actor: anon, type: ui, setup: seeded }
-      - { title: When valid email submitted, check-your-email and back-to-login show, actor: anon, type: ui, setup: seeded }
+      - {
+          title: When anon opens register,
+          form fields render,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When passwords do not match,
+          error is shown,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When password too short,
+          error is shown,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When user clicks Sign in,
+          navigates to login,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When user clicks Back to home,
+          navigates to /,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When anon submits valid registration,
+          redirected to dashboard,
+          actor: newUser,
+          type: ui,
+          setup: fresh,
+        }
+      - {
+          title: When anon opens login,
+          form fields render,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When invalid credentials submitted,
+          error message is shown,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When user clicks Forgot password?,
+          navigates to reset-password,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When valid credentials submitted,
+          redirected to dashboard,
+          actor: orgOwner,
+          type: api+ui,
+          setup: seeded,
+          contract: signIn() returns access_token before UI login,
+        }
+      - {
+          title: When anon opens reset-password,
+          email form renders,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When valid email submitted,
+          check-your-email and back-to-login show,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
       - title: When reset requested repeatedly, feedback stays consistent
         actor: anon
         type: ui
@@ -62,8 +150,20 @@ scenarios:
   - spec: landing.spec.ts
     area: Landing page
     scenarios:
-      - { title: When anon loads landing, welcome content renders,         actor: anon, type: ui, setup: seeded }
-      - { title: When anon loads landing, feature cards render,            actor: anon, type: ui, setup: seeded }
+      - {
+          title: When anon loads landing,
+          welcome content renders,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When anon loads landing,
+          feature cards render,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
       - title: When anon clicks See more, navigates to campaigns browse
         actor: anon
         type: ui
@@ -74,18 +174,53 @@ scenarios:
         type: ui
         setup: seeded
         notes: early-returns when no live campaigns; asserts /campaigns/detail?slug= URL
-      - { title: When anon loads landing, Latest Campaigns section is visible, actor: anon, type: ui, setup: seeded }
-      - { title: When anon loads landing, nav shows brand and auth links,  actor: anon, type: ui, setup: seeded }
-      - { title: When anon clicks hero Sign In, navigates to login,        actor: anon, type: ui, setup: seeded }
-      - { title: When anon clicks hero Get Started, navigates to register, actor: anon, type: ui, setup: seeded }
-      - { title: When anon clicks nav Sign In, navigates to login,         actor: anon, type: ui, setup: seeded }
-      - { title: When anon clicks nav Campaigns, navigates to browse,      actor: anon, type: ui, setup: seeded }
+      - {
+          title: When anon loads landing,
+          Latest Campaigns section is visible,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When anon loads landing,
+          nav shows brand and auth links,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When anon clicks hero Sign In,
+          navigates to login,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When anon clicks hero Get Started,
+          navigates to register,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When anon clicks nav Sign In,
+          navigates to login,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When anon clicks nav Campaigns,
+          navigates to browse,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
       - title: When authenticated, landing nav shows Dashboard and Profile links
         actor: systemAdmin
         type: ui
         setup: seeded
         auth: storageState systemAdmin
-
 
   # ------------------------------------------------ campaigns.spec.ts
   - spec: campaigns.spec.ts
@@ -96,10 +231,34 @@ scenarios:
         type: api+ui
         setup: seeded
         contract: get_public_campaigns (anon) > 0, first title visible in UI
-      - { title: When anon clicks Zakat Eligible, URL gets zakat=true and filter stays active, actor: anon, type: ui, setup: seeded }
-      - { title: When anon opens an unavailable campaign slug, Campaign Not Available is shown, actor: anon, type: ui, setup: seeded }
-      - { title: When anon clicks Clear filter, URL returns to /campaigns, actor: anon, type: ui, setup: seeded }
-      - { title: When anon clicks Home, navigates to landing,              actor: anon, type: ui, setup: seeded }
+      - {
+          title: When anon clicks Zakat Eligible,
+          URL gets zakat=true and filter stays active,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When anon opens an unavailable campaign slug,
+          Campaign Not Available is shown,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When anon clicks Clear filter,
+          URL returns to /campaigns,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When anon clicks Home,
+          navigates to landing,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
       - serial: true
         title: Founder + Admin lifecycle
         steps:
@@ -121,13 +280,57 @@ scenarios:
             contract: get_campaign_by_slug with anon key only returns the published campaign
       - known_issue: duplicates landing.spec.ts See-more / Latest-Campaigns scenarios (3 tests) — guideline violation, planned for removal
 
+  # ------------------------------------------------ personal-campaigns.spec.ts
+  - spec: personal-campaigns.spec.ts
+    area: Individual fundraiser (personal org + per-campaign payments)
+    scenarios:
+      - serial: true
+        title: Individual fundraiser journey
+        steps:
+          - title: When an org-less user creates as individual, the campaign is saved under the provisioned personal org
+            actor: individual
+            type: ui
+            setup: seeded (org-less; personal org swept at seed time)
+            contract: ensure_my_personal_org provisions kind=personal org with sole admin/owner membership
+            produces: campaign slug (E2E Personal <ts>) + bkash channel
+          - title: When provisioning happened, the personal org, membership and campaign payment channels check out via RPC
+            actor: individual
+            type: api
+            setup: fresh
+            consumes: slug from step 1
+            contract: get_my_organizations (kind=personal), get_membership (admin/owner), get_campaign_payment_methods (bkash)
+          - title: When admin verifies the personal campaign, it goes live publicly with its own payment channels
+            actor: systemAdmin
+            type: ui+api
+            setup: fresh
+            consumes: slug from step 1
+            contract: get_public_campaign_by_slug (anon) serves the campaign's own donation_methods
+
   # ------------------------------------------------ campaign-detail.spec.ts
   - spec: campaign-detail.spec.ts
     area: Campaign detail
     scenarios:
-      - { title: When unknown slug opened, Campaign Not Available is shown, actor: anon, type: ui, setup: seeded }
-      - { title: When slug missing, missing-slug error is shown,            actor: anon, type: ui, setup: seeded }
-      - { title: When user clicks back link, navigates to campaigns list,   actor: anon, type: ui, setup: seeded }
+      - {
+          title: When unknown slug opened,
+          Campaign Not Available is shown,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When slug missing,
+          missing-slug error is shown,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When user clicks back link,
+          navigates to campaigns list,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
       - serial: true
         title: Campaign lifecycle - public visibility rules
         auth: storageState orgOwner
@@ -148,12 +351,49 @@ scenarios:
     area: Dashboard campaigns (owner)
     auth: storageState orgOwner
     scenarios:
-      - { title: When owner loads /dashboard/campaigns, list and New Campaign link show, actor: orgOwner, type: ui, setup: seeded }
-      - { title: When owner clicks New Campaign, navigates to campaign form, actor: orgOwner, type: ui, setup: seeded }
-      - { title: When owner opens campaign form, all fields are present,    actor: orgOwner, type: ui, setup: seeded }
-      - { title: When owner submits campaign form, returns to campaigns list, actor: orgOwner, type: ui, setup: fresh }
-      - { title: When owner clicks Cancel on form, returns to campaigns list, actor: orgOwner, type: ui, setup: seeded }
-      - { title: When campaigns exist, each shows an Edit link,             actor: orgOwner, type: ui, setup: seeded, notes: early-return when empty }
+      - {
+          title: When owner loads /dashboard/campaigns,
+          list and New Campaign link show,
+          actor: orgOwner,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When owner clicks New Campaign,
+          navigates to campaign form,
+          actor: orgOwner,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When owner opens campaign form,
+          all fields are present,
+          actor: orgOwner,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When owner submits campaign form,
+          returns to campaigns list,
+          actor: orgOwner,
+          type: ui,
+          setup: fresh,
+        }
+      - {
+          title: When owner clicks Cancel on form,
+          returns to campaigns list,
+          actor: orgOwner,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When campaigns exist,
+          each shows an Edit link,
+          actor: orgOwner,
+          type: ui,
+          setup: seeded,
+          notes: early-return when empty,
+        }
       - title: When owner edits tags and saves, selection persists (Education + Health)
         actor: orgOwner
         type: ui
@@ -169,14 +409,55 @@ scenarios:
     area: Dashboard (user)
     notes: logs in via UI in every test — candidate for storageState refactor
     scenarios:
-      - { title: When not authenticated, /dashboard redirects to login,    actor: anon, type: ui, setup: seeded }
-      - { title: When authenticated, dashboard shows welcome and heading,  actor: orgOwner, type: ui, setup: seeded }
-      - { title: When authenticated, dashboard shows org and profile links, actor: orgOwner, type: ui, setup: seeded }
-      - { title: When authenticated, dashboard shows card sections,        actor: orgOwner, type: ui, setup: seeded }
-      - { title: When authenticated, dashboard shows Quick Stats section,  actor: orgOwner, type: ui, setup: seeded }
-      - { title: When authed user clicks their email in nav, navigates to profile, actor: orgOwner, type: ui, setup: seeded }
-      - { title: When authed user clicks Sign out, redirected to login,    actor: orgOwner, type: ui, setup: seeded }
-
+      - {
+          title: When not authenticated,
+          /dashboard redirects to login,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When authenticated,
+          dashboard shows welcome and heading,
+          actor: orgOwner,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When authenticated,
+          dashboard shows org and profile links,
+          actor: orgOwner,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When authenticated,
+          dashboard shows card sections,
+          actor: orgOwner,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When authenticated,
+          dashboard shows Quick Stats section,
+          actor: orgOwner,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When authed user clicks their email in nav,
+          navigates to profile,
+          actor: orgOwner,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When authed user clicks Sign out,
+          redirected to login,
+          actor: orgOwner,
+          type: ui,
+          setup: seeded,
+        }
 
   # ------------------------------------------------ dashboard-org.spec.ts
   - spec: dashboard-org.spec.ts
@@ -184,11 +465,46 @@ scenarios:
     auth: storageState orgOwner
     notes: tab visibility depends on active subscription features fetched in beforeAll
     scenarios:
-      - { title: When owner opens dashboard, org name and Billing tab show, actor: orgOwner, type: ui, setup: seeded }
-      - { title: When members feature active, Members tab shows member list, actor: orgOwner, type: ui, setup: seeded, notes: feature-gated }
-      - { title: When members feature active, add-member form shows,       actor: orgOwner, type: ui, setup: seeded, notes: feature-gated }
-      - { title: When settings feature active, Settings tab shows org form, actor: orgOwner, type: ui, setup: seeded, notes: feature-gated }
-      - { title: When settings feature active, owner can save org settings, actor: orgOwner, type: ui, setup: seeded, notes: feature-gated, restores original name }
+      - {
+          title: When owner opens dashboard,
+          org name and Billing tab show,
+          actor: orgOwner,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When members feature active,
+          Members tab shows member list,
+          actor: orgOwner,
+          type: ui,
+          setup: seeded,
+          notes: feature-gated,
+        }
+      - {
+          title: When members feature active,
+          add-member form shows,
+          actor: orgOwner,
+          type: ui,
+          setup: seeded,
+          notes: feature-gated,
+        }
+      - {
+          title: When settings feature active,
+          Settings tab shows org form,
+          actor: orgOwner,
+          type: ui,
+          setup: seeded,
+          notes: feature-gated,
+        }
+      - {
+          title: When settings feature active,
+          owner can save org settings,
+          actor: orgOwner,
+          type: ui,
+          setup: seeded,
+          notes: feature-gated,
+          restores original name,
+        }
 
   # ------------------------------------------------ admin.spec.ts
   - spec: admin.spec.ts
@@ -196,10 +512,34 @@ scenarios:
     serial: true
     notes: logs in via UI per test — candidate for storageState refactor
     scenarios:
-      - { title: When system admin loads /admin, system stats are shown,   actor: systemAdmin, type: ui, setup: seeded }
-      - { title: When system admin views /admin, Review Orgs link is shown, actor: systemAdmin, type: ui, setup: seeded }
-      - { title: When admin clicks Review Orgs, navigates to /admin/org-requests, actor: systemAdmin, type: ui, setup: seeded }
-      - { title: When system admin loads /admin/org-requests, requests list renders, actor: systemAdmin, type: ui, setup: seeded }
+      - {
+          title: When system admin loads /admin,
+          system stats are shown,
+          actor: systemAdmin,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When system admin views /admin,
+          Review Orgs link is shown,
+          actor: systemAdmin,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When admin clicks Review Orgs,
+          navigates to /admin/org-requests,
+          actor: systemAdmin,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When system admin loads /admin/org-requests,
+          requests list renders,
+          actor: systemAdmin,
+          type: ui,
+          setup: seeded,
+        }
       - title: When system admin approves request, organization is created
         actor: newUser+systemAdmin
         type: ui
@@ -221,17 +561,87 @@ scenarios:
     area: System admin — plans, campaigns queue, subscriptions
     auth: storageState (admin describe / orgOwner denial describe)
     scenarios:
-      - { title: When system admin opens /admin/plans, plans management loads, actor: systemAdmin, type: ui, setup: seeded }
-      - { title: When admin opens Create Plan, form shows required fields, actor: systemAdmin, type: ui, setup: seeded }
-      - { title: When admin cancels Create Plan, form closes,              actor: systemAdmin, type: ui, setup: seeded }
-      - { title: When admin opens /admin/plans, seeded plans are listed,   actor: systemAdmin, type: ui, setup: seeded, asserts: Free/Pro/Enterprise }
-      - { title: When plans listed, each row offers edit and activate/deactivate, actor: systemAdmin, type: ui, setup: seeded }
-      - { title: When admin clicks Edit, form opens pre-filled,            actor: systemAdmin, type: ui, setup: seeded, risk: CSS-class locator }
-      - { title: When admin submits new plan, plan appears in table,       actor: systemAdmin, type: ui, setup: fresh, risk: CSS-class locator }
-      - { title: When admin opens /admin/campaigns, review queue loads,    actor: systemAdmin, type: ui, setup: seeded }
-      - { title: When admin opens /admin/campaigns, pending campaigns or empty state shows, actor: systemAdmin, type: ui, setup: seeded }
-      - { title: When admin opens /admin/subscriptions, heading and table render, actor: systemAdmin, type: ui, setup: seeded }
-      - { title: When org owner opens /admin/plans, Access Denied is shown, actor: orgOwner, type: ui, setup: seeded, asserts: route-gating deny path }
+      - {
+          title: When system admin opens /admin/plans,
+          plans management loads,
+          actor: systemAdmin,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When admin opens Create Plan,
+          form shows required fields,
+          actor: systemAdmin,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When admin cancels Create Plan,
+          form closes,
+          actor: systemAdmin,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When admin opens /admin/plans,
+          seeded plans are listed,
+          actor: systemAdmin,
+          type: ui,
+          setup: seeded,
+          asserts: Free/Pro/Enterprise,
+        }
+      - {
+          title: When plans listed,
+          each row offers edit and activate/deactivate,
+          actor: systemAdmin,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When admin clicks Edit,
+          form opens pre-filled,
+          actor: systemAdmin,
+          type: ui,
+          setup: seeded,
+          risk: CSS-class locator,
+        }
+      - {
+          title: When admin submits new plan,
+          plan appears in table,
+          actor: systemAdmin,
+          type: ui,
+          setup: fresh,
+          risk: CSS-class locator,
+        }
+      - {
+          title: When admin opens /admin/campaigns,
+          review queue loads,
+          actor: systemAdmin,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When admin opens /admin/campaigns,
+          pending campaigns or empty state shows,
+          actor: systemAdmin,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When admin opens /admin/subscriptions,
+          heading and table render,
+          actor: systemAdmin,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When org owner opens /admin/plans,
+          Access Denied is shown,
+          actor: orgOwner,
+          type: ui,
+          setup: seeded,
+          asserts: route-gating deny path,
+        }
 
   # ------------------------------------------------ subscription.spec.ts
   - spec: subscription.spec.ts
@@ -239,16 +649,76 @@ scenarios:
     serial: true
     notes: logs in via UI per test — candidate for storageState refactor
     scenarios:
-      - { title: When system admin views /admin, Subscription Plans link is shown, actor: systemAdmin, type: ui, setup: seeded }
-      - { title: When admin clicks Subscription Plans, navigates to /admin/plans, actor: systemAdmin, type: ui, setup: seeded }
-      - { title: When admin opens /admin/plans, plans table renders with columns, actor: systemAdmin, type: ui, setup: seeded }
-      - { title: When admin opens /admin/plans, Create Plan button is shown, actor: systemAdmin, type: ui, setup: seeded }
-      - { title: When admin opens /admin/plans, seeded plans are listed,   actor: systemAdmin, type: ui, setup: seeded }
-      - { title: When admin clicks Create Plan, form opens,                actor: systemAdmin, type: ui, setup: seeded }
-      - { title: When system admin views /admin, Organization Subscriptions link is shown, actor: systemAdmin, type: ui, setup: seeded }
-      - { title: When admin clicks Organization Subscriptions, navigates,  actor: systemAdmin, type: ui, setup: seeded }
-      - { title: When admin opens /admin/subscriptions, table with columns renders, actor: systemAdmin, type: ui, setup: seeded }
-      - { title: When admin opens /admin/subscriptions, shows rows or empty state, actor: systemAdmin, type: ui, setup: seeded }
+      - {
+          title: When system admin views /admin,
+          Subscription Plans link is shown,
+          actor: systemAdmin,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When admin clicks Subscription Plans,
+          navigates to /admin/plans,
+          actor: systemAdmin,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When admin opens /admin/plans,
+          plans table renders with columns,
+          actor: systemAdmin,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When admin opens /admin/plans,
+          Create Plan button is shown,
+          actor: systemAdmin,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When admin opens /admin/plans,
+          seeded plans are listed,
+          actor: systemAdmin,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When admin clicks Create Plan,
+          form opens,
+          actor: systemAdmin,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When system admin views /admin,
+          Organization Subscriptions link is shown,
+          actor: systemAdmin,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When admin clicks Organization Subscriptions,
+          navigates,
+          actor: systemAdmin,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When admin opens /admin/subscriptions,
+          table with columns renders,
+          actor: systemAdmin,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When admin opens /admin/subscriptions,
+          shows rows or empty state,
+          actor: systemAdmin,
+          type: ui,
+          setup: seeded,
+        }
       - title: When system admin promotes another user, grant_system_admin works
         actor: newUser+systemAdmin
         type: api+ui
@@ -315,14 +785,33 @@ scenarios:
     serial: true
     notes: fresh-user identities by design — UI login is intentional here
     scenarios:
-      - { title: When org is created, metadata is auto-initialized,        actor: newUser+systemAdmin, type: ui, setup: fresh }
-      - { title: When org_admin updates org metadata, changes persist,     actor: newUser+systemAdmin, type: ui, setup: fresh, asserts: reload shows updated name in org settings }
+      - {
+          title: When org is created,
+          metadata is auto-initialized,
+          actor: newUser+systemAdmin,
+          type: ui,
+          setup: fresh,
+        }
+      - {
+          title: When org_admin updates org metadata,
+          changes persist,
+          actor: newUser+systemAdmin,
+          type: ui,
+          setup: fresh,
+          asserts: reload shows updated name in org settings,
+        }
       - title: When org has different metadata, displays correctly in org list
         actor: newUser
         type: ui
         setup: fresh
         asserts: user1 sees only org1 link, org2 count 0
-      - { title: When org is suspended, metadata remains but UI shows suspension, actor: newUser+systemAdmin, type: ui, setup: fresh }
+      - {
+          title: When org is suspended,
+          metadata remains but UI shows suspension,
+          actor: newUser+systemAdmin,
+          type: ui,
+          setup: fresh,
+        }
 
   # ------------------------------------------------ security-org-selection.spec.ts
   - spec: security-org-selection.spec.ts
@@ -335,8 +824,22 @@ scenarios:
         type: ui
         setup: fresh
         asserts: tampered id gone from localStorage after provider restore
-      - { title: When user tries to select suspended org via URL, it is blocked, actor: newUser+systemAdmin, type: ui, setup: fresh }
-      - { title: When HTML manipulation attempts currentOrg, protection works, actor: newUser, type: ui, setup: fresh, asserts: XSS payload id cleared, never rendered }
+      - {
+          title: When user tries to select suspended org via URL,
+          it is blocked,
+          actor: newUser+systemAdmin,
+          type: ui,
+          setup: fresh,
+        }
+      - {
+          title: When HTML manipulation attempts currentOrg,
+          protection works,
+          actor: newUser,
+          type: ui,
+          setup: fresh,
+          asserts: XSS payload id cleared,
+          never rendered,
+        }
       - title: When multiple users access same org, isolation is maintained
         actor: newUser
         type: ui
@@ -349,31 +852,132 @@ scenarios:
     auth: anon
     notes: uses seeded demo-org slug; env-guarded via beforeAll skip
     scenarios:
-      - { title: When valid slug opened, public org page shows org info,   actor: anon, type: ui, setup: seeded, subject: demo-org }
-      - { title: When public org page opened, Sign In and Create Account links are shown, actor: anon, type: ui, setup: seeded }
-      - { title: When public org page opened, created date is shown,       actor: anon, type: ui, setup: seeded }
-      - { title: When invalid slug opened, Organization Not Found is shown, actor: anon, type: ui, setup: seeded }
-      - { title: When empty slug opened, Organization Not Found is shown,  actor: anon, type: ui, setup: seeded }
+      - {
+          title: When valid slug opened,
+          public org page shows org info,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+          subject: demo-org,
+        }
+      - {
+          title: When public org page opened,
+          Sign In and Create Account links are shown,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When public org page opened,
+          created date is shown,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When invalid slug opened,
+          Organization Not Found is shown,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When empty slug opened,
+          Organization Not Found is shown,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
 
   # ------------------------------------------------ protected-pages.spec.ts
   - spec: protected-pages.spec.ts
     area: Route protection
     notes: UI login per test — candidate for storageState refactor
     scenarios:
-      - { title: When not authenticated, /profile redirects to login,      actor: anon, type: ui, setup: seeded }
-      - { title: When authenticated, profile shows the user email,         actor: orgOwner, type: ui, setup: seeded }
-      - { title: When not authenticated, visiting /orgs redirects to login, actor: anon, type: ui, setup: seeded }
-      - { title: When authenticated, /orgs shows the organization list,    actor: orgOwner, type: ui, setup: seeded, asserts: Request Organization link }
-      - { title: When email submitted against unknown token, Invalid Invite is shown, actor: anon, type: ui, setup: seeded, notes: 64-hex unknown token, full validate_invite round-trip }
-      - { title: When malformed token submitted with email, Invalid Invite is shown, actor: anon, type: ui, setup: seeded }
-      - { title: When empty token supplied, invite page renders,           actor: anon, type: ui, setup: seeded, risk: tautological body-visible assertion }
+      - {
+          title: When not authenticated,
+          /profile redirects to login,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When authenticated,
+          profile shows the user email,
+          actor: orgOwner,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When not authenticated,
+          visiting /orgs redirects to login,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When authenticated,
+          /orgs shows the organization list,
+          actor: orgOwner,
+          type: ui,
+          setup: seeded,
+          asserts: Request Organization link,
+        }
+      - {
+          title: When email submitted against unknown token,
+          Invalid Invite is shown,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+          notes: 64-hex unknown token,
+          full validate_invite round-trip,
+        }
+      - {
+          title: When malformed token submitted with email,
+          Invalid Invite is shown,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When empty token supplied,
+          invite page renders,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+          risk: tautological body-visible assertion,
+        }
+      - serial: true
+        title: Join an organization via pasted invite
+        steps:
+          - title: When the org owner invites an org-less user, an invite code exists
+            actor: orgOwner (api)
+            type: api
+            setup: seeded
+            contract: create_invite returns a token (stale invites for the joiner revoked first)
+            produces: invite token
+          - title: When the invited user pastes the invite link, they join the organization
+            actor: individual
+            type: ui+api
+            setup: fresh
+            consumes: token from step 1
+            contract: paste-entry routes into the token flow; accept_invite grants membership; teardown removes the joiner so the shared fixture stays org-less
+    notes: >-
+      The joiner is the shared individual@donate.app fixture; the journey
+      must leave them org-less (personal-campaigns.spec depends on it).
 
   # ------------------------------------------------ profile.spec.ts
   - spec: profile.spec.ts
     area: Profile
     notes: UI login via beforeEach (comment cites refresh-token rotation) — candidate for storageState
     scenarios:
-      - { title: When admin opens profile, form shows name input and email, actor: systemAdmin, type: ui, setup: seeded }
+      - {
+          title: When admin opens profile,
+          form shows name input and email,
+          actor: systemAdmin,
+          type: ui,
+          setup: seeded,
+        }
       - title: When admin opens profile, email shown matches the profile API
         actor: systemAdmin
         type: api+ui
@@ -384,15 +988,39 @@ scenarios:
         type: ui
         setup: seeded
         asserts: value survives reload, original restored afterwards
-      - { title: When admin opens profile, organization label is shown,    actor: systemAdmin, type: ui, setup: seeded }
-      - { title: When authed user clicks email in nav, navigates to profile, actor: systemAdmin, type: ui, setup: seeded }
+      - {
+          title: When admin opens profile,
+          organization label is shown,
+          actor: systemAdmin,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When authed user clicks email in nav,
+          navigates to profile,
+          actor: systemAdmin,
+          type: ui,
+          setup: seeded,
+        }
 
   # ------------------------------------------------ navigation.spec.ts
   - spec: navigation.spec.ts
     area: Static pages + 404
     scenarios:
-      - { title: When anon loads /about, about content renders,            actor: anon, type: ui, setup: seeded }
-      - { title: When anon loads /privacy, privacy policy renders,         actor: anon, type: ui, setup: seeded }
+      - {
+          title: When anon loads /about,
+          about content renders,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When anon loads /privacy,
+          privacy policy renders,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
       - title: When anon opens nonexistent route, 404 is returned
         actor: anon
         type: ui
@@ -403,19 +1031,68 @@ scenarios:
   - spec: about-privacy.spec.ts
     area: Static content
     scenarios:
-      - { title: When anon loads /about, heading and content render,       actor: anon, type: ui, setup: seeded }
-      - { title: When anon loads /privacy, policy sections render,         actor: anon, type: ui, setup: seeded }
+      - {
+          title: When anon loads /about,
+          heading and content render,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When anon loads /privacy,
+          policy sections render,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
       - known_issue: duplicates navigation.spec.ts /about /privacy coverage — consolidate into one owner
 
   # ------------------------------------------------ responsive.spec.ts
   - spec: responsive.spec.ts
     area: Responsive layouts (only spec scoped to mobile projects)
     scenarios:
-      - { title: When mobile viewport, landing page renders,               actor: anon, type: ui, setup: seeded, viewport: 375x812 }
-      - { title: When mobile viewport, auth login page renders,            actor: anon, type: ui, setup: seeded, viewport: 375x812 }
-      - { title: When mobile viewport, register page renders,              actor: anon, type: ui, setup: seeded, viewport: 375x812 }
-      - { title: When desktop viewport, landing shows 3 feature cards,     actor: anon, type: ui, setup: seeded, viewport: 1920x1080, risk: structural .grid > div locator }
-      - { title: When desktop viewport and authed, dashboard renders,      actor: orgOwner, type: ui, setup: seeded, viewport: 1920x1080, notes: UI login — candidate for storageState }
+      - {
+          title: When mobile viewport,
+          landing page renders,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+          viewport: 375x812,
+        }
+      - {
+          title: When mobile viewport,
+          auth login page renders,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+          viewport: 375x812,
+        }
+      - {
+          title: When mobile viewport,
+          register page renders,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+          viewport: 375x812,
+        }
+      - {
+          title: When desktop viewport,
+          landing shows 3 feature cards,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+          viewport: 1920x1080,
+          risk: structural .grid > div locator,
+        }
+      - {
+          title: When desktop viewport and authed,
+          dashboard renders,
+          actor: orgOwner,
+          type: ui,
+          setup: seeded,
+          viewport: 1920x1080,
+          notes: UI login — candidate for storageState,
+        }
 
   # ------------------------------------------------ orgs-management.spec.ts
   - spec: orgs-management.spec.ts
@@ -427,13 +1104,25 @@ scenarios:
         type: ui
         setup: seeded
         asserts: request-flow CTA, no inline Create button
-      - { title: When owner has orgs, they are listed as selectable links, actor: orgOwner, type: ui, setup: seeded }
+      - {
+          title: When owner has orgs,
+          they are listed as selectable links,
+          actor: orgOwner,
+          type: ui,
+          setup: seeded,
+        }
       - title: When owner clicks Request Organization, navigates to request page
         actor: orgOwner
         type: ui
         setup: seeded
         owner_of: /orgs -> /org/request navigation
-      - { title: When owner has existing orgs, shows them as clickable links, actor: orgOwner, type: ui, setup: seeded }
+      - {
+          title: When owner has existing orgs,
+          shows them as clickable links,
+          actor: orgOwner,
+          type: ui,
+          setup: seeded,
+        }
       - title: When owner clicks an org card, that org is selected
         actor: orgOwner
         type: ui
@@ -445,8 +1134,10 @@ summary:
   total_specs: 21
   counts_by_type:
     ui: majority
-    api: [org-provisioning.spec.ts, parts of campaigns/auth/profile/subscription]
-  cross_file_duplicates: [landing<->campaigns See-more, navigation<->about-privacy static pages]
+    api:
+      [org-provisioning.spec.ts, parts of campaigns/auth/profile/subscription]
+  cross_file_duplicates:
+    [landing<->campaigns See-more, navigation<->about-privacy static pages]
   guideline_violations_tracked:
     - test.fail(!slug) precondition guards (campaigns, campaign-detail)
     - CSS-class locators (admin/org-request/security/org-metadata card selectors)
