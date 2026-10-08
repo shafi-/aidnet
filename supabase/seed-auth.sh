@@ -10,6 +10,10 @@
 #   admin@donate.app      / Password123!  (system admin - NO org membership)
 #   owner@donate.app      / Password123!  (org owner - owns demo org)
 #   member@donate.app     / Password123!  (plain org member)
+#   individual@donate.app / Password123!  (org-less - for personal-campaigns e2e;
+#                                         the org-cleanup sweep below deletes any
+#                                         personal org left by earlier runs, so
+#                                         every run starts truly org-less)
 #   + 14 LIVE demo campaigns (1 zakat) + donation methods for the org
 # ====================================================================
 set -euo pipefail
@@ -21,6 +25,7 @@ PW="Password123!"
 ADMIN_EMAIL="admin@donate.app"
 OWNER_EMAIL="owner@donate.app"
 MEMBER_EMAIL="member@donate.app"
+INDIVIDUAL_EMAIL="individual@donate.app"
 
 # --- resolve service role key + db container -------------------------
 # The shared docker/ stack lives in the sibling platform repo
@@ -81,6 +86,7 @@ echo "==> creating auth users"
 create_user "$ADMIN_EMAIL"
 create_user "$OWNER_EMAIL"
 create_user "$MEMBER_EMAIL"
+create_user "$INDIVIDUAL_EMAIL"
 
 # --- clean up orgs created by previous e2e runs -----------------------
 # Tests create orgs via the request flow (random names + timestamps). Without

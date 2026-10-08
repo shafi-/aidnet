@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { rpc, signIn, USERS } from './lib/api'
 
 const OWNER = { email: 'owner@donate.app', password: 'Password123!' }
 
@@ -87,6 +88,122 @@ test.describe('Protected Pages', () => {
     test('When empty token supplied, invite page renders', async ({ page }) => {
       await page.goto('/invite/')
       await expect(page.locator('body')).toBeVisible()
+    })
+  })
+
+  test.describe('Join an organization via pasted invite', () => {
+    test.skip(
+      !process.env.NEXT_PUBLIC_SUPABASE_URL,
+      'NEXT_PUBLIC_SUPABASE_URL not set — run against a local Supabase instance'
+    )
+    test.use({ storageState: 'tests/e2e/.auth/individual.json' })
+
+    let inviteToken = ''
+
+    test('When the org owner invites an org-less user, an invite code exists', async ({
+      request,
+    }) => {
+      const owner = await signIn(
+        request,
+        USERS.orgOwner.email,
+        USERS.orgOwner.password
+      )
+      const orgs = await rpc<Array<{ id: string }>>(
+        request,
+        owner,
+        'get_my_organizations'
+      )
+      expect(orgs.length).toBeGreaterThan(0)
+      const orgId = orgs[0].id
+
+      // Revoke stale invites for the joiner so re-runs always start clean.
+      const existing = await rpc<
+        Array<{ id: string; email: string; accepted_at: string | null }>
+      >(request, owner, 'get_invites', { p_organization_id: orgId })
+      for (const inv of existing.filter(
+        i => i.email === USERS.individual.email
+      )) {
+        await rpc(request, owner, 'revoke_invite', { p_invite_id: inv.id })
+      }
+
+      const invite = await rpc<{ token: string }>(
+        request,
+        owner,
+        'create_invite',
+        {
+          p_organization_id: orgId,
+          p_email: USERS.individual.email,
+          p_role: 'member',
+        }
+      )
+      expect(invite?.token).toBeTruthy()
+      inviteToken = invite.token
+    })
+
+    test('When the invited user pastes the invite link, they join the organization', async ({
+      page,
+      request,
+    }) => {
+      test.skip(!inviteToken, 'invite was not created')
+
+      // No token in the URL: the paste-entry state of the join page.
+      await page.goto('/invite/')
+      await expect(
+        page.getByRole('heading', {
+          name: 'Were you invited to an organization?',
+        })
+      ).toBeVisible()
+
+      // Paste the FULL link — exercises the URL-parsing path.
+      await page
+        .getByPlaceholder('Paste invite link or code')
+        .fill(`http://localhost:3000/invite/?token=${inviteToken}`)
+      await page.getByRole('button', { name: 'Continue' }).click()
+
+      // The standard token flow takes over: email → org reveal → accept.
+      await page
+        .getByPlaceholder('you@example.com')
+        .fill(USERS.individual.email)
+      await page.getByRole('button', { name: 'Check Invite' }).click()
+      await expect(
+        page.getByRole('heading', { name: /Demo Organization/ })
+      ).toBeVisible()
+      await page.getByRole('button', { name: 'Accept Invitation' }).click()
+      await expect(
+        page.getByRole('heading', { name: 'Welcome!' })
+      ).toBeVisible()
+      await page.waitForURL(/\/orgs/, { timeout: 10000 })
+
+      // Teardown: the shared seeded joiner must end org-less again —
+      // personal-campaigns.spec depends on this fixture state.
+      const joiner = await signIn(
+        request,
+        USERS.individual.email,
+        USERS.individual.password
+      )
+      const profileRaw = await rpc<{ id: string } | Array<{ id: string }>>(
+        request,
+        joiner,
+        'get_my_profile'
+      )
+      const profile = Array.isArray(profileRaw) ? profileRaw[0] : profileRaw
+      const owner = await signIn(
+        request,
+        USERS.orgOwner.email,
+        USERS.orgOwner.password
+      )
+      const orgs = await rpc<Array<{ id: string }>>(
+        request,
+        owner,
+        'get_my_organizations'
+      )
+      const removed = await rpc<boolean>(
+        request,
+        owner,
+        'remove_organization_member',
+        { target_org_id: orgs[0].id, target_user_id: profile!.id }
+      )
+      expect(removed).toBe(true)
     })
   })
 })

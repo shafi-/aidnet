@@ -7,6 +7,7 @@ export const USERS = {
   systemAdmin: { email: 'admin@donate.app', password: 'Password123!' },
   orgOwner: { email: 'owner@donate.app', password: 'Password123!' },
   orgMember: { email: 'member@donate.app', password: 'Password123!' },
+  individual: { email: 'individual@donate.app', password: 'Password123!' },
 } as const
 
 export interface Session {
