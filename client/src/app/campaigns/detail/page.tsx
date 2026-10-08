@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { publicCampaignService } from '@/services/PublicCampaignService'
 import { donationReportService } from '@/services/DonationReportService'
+import { MapPin } from 'lucide-react'
 import { ReportDonationDialog } from '@/components/campaign/ReportDonationDialog'
 import type { PublicCampaign, PublicDonationReport } from '@/types'
 import { usePageTitle } from '@/hooks/usePageTitle'
@@ -148,6 +149,17 @@ function CampaignDetailContent() {
                   {campaign.org_name}
                 </Link>
               </p>
+              {campaign.address && (
+                <p className="flex items-center gap-1.5 text-sm text-gray-500">
+                  <MapPin className="h-4 w-4" aria-hidden="true" />
+                  <span>
+                    <span className="sr-only">
+                      {t('campaignDetail.address')}:{' '}
+                    </span>
+                    {campaign.address}
+                  </span>
+                </p>
+              )}
               {canEditCampaign && (
                 <Link
                   href={`/dashboard/campaigns/edit?id=${campaign.id}`}

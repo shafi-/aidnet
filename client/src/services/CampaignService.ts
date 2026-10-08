@@ -1,4 +1,6 @@
 import type {
+  CampaignBeneficiary,
+  CampaignBeneficiaryDto,
   Campaign,
   CampaignTag,
   CreateCampaignDto,
@@ -22,6 +24,17 @@ export class CampaignService {
     const { data, error } = await this.campaignRepo.createCampaign(dto)
     if (error) return { data: null, error }
     return { data: data?.[0] ?? null, error: null }
+  }
+
+  async setBeneficiary(
+    campaignId: string,
+    dto: CampaignBeneficiaryDto
+  ): ServiceData<null> {
+    return this.campaignRepo.setBeneficiary(campaignId, dto)
+  }
+
+  async getBeneficiary(campaignId: string): ServiceData<CampaignBeneficiary[]> {
+    return this.campaignRepo.getBeneficiary(campaignId)
   }
 
   async getCampaigns(orgId: string): ServiceData<CampaignRow[]> {

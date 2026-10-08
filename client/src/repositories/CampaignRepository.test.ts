@@ -27,6 +27,7 @@ describe('CampaignRepository', () => {
       p_start_date: null,
       p_end_date: null,
       p_is_zakat_eligible: false,
+      p_address: null,
     })
   })
 

@@ -1,10 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { campaignService } from '@/services/CampaignService'
+import { donationMethodService } from '@/services/DonationMethodService'
 import { useCampaignTags } from '@/hooks/useCampaigns'
-import type { Campaign, CreateCampaignDto, UpdateCampaignDto } from '@/types'
+import { useDonationMethods } from '@/hooks/useDonationMethods'
+import type {
+  Campaign,
+  CampaignBeneficiaryDto,
+  CreateCampaignDto,
+  DonationMethodDto,
+  UpdateCampaignDto,
+} from '@/types'
 
 export interface CampaignFormState {
   title: string
@@ -16,6 +24,7 @@ export interface CampaignFormState {
   startDate: string
   endDate: string
   isZakatEligible: boolean
+  address: string
 }
 
 const empty: CampaignFormState = {
@@ -28,6 +37,37 @@ const empty: CampaignFormState = {
   startDate: '',
   endDate: '',
   isZakatEligible: false,
+  address: '',
+}
+
+// Payment channels shown to donors on the public campaign page. These map
+// onto the org-level donation_methods the detail page already renders.
+export interface CampaignPaymentState {
+  bkashNumber: string
+  nagadNumber: string
+  rocketNumber: string
+  bankName: string
+  bankAccountNumber: string
+  donationUrl: string
+  instructions: string
+}
+
+const emptyPayment: CampaignPaymentState = {
+  bkashNumber: '',
+  nagadNumber: '',
+  rocketNumber: '',
+  bankName: '',
+  bankAccountNumber: '',
+  donationUrl: '',
+  instructions: '',
+}
+
+const emptyBeneficiary: CampaignBeneficiaryDto = {
+  fullName: '',
+  relationship: '',
+  phone: '',
+  nationalId: '',
+  documentUrl: '',
 }
 
 function slugify(s: string) {
@@ -37,6 +77,8 @@ function slugify(s: string) {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
 }
+
+const SLUG_FORMAT = /^[a-z0-9]+(-[a-z0-9]+)*$/
 
 /**
  * Owns all campaign-form state and writes. Components render it;
@@ -55,6 +97,7 @@ export function useCampaignForm({
 }) {
   const router = useRouter()
   const { tags, loading: tagsLoading } = useCampaignTags()
+  const { methods } = useDonationMethods(orgId)
   const [form, setForm] = useState<CampaignFormState>(
     initial
       ? {
@@ -68,19 +111,59 @@ export function useCampaignForm({
           startDate: initial.start_date ?? '',
           endDate: initial.end_date ?? '',
           isZakatEligible: initial.is_zakat_eligible ?? false,
+          address: initial.address ?? '',
         }
       : empty
   )
   const [selectedTags, setSelectedTags] = useState<string[]>(
     initial?.tags ?? []
   )
+  const [payment, setPaymentState] =
+    useState<CampaignPaymentState>(emptyPayment)
+  const [forPerson, setForPerson] = useState(false)
+  const [beneficiary, setBeneficiary] =
+    useState<CampaignBeneficiaryDto>(emptyBeneficiary)
+  const [paymentTouched, setPaymentTouched] = useState(false)
+
+  // Prefill payment channels from the org's existing donation methods so
+  // the campaign form shows what donors will actually see. Manual edits
+  // always win — the prefill runs once, before any user edit.
+  useEffect(() => {
+    if (paymentTouched || methods.length === 0) return
+    const m = methods[0]
+    setPaymentState({
+      bkashNumber: m.bkash_number ?? '',
+      nagadNumber: m.nagad_number ?? '',
+      rocketNumber: m.rocket_number ?? '',
+      bankName: m.bank_name ?? '',
+      bankAccountNumber: m.bank_account_number ?? '',
+      donationUrl: m.donation_url ?? '',
+      instructions: m.instructions ?? '',
+    })
+  }, [methods, paymentTouched])
+
+  const setPayment = useCallback((patch: Partial<CampaignPaymentState>) => {
+    setPaymentTouched(true)
+    setPaymentState(prev => ({ ...prev, ...patch }))
+  }, [])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Slug auto-generates from the title until the user edits it by hand.
+  // Edit mode starts "edited" so an existing campaign's URL is never
+  // silently rewritten just because the title changed.
+  const [slugEdited, setSlugEdited] = useState(mode === 'edit')
 
   const set = <K extends keyof CampaignFormState>(
     key: K,
     value: CampaignFormState[K]
-  ) => setForm(f => ({ ...f, [key]: value }))
+  ) => {
+    if (key === 'slug') setSlugEdited(true)
+    setForm(f => {
+      const next = { ...f, [key]: value }
+      if (key === 'title' && !slugEdited) next.slug = slugify(String(value))
+      return next
+    })
+  }
 
   const toggleTag = (id: string) =>
     setSelectedTags(prev =>
@@ -91,6 +174,8 @@ export function useCampaignForm({
 
   const validate = (): string | null => {
     if (!form.title.trim()) return 'Title is required'
+    if (forPerson && !beneficiary.fullName.trim())
+      return "Person's full name is required for person campaigns"
     if (form.goalAmount && isNaN(Number(form.goalAmount)))
       return 'Goal amount must be a number'
     if (form.goalAmount && Number(form.goalAmount) <= 0)
@@ -114,7 +199,25 @@ export function useCampaignForm({
       return
     }
 
-    const slug = form.slug || slugify(form.title)
+    const slug = form.slug.trim() || slugify(form.title)
+    const paymentDto: DonationMethodDto = {
+      bkashNumber: payment.bkashNumber || null,
+      nagadNumber: payment.nagadNumber || null,
+      rocketNumber: payment.rocketNumber || null,
+      bankName: payment.bankName || null,
+      bankAccountNumber: payment.bankAccountNumber || null,
+      donationUrl: payment.donationUrl || null,
+      instructions: payment.instructions || null,
+    }
+    const hasPayment = Object.values(paymentDto).some(v => v !== null)
+    if (!SLUG_FORMAT.test(slug)) {
+      setError(
+        'Slug is required and may only use lowercase letters, numbers and dashes'
+      )
+      setSaving(false)
+      return
+    }
+
     const goal = form.goalAmount ? Number(form.goalAmount) : null
 
     if (mode === 'create') {
@@ -129,6 +232,7 @@ export function useCampaignForm({
         startDate: form.startDate || null,
         endDate: form.endDate || null,
         isZakatEligible: form.isZakatEligible,
+        address: form.address || null,
       }
       const { data, error: err } = await campaignService.createCampaign(dto)
       if (err) {
@@ -137,6 +241,31 @@ export function useCampaignForm({
         return
       }
       const created = data
+      const savedId = created?.id
+      if (savedId && hasPayment) {
+        const { error: payErr } =
+          await donationMethodService.upsertDonationMethods(orgId, paymentDto)
+        if (payErr) {
+          setError(
+            `Campaign saved, but payment details could not be saved: ${payErr}`
+          )
+          setSaving(false)
+          return
+        }
+      }
+      if (savedId && forPerson) {
+        const { error: benErr } = await campaignService.setBeneficiary(
+          savedId,
+          beneficiary
+        )
+        if (benErr) {
+          setError(
+            `Campaign saved, but verification details could not be saved: ${benErr}`
+          )
+          setSaving(false)
+          return
+        }
+      }
       if (selectedTags.length && created?.id) {
         const { error: tagErr } = await campaignService.setCampaignTags(
           created.id,
@@ -160,6 +289,7 @@ export function useCampaignForm({
         startDate: form.startDate || null,
         endDate: form.endDate || null,
         isZakatEligible: form.isZakatEligible,
+        address: form.address || null,
       }
       const { error: err } = await campaignService.updateCampaign(
         campaignId,
@@ -181,6 +311,28 @@ export function useCampaignForm({
         setSaving(false)
         return
       }
+      if (hasPayment) {
+        const { error: payErr } =
+          await donationMethodService.upsertDonationMethods(orgId, paymentDto)
+        if (payErr) {
+          setError(`Saved, but payment details could not be saved: ${payErr}`)
+          setSaving(false)
+          return
+        }
+      }
+      if (forPerson) {
+        const { error: benErr } = await campaignService.setBeneficiary(
+          campaignId,
+          beneficiary
+        )
+        if (benErr) {
+          setError(
+            `Saved, but verification details could not be saved: ${benErr}`
+          )
+          setSaving(false)
+          return
+        }
+      }
       router.push('/dashboard/campaigns')
     }
   }
@@ -197,6 +349,12 @@ export function useCampaignForm({
     error,
     submit,
     cancel,
+    payment,
+    setPayment,
+    forPerson,
+    setForPerson,
+    beneficiary,
+    setBeneficiary,
   }
 }
 

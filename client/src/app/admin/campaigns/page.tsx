@@ -1,14 +1,15 @@
 'use client'
 
-import { Suspense, useState } from 'react'
+import { useEffect, Suspense, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { useSystemAdmin } from '@/hooks/useSystemAdmin'
+import { campaignService } from '@/services/CampaignService'
 import { useCampaignAdmin } from '@/hooks/useCampaignAdmin'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { usePageTitle } from '@/hooks/usePageTitle'
-import type { Campaign } from '@/types'
+import type { Campaign, CampaignBeneficiary } from '@/types'
 
 function AdminCampaignsContent() {
   const { t } = useTranslation()
@@ -155,6 +156,8 @@ function AdminCampaignsContent() {
               )}
             </div>
 
+            <BeneficiaryPanel campaignId={selected.id} />
+
             <label className="block space-y-1">
               <span className="text-sm font-medium text-gray-700">
                 {t('admin.verificationNotes')}
@@ -188,6 +191,65 @@ function AdminCampaignsContent() {
         )}
       </div>
     </AppLayout>
+  )
+}
+
+/**
+ * Person-beneficiary verification data for the campaign under review.
+ * Fetched through the system-admin-gated RPC — never part of public reads.
+ */
+function BeneficiaryPanel({ campaignId }: { campaignId: string }) {
+  const { t } = useTranslation()
+  const [ben, setBen] = useState<CampaignBeneficiary | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let active = true
+    setLoading(true)
+    campaignService.getBeneficiary(campaignId).then(({ data }) => {
+      if (!active) return
+      setBen(data?.[0] ?? null)
+      setLoading(false)
+    })
+    return () => {
+      active = false
+    }
+  }, [campaignId])
+
+  if (loading) {
+    return (
+      <p className="text-sm text-gray-500" role="status">
+        {t('common.loading')}
+      </p>
+    )
+  }
+
+  if (!ben) {
+    return <p className="text-sm text-gray-500">{t('admin.beneficiaryNone')}</p>
+  }
+
+  const rows: Array<[string, string | null]> = [
+    [t('campaignForm.benFullName'), ben.full_name],
+    [t('campaignForm.benRelationship'), ben.relationship],
+    [t('campaignForm.benPhone'), ben.phone],
+    [t('campaignForm.benNationalId'), ben.national_id],
+    [t('campaignForm.benDocumentUrl'), ben.document_url],
+  ]
+
+  return (
+    <dl className="space-y-1 rounded-md border border-amber-200 bg-amber-50 p-4 text-sm">
+      <dt className="font-medium text-gray-700">
+        {t('admin.beneficiaryTitle')}
+      </dt>
+      {rows
+        .filter(([, value]) => value)
+        .map(([label, value]) => (
+          <div key={label} className="flex gap-2">
+            <dt className="text-gray-500">{label}:</dt>
+            <dd className="break-all font-medium text-gray-900">{value}</dd>
+          </div>
+        ))}
+    </dl>
   )
 }
 

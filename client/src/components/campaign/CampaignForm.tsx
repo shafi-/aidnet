@@ -21,6 +21,12 @@ export function CampaignForm({
     error,
     submit,
     cancel,
+    payment,
+    setPayment,
+    forPerson,
+    setForPerson,
+    beneficiary,
+    setBeneficiary,
   } = controller
 
   return (
@@ -61,6 +67,18 @@ export function CampaignForm({
           rows={4}
           value={form.description}
           onChange={e => set('description', e.target.value)}
+        />
+      </Field>
+
+      <Field
+        label={t('campaignForm.addressLabel')}
+        hint={t('campaignForm.addressHint')}
+      >
+        <input
+          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          value={form.address}
+          onChange={e => set('address', e.target.value)}
+          placeholder={t('campaignForm.addressPlaceholder')}
         />
       </Field>
 
@@ -159,6 +177,161 @@ export function CampaignForm({
             </div>
           </div>
         )}
+      </div>
+
+      <Field label={t('campaignForm.forLabel')}>
+        <div className="flex gap-4">
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="radio"
+              name="beneficiary-type"
+              checked={!forPerson}
+              onChange={() => setForPerson(false)}
+            />
+            {t('campaignForm.forOrg')}
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="radio"
+              name="beneficiary-type"
+              checked={forPerson}
+              onChange={() => setForPerson(true)}
+            />
+            {t('campaignForm.forPerson')}
+          </label>
+        </div>
+      </Field>
+
+      {forPerson && (
+        <div className="space-y-3 rounded-md border border-gray-200 p-4">
+          <p className="text-sm font-medium text-gray-700">
+            {t('campaignForm.benTitle')}
+          </p>
+          <Field label={t('campaignForm.benFullName')}>
+            <input
+              required
+              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              value={beneficiary.fullName}
+              onChange={e =>
+                setBeneficiary({ ...beneficiary, fullName: e.target.value })
+              }
+            />
+          </Field>
+          <div className="grid grid-cols-2 gap-4">
+            <Field label={t('campaignForm.benRelationship')}>
+              <input
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                value={beneficiary.relationship ?? ''}
+                onChange={e =>
+                  setBeneficiary({
+                    ...beneficiary,
+                    relationship: e.target.value,
+                  })
+                }
+              />
+            </Field>
+            <Field label={t('campaignForm.benPhone')}>
+              <input
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                value={beneficiary.phone ?? ''}
+                onChange={e =>
+                  setBeneficiary({ ...beneficiary, phone: e.target.value })
+                }
+              />
+            </Field>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <Field label={t('campaignForm.benNationalId')}>
+              <input
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                value={beneficiary.nationalId ?? ''}
+                onChange={e =>
+                  setBeneficiary({
+                    ...beneficiary,
+                    nationalId: e.target.value,
+                  })
+                }
+              />
+            </Field>
+            <Field
+              label={t('campaignForm.benDocumentUrl')}
+              hint={t('campaignForm.benDocumentHint')}
+            >
+              <input
+                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                value={beneficiary.documentUrl ?? ''}
+                onChange={e =>
+                  setBeneficiary({
+                    ...beneficiary,
+                    documentUrl: e.target.value,
+                  })
+                }
+              />
+            </Field>
+          </div>
+          <p className="text-xs text-gray-500">
+            {t('campaignForm.benPrivacy')}
+          </p>
+        </div>
+      )}
+
+      <div className="space-y-3 rounded-md border border-gray-200 p-4">
+        <p className="text-sm font-medium text-gray-700">
+          {t('campaignForm.payTitle')}
+        </p>
+        <p className="text-xs text-gray-500">{t('campaignForm.payHint')}</p>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label={t('campaignForm.bkashNumber')}>
+            <input
+              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              value={payment.bkashNumber}
+              onChange={e => setPayment({ bkashNumber: e.target.value })}
+            />
+          </Field>
+          <Field label={t('campaignForm.nagadNumber')}>
+            <input
+              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              value={payment.nagadNumber}
+              onChange={e => setPayment({ nagadNumber: e.target.value })}
+            />
+          </Field>
+          <Field label={t('campaignForm.rocketNumber')}>
+            <input
+              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              value={payment.rocketNumber}
+              onChange={e => setPayment({ rocketNumber: e.target.value })}
+            />
+          </Field>
+          <Field label={t('campaignForm.bankName')}>
+            <input
+              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              value={payment.bankName}
+              onChange={e => setPayment({ bankName: e.target.value })}
+            />
+          </Field>
+          <Field label={t('campaignForm.bankAccountNumber')}>
+            <input
+              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              value={payment.bankAccountNumber}
+              onChange={e => setPayment({ bankAccountNumber: e.target.value })}
+            />
+          </Field>
+          <Field label={t('campaignForm.donationUrl')}>
+            <input
+              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              value={payment.donationUrl}
+              onChange={e => setPayment({ donationUrl: e.target.value })}
+            />
+          </Field>
+        </div>
+        <Field label={t('campaignForm.instructions')}>
+          <textarea
+            rows={2}
+            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            value={payment.instructions}
+            onChange={e => setPayment({ instructions: e.target.value })}
+          />
+        </Field>
       </div>
 
       <div className="flex gap-3 pt-2">

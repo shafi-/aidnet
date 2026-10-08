@@ -1,7 +1,9 @@
 import { BaseRepository } from './BaseRepository'
 import type {
   Campaign,
+  CampaignBeneficiary,
   CampaignTag,
+  CampaignBeneficiaryDto,
   CreateCampaignDto,
   ServiceData,
   UpdateCampaignDto,
@@ -30,6 +32,28 @@ export class CampaignRepository extends BaseRepository {
       p_start_date: dto.startDate ?? null,
       p_end_date: dto.endDate ?? null,
       p_is_zakat_eligible: dto.isZakatEligible ?? false,
+      p_address: dto.address ?? null,
+    })
+  }
+
+  async setBeneficiary(
+    campaignId: string,
+    dto: CampaignBeneficiaryDto
+  ): ServiceData<null> {
+    return this.callRpc<null>(Rpc.Campaign.SetBeneficiary, {
+      p_campaign_id: campaignId,
+      p_full_name: dto.fullName,
+      p_relationship: dto.relationship ?? null,
+      p_phone: dto.phone ?? null,
+      p_national_id: dto.nationalId ?? null,
+      p_document_url: dto.documentUrl ?? null,
+      p_notes: dto.notes ?? null,
+    })
+  }
+
+  async getBeneficiary(campaignId: string): ServiceData<CampaignBeneficiary[]> {
+    return this.callRpc<CampaignBeneficiary[]>(Rpc.Campaign.GetBeneficiary, {
+      p_campaign_id: campaignId,
     })
   }
 
