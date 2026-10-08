@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { useRequiredParam, isInviteToken } from '@/hooks/useQueryParam'
+import { extractInviteToken } from '@/lib/inviteToken'
 import { inviteService } from '@/services/InviteService'
 import { useAuth } from '@/hooks/useAuth'
 import { AppLayout } from '@/components/layout/AppLayout'
@@ -22,8 +23,65 @@ export default function InvitePage() {
   const [email, setEmail] = useState('')
   const [orgName, setOrgName] = useState('')
   const [errorMsg, setErrorMsg] = useState('')
+  const [pasteInput, setPasteInput] = useState('')
+  const [pasteInvalid, setPasteInvalid] = useState(false)
 
-  usePageTitle(t('invite.invitedTitle'))
+  usePageTitle(t(token ? 'invite.invitedTitle' : 'invite.pasteTitle'))
+
+  // No token in the URL (user came from an option card): let them paste
+  // the link or code from their email invite, then join the standard flow.
+  // Help text below covers the "I don't have an invite" dead end.
+  if (!token) {
+    const handlePaste = (e: React.FormEvent) => {
+      e.preventDefault()
+      const code = extractInviteToken(pasteInput)
+      if (!code) {
+        setPasteInvalid(true)
+        return
+      }
+      router.replace(`/invite?token=${code}`)
+    }
+
+    return (
+      <AppLayout>
+        <div className="mx-auto max-w-md space-y-4 text-center">
+          <form onSubmit={handlePaste} className="space-y-4">
+            <h1 className="text-2xl font-bold">{t('invite.pasteTitle')}</h1>
+            <p className="text-gray-600">{t('invite.pasteHint')}</p>
+            <input
+              type="text"
+              value={pasteInput}
+              onChange={e => {
+                setPasteInput(e.target.value)
+                setPasteInvalid(false)
+              }}
+              placeholder={t('invite.pastePlaceholder')}
+              className="w-full rounded-md border border-gray-300 px-3 py-2"
+              required
+            />
+            {pasteInvalid && (
+              <p className="text-sm text-red-600">{t('invite.pasteInvalid')}</p>
+            )}
+            <button
+              type="submit"
+              className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+            >
+              {t('invite.joinButton')}
+            </button>
+          </form>
+          <p className="text-sm text-gray-500">
+            {t('invite.noInviteHelp')}{' '}
+            <Link
+              href="/dashboard/campaigns/new"
+              className="text-indigo-600 hover:underline"
+            >
+              {t('campaignNew.startOwn')}
+            </Link>
+          </p>
+        </div>
+      </AppLayout>
+    )
+  }
 
   const handleValidate = async (e: React.FormEvent) => {
     e.preventDefault()

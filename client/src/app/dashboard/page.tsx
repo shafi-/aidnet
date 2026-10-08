@@ -55,7 +55,13 @@ export default function DashboardPage() {
                   href="/org/request"
                   className="inline-block rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 hover:border-indigo-400 hover:text-indigo-600"
                 >
-                  {t('dashboard.requestOrganization')}
+                  {t('dashboard.createOrganization')}
+                </Link>
+                <Link
+                  href="/invite"
+                  className="inline-block rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 hover:border-indigo-400 hover:text-indigo-600"
+                >
+                  {t('dashboard.joinOrganization')}
                 </Link>
               </div>
             </div>
