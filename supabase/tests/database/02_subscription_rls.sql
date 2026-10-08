@@ -10,7 +10,7 @@ SELECT plan(8);
 -- SETUP
 -- ====================================================================
 
-INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at) VALUES
+INSERT INTO auth.users (id, email, encrypted_password, confirmed_at) VALUES
   ('11111111-1111-1111-1111-111111111111', 'creator@test.com', '', now()),
   ('22222222-2222-2222-2222-222222222222', 'admin2@test.com', '', now()),
   ('33333333-3333-3333-3333-333333333333', 'member@test.com', '', now())
@@ -41,7 +41,7 @@ ON CONFLICT (id) DO NOTHING;
 -- TEST 1-2: Owner can manage subscriptions
 -- ====================================================================
 
-SELECT set_config('request.jwt.claims', '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}', true);
+SELECT set_config('request.jwt.claim.sub', '11111111-1111-1111-1111-111111111111', true);
 SET ROLE authenticated;
 
 SELECT is(
@@ -64,7 +64,7 @@ RESET ROLE;
 -- TEST 3-4: Admin (not owner) CANNOT manage subscriptions
 -- ====================================================================
 
-SELECT set_config('request.jwt.claims', '{"sub":"22222222-2222-2222-2222-222222222222","role":"authenticated"}', true);
+SELECT set_config('request.jwt.claim.sub', '22222222-2222-2222-2222-222222222222', true);
 SET ROLE authenticated;
 
 SELECT is(
@@ -87,7 +87,7 @@ RESET ROLE;
 -- TEST 5-6: Member CANNOT manage subscriptions
 -- ====================================================================
 
-SELECT set_config('request.jwt.claims', '{"sub":"33333333-3333-3333-3333-333333333333","role":"authenticated"}', true);
+SELECT set_config('request.jwt.claim.sub', '33333333-3333-3333-3333-333333333333', true);
 SET ROLE authenticated;
 
 SELECT is(
@@ -115,7 +115,7 @@ INSERT INTO subscription_history (organization_id, plan_id, action, amount) VALU
   ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'dddddddd-dddd-dddd-dddd-dddddddddddd', 'subscribed', 29.99);
 
 -- Member can read subscription history
-SELECT set_config('request.jwt.claims', '{"sub":"33333333-3333-3333-3333-333333333333","role":"authenticated"}', true);
+SELECT set_config('request.jwt.claim.sub', '33333333-3333-3333-3333-333333333333', true);
 SET ROLE authenticated;
 
 SELECT is(
@@ -127,7 +127,7 @@ SELECT is(
 RESET ROLE;
 
 -- Non-owner cannot INSERT subscription history
-SELECT set_config('request.jwt.claims', '{"sub":"22222222-2222-2222-2222-222222222222","role":"authenticated"}', true);
+SELECT set_config('request.jwt.claim.sub', '22222222-2222-2222-2222-222222222222', true);
 SET ROLE authenticated;
 
 SELECT throws_ok(

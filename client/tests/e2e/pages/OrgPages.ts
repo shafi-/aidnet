@@ -33,7 +33,7 @@ export class DashboardPage {
     await this.page.goto('/dashboard')
   }
 
-  tab(name: 'Todos' | 'Members' | 'Settings' | 'Billing'): Locator {
+  tab(name: 'Members' | 'Settings' | 'Billing'): Locator {
     return this.page.getByRole('button', { name, exact: true })
   }
 }

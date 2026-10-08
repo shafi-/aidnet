@@ -6,7 +6,6 @@ import { useOrganization } from '@/hooks/useOrganization'
 import { usePermissions } from '@/hooks/usePermissions'
 import { useSubscription } from '@/hooks/useSubscription'
 import { BillingTab } from '@/components/subscription/BillingTab'
-import { TodosTab } from '@/components/org/TodosTab'
 import { MembersTab } from '@/components/org/MembersTab'
 import { SettingsTab } from '@/components/org/SettingsTab'
 import { DonationsTab } from '@/components/org/DonationsTab'
@@ -17,8 +16,8 @@ export function OrgDashboard() {
   const { isOrgAdmin, isOrgOwner } = usePermissions()
   const { hasFeature } = useSubscription(currentOrg?.id ?? '')
   const [tab, setTab] = useState<
-    'todos' | 'members' | 'settings' | 'billing' | 'donations'
-  >('todos')
+    'members' | 'settings' | 'billing' | 'donations'
+  >('members')
 
   if (!currentOrg) return null
 
@@ -33,14 +32,6 @@ export function OrgDashboard() {
         </div>
       </div>
       <div className="mb-4 flex gap-4 border-b">
-        {hasFeature('todos') && (
-          <button
-            onClick={() => setTab('todos')}
-            className={`pb-2 ${tab === 'todos' ? 'border-b-2 border-blue-600 font-medium' : ''}`}
-          >
-            {t('orgTabs.todos')}
-          </button>
-        )}
         {hasFeature('members') && (
           <button
             onClick={() => setTab('members')}
@@ -74,9 +65,6 @@ export function OrgDashboard() {
           </button>
         )}
       </div>
-      {tab === 'todos' && hasFeature('todos') && (
-        <TodosTab orgId={currentOrg.id} />
-      )}
       {tab === 'members' && hasFeature('members') && (
         <MembersTab orgId={currentOrg.id} />
       )}

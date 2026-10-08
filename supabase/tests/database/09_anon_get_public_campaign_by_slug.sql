@@ -8,7 +8,7 @@ BEGIN;
 SELECT plan(3);
 
 -- Insert test data as superuser
-INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at) VALUES
+INSERT INTO auth.users (id, email, encrypted_password, confirmed_at) VALUES
   ('9c1c1c1c-1111-4111-8111-c1c1c1c1c1c1', 'slug-test@anon.local', '', now())
 ON CONFLICT (id) DO NOTHING;
 

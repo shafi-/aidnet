@@ -18,7 +18,7 @@ DELETE FROM campaign_tag_map;
 -- SETUP
 -- ====================================================================
 
-INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at) VALUES
+INSERT INTO auth.users (id, email, encrypted_password, confirmed_at) VALUES
   ('11111111-1111-1111-1111-111111111111', 'owner@test.com', '', now()),
   ('33333333-3333-3333-3333-333333333333', 'member@test.com', '', now()),
   ('55555555-5555-5555-5555-555555555555', 'outsider@test.com', '', now()),
@@ -67,7 +67,7 @@ ON CONFLICT (id) DO NOTHING;
 -- ====================================================================
 
 RESET ROLE;
-SELECT set_config('request.jwt.claims', '{}', true);
+SELECT set_config('request.jwt.claim.sub', '', true);
 SET ROLE anon;
 
 SELECT is(
@@ -81,7 +81,7 @@ SELECT is(
 -- ====================================================================
 
 SELECT is(
-  (SELECT count(*) FROM get_public_campaigns()),
+  (SELECT count(*) FROM get_public_campaigns(NULL::boolean)),
   15::bigint,
   'Anon sees 15 live campaigns via get_public_campaigns()'
 );
@@ -91,7 +91,7 @@ SELECT is(
 -- ====================================================================
 
 SELECT is(
-  (SELECT count(*) FROM get_public_campaigns(zakat_filter => true)),
+  (SELECT count(*) FROM get_public_campaigns(true)),
   1::bigint,
   'Zakat filter returns only the 1 zakat-eligible live campaign'
 );
@@ -101,7 +101,7 @@ SELECT is(
 -- ====================================================================
 
 SELECT is(
-  (SELECT count(*) FROM get_public_campaigns(result_limit => 12)),
+  (SELECT count(*) FROM get_public_campaigns(NULL::uuid, 12)),
   12::bigint,
   'Landing limit returns exactly 12 campaigns'
 );
@@ -111,7 +111,7 @@ SELECT is(
 -- ====================================================================
 
 RESET ROLE;
-SELECT set_config('request.jwt.claims', '{"sub":"33333333-3333-3333-3333-333333333333","role":"authenticated"}', true);
+SELECT set_config('request.jwt.claim.sub', '33333333-3333-3333-3333-333333333333', true);
 SET ROLE authenticated;
 
 SELECT lives_ok(
@@ -149,7 +149,7 @@ SELECT throws_ok(
 -- ====================================================================
 
 RESET ROLE;
-SELECT set_config('request.jwt.claims', '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}', true);
+SELECT set_config('request.jwt.claim.sub', '11111111-1111-1111-1111-111111111111', true);
 SET ROLE authenticated;
 
 SELECT throws_ok(
@@ -163,7 +163,7 @@ SELECT throws_ok(
 -- ====================================================================
 
 RESET ROLE;
-SELECT set_config('request.jwt.claims', '{"sub":"66666666-6666-6666-6666-666666666666","role":"authenticated"}', true);
+SELECT set_config('request.jwt.claim.sub', '66666666-6666-6666-6666-666666666666', true);
 SET ROLE authenticated;
 
 SELECT lives_ok(
@@ -182,7 +182,7 @@ SELECT is(
 -- ====================================================================
 
 RESET ROLE;
-SELECT set_config('request.jwt.claims', '{"sub":"33333333-3333-3333-3333-333333333333","role":"authenticated"}', true);
+SELECT set_config('request.jwt.claim.sub', '33333333-3333-3333-3333-333333333333', true);
 SET ROLE authenticated;
 
 SELECT is(

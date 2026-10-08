@@ -27,19 +27,19 @@ SET search_path = donate, shared, extensions, private;
 -- ===========================================================================
 -- Plan capability matrix (post feature-gating infrastructure)
 -- Per product decision, EVERY tier includes the core capabilities:
--- todos, members, invites, campaigns, settings. Tier differentiation moves
+-- members, invites, campaigns, settings. Tier differentiation moves
 -- to USAGE LIMITS in a future phase; the features array remains the
 -- enforcement surface (can_perform -> has_feature).
 -- Plus two dedicated plans used by e2e to prove campaign gating both ways.
 -- ===========================================================================
 UPDATE subscription_plans
-SET features = '["todos","members","invites","campaigns","settings"]'::jsonb
+SET features = '["members","invites","campaigns","settings"]'::jsonb
 WHERE name IN ('Free', 'Pro', 'Enterprise');
 
 INSERT INTO subscription_plans (name, description, price_monthly, price_yearly, features, is_active)
 VALUES
   ('E2E With Campaigns',  'test tier: campaigns enabled',  0, 0,
-   '["todos","members","invites","campaigns","settings"]'::jsonb, true),
+   '["members","invites","campaigns","settings"]'::jsonb, true),
   ('E2E No Campaigns',    'test tier: campaigns excluded', 0, 0,
-   '["todos","members","invites","settings"]'::jsonb, true)
+   '["members","invites","settings"]'::jsonb, true)
 ON CONFLICT DO NOTHING;

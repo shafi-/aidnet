@@ -18,10 +18,10 @@ export type RpcRouteTable = Record<string, RpcHandler>
  * test can never silently pass against an unintended backend call.
  *
  * Usage:
- *   const gw = createMockRpcGateway({ get_todos: { data: [todo] } })
- *   const repo = new TodoRepository(gw)
- *   await repo.getTodos('org-1')
- *   expect(gw.callsTo('get_todos')[0].params).toEqual({ p_organization_id: 'org-1' })
+ *   const gw = createMockRpcGateway({ get_campaigns: { data: [campaign] } })
+ *   const repo = new CampaignRepository(gw)
+ *   await repo.getCampaigns('org-1')
+ *   expect(gw.callsTo('get_campaigns')[0].params).toEqual({ p_org_id: 'org-1' })
  */
 export function createMockRpcGateway(handlers: RpcRouteTable = {}) {
   const calls: RpcCall[] = []

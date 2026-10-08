@@ -14,7 +14,7 @@
 BEGIN;
 SELECT plan(4);
 
-INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at) VALUES
+INSERT INTO auth.users (id, email, encrypted_password, confirmed_at) VALUES
   ('e1e1e1e1-1111-4111-8111-e1e1e1e1e1e1', 'sub-owner@test.local',     '', now()),
   ('e2e2e2e2-2222-4222-8222-e2e2e2e2e2e2', 'sub-member@test.local',   '', now()),
   ('e3e3e3e3-3333-4333-8333-e3e3e3e3e3e3', 'sub-sysadmin@test.local','', now()),
@@ -39,7 +39,7 @@ ON CONFLICT DO NOTHING;
 
 -- One visible plan + one attached subscription per org.
 INSERT INTO subscription_plans (name, features, is_active) VALUES
-  ('PGTAP Sub Plan', '["todos"]'::jsonb, true);
+  ('PGTAP Sub Plan', '["members"]'::jsonb, true);
 
 -- Replace the trigger-created default row so each fixture org has EXACTLY
 -- one subscription (the function under test must not be rescued by a
@@ -62,8 +62,8 @@ WHERE o.slug IN ('sub-org-a', 'sub-org-b');
 -- ----------------------------------------------------------------------------
 -- MEMBER of Org A: allowed
 -- ----------------------------------------------------------------------------
-SELECT set_config('request.jwt.claims',
-  '{"sub":"e2e2e2e2-2222-4222-8222-e2e2e2e2e2e2","role":"authenticated"}', false);
+SELECT set_config('request.jwt.claim.sub',
+  'e2e2e2e2-2222-4222-8222-e2e2e2e2e2e2', false);
 SET ROLE authenticated;
 
 SELECT is(
@@ -83,8 +83,8 @@ RESET ROLE;
 -- ----------------------------------------------------------------------------
 -- SYSTEM ADMIN: allowed anywhere
 -- ----------------------------------------------------------------------------
-SELECT set_config('request.jwt.claims',
-  '{"sub":"e3e3e3e3-3333-4333-8333-e3e3e3e3e3e3","role":"authenticated"}', false);
+SELECT set_config('request.jwt.claim.sub',
+  'e3e3e3e3-3333-4333-8333-e3e3e3e3e3e3', false);
 SET ROLE authenticated;
 
 SELECT is(
@@ -100,7 +100,7 @@ RESET ROLE;
 -- (clear the claims GUC first — auth.uid() decodes it regardless of role,
 --  and a stale admin sub would masquerade through the guard)
 -- ----------------------------------------------------------------------------
-SELECT set_config('request.jwt.claims', '', false);
+SELECT set_config('request.jwt.claim.sub', '', false);
 SET ROLE anon;
 
 SELECT is(
@@ -111,6 +111,6 @@ SELECT is(
 
 RESET ROLE;
 
-SELECT set_config('request.jwt.claims', '', false);
+SELECT set_config('request.jwt.claim.sub', '', false);
 SELECT * FROM finish();
 ROLLBACK;

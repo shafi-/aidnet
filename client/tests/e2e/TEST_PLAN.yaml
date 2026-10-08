@@ -93,7 +93,7 @@ pages:
   - { route: "/org/request",          access: authenticated, suite: org-request-flow.spec.ts }
   - { route: "/dashboard",            access: authenticated, suite: dashboard.spec.ts }
   - { route: "/dashboard/campaigns(/new|/edit)", access: authenticated, suite: dashboard-campaigns.spec.ts }
-  - { route: "/dashboard org tabs (todos/members/settings/billing)", access: authenticated, suite: dashboard-org.spec.ts + subscription.spec.ts }
+  - { route: "/dashboard org tabs (members/settings/billing)", access: authenticated, suite: dashboard-org.spec.ts + subscription.spec.ts }
   - { route: "/profile",              access: authenticated, suite: profile.spec.ts }
   - { route: "/admin",                access: systemAdmin,   suite: admin.spec.ts }
   - { route: "/admin/org-requests",   access: systemAdmin,   suite: admin-management.spec.ts + org-provisioning.spec.ts }
@@ -220,10 +220,10 @@ features:
         expect: org metadata auto-initialized (contract)
       - when: org_admin updates org metadata
         expect: changes persist after reload; reflected in org list / public profile
-      - when: feature-gated tabs (todos/members/settings/billing)
+      - when: feature-gated tabs (members/settings/billing)
         expect: gated by has_feature against the active plan — visible only when feature active
-      - when: owner uses todos
-        expect: create + delete persist
+      - when: owner opens the donations tab
+        expect: visible to org admins only (role-gated, not plan-gated)
       - when: members feature active
         expect: member list + add-member form render
       - when: settings feature active

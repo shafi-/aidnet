@@ -10,7 +10,7 @@ SELECT plan(4);
 -- SETUP
 -- ====================================================================
 
-INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at) VALUES
+INSERT INTO auth.users (id, email, encrypted_password, confirmed_at) VALUES
   ('11111111-1111-1111-1111-111111111111', 'member@test.com', '', now())
 ON CONFLICT (id) DO NOTHING;
 
@@ -32,7 +32,7 @@ ON CONFLICT (organization_id, user_id) DO UPDATE SET role = EXCLUDED.role, statu
 
 -- Reset to anonymous (no JWT)
 RESET ROLE;
-SELECT set_config('request.jwt.claims', '{}', true);
+SELECT set_config('request.jwt.claim.sub', '', true);
 
 SELECT is(
   (SELECT id FROM get_public_org_by_slug('public-org')),
@@ -55,7 +55,7 @@ SELECT is(
 -- ====================================================================
 
 SET ROLE anon;
-SELECT set_config('request.jwt.claims', '{}', true);
+SELECT set_config('request.jwt.claim.sub', '', true);
 
 SELECT is(
   (SELECT count(*) FROM organization_members),

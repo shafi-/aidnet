@@ -11,10 +11,6 @@ const PERMISSIONS = {
     'members:create',
     'members:update',
     'members:delete',
-    'todos:read',
-    'todos:create',
-    'todos:update',
-    'todos:delete',
     'invites:read',
     'invites:create',
     'invites:delete',
@@ -26,16 +22,12 @@ const PERMISSIONS = {
   member: [
     'org:read',
     'members:read',
-    'todos:read',
-    'todos:create',
-    'todos:update',
-    'todos:delete',
     'invites:read',
     'campaigns:read',
     'campaigns:create',
     'campaigns:update',
   ],
-  viewer: ['org:read', 'members:read', 'todos:read', 'campaigns:read'],
+  viewer: ['org:read', 'members:read', 'campaigns:read'],
 } as const
 
 export function usePermissions() {

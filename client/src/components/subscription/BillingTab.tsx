@@ -3,8 +3,8 @@
 import { useTranslation } from 'react-i18next'
 import { useBilling, type BillingController } from '@/hooks/useBilling'
 
-// Plan features arrive from the database as machine keys ("todos",
-// "members", ...); label them through i18n and fall back to the raw key for
+// Plan features arrive from the database as machine keys ("members",
+// "settings", ...); label them through i18n and fall back to the raw key for
 // values added later.
 function FeatureChip({ label }: { label: string }) {
   const { t } = useTranslation()

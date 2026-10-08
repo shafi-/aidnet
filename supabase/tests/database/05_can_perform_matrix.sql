@@ -18,7 +18,7 @@ SELECT plan(18);
 -- ----------------------------------------------------------------------------
 -- FIXTURES (superuser context)
 -- ----------------------------------------------------------------------------
-INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at) VALUES
+INSERT INTO auth.users (id, email, encrypted_password, confirmed_at) VALUES
   ('a1a1a1a1-1111-4111-8111-a1a1a1a1a1a1', 'pgtap-owner@test.local',   '', now()),
   ('a2a2a2a2-2222-4222-8222-a2a2a2a2a2a2', 'pgtap-member@test.local',  '', now()),
   ('a3a3a3a3-3333-4333-8333-a3a3a3a3a3a3', 'pgtap-sysadmin@test.local','', now()),
@@ -51,8 +51,8 @@ ON CONFLICT DO NOTHING;
 
 -- Plans: narrow vs full capability sets (both active).
 INSERT INTO subscription_plans (name, features, is_active) VALUES
-  ('PGTAP Narrow Plan', '["todos"]'::jsonb, true),
-  ('PGTAP Full Plan',   '["todos","invites","campaigns"]'::jsonb, true);
+  ('PGTAP Narrow Plan', '["invites"]'::jsonb, true),
+  ('PGTAP Full Plan',   '["invites","campaigns"]'::jsonb, true);
 
 -- The org-create trigger already attached the Free plan to each fixture org.
 -- REPLACE it (single active subscription per fixture) so feature checks see
@@ -76,18 +76,18 @@ WHERE o.slug IN ('pgtap-org', 'pgtap-full-org');
 -- ----------------------------------------------------------------------------
 -- 1) SYSTEM ADMIN transcends everything
 -- ----------------------------------------------------------------------------
-SELECT set_config('request.jwt.claims',
-  '{"sub":"a3a3a3a3-3333-4333-8333-a3a3a3a3a3a3","role":"authenticated"}', false);
+SELECT set_config('request.jwt.claim.sub',
+  'a3a3a3a3-3333-4333-8333-a3a3a3a3a3a3', false);
 SET ROLE authenticated;
 
 SELECT is(
-  can_perform('todos:create', 'b1b1b1b1-1111-4111-8111-b1b1b1b1b1b1'),
+  can_perform('invites:create', 'b1b1b1b1-1111-4111-8111-b1b1b1b1b1b1'),
   true,
   'system_admin passes on a normal org'
 );
 
 SELECT is(
-  can_perform('todos:create', '00000000-0000-4000-8000-000000000000'),
+  can_perform('invites:create', '00000000-0000-4000-8000-000000000000'),
   true,
   'system_admin passes even for a nonexistent org'
 );
@@ -95,16 +95,16 @@ SELECT is(
 RESET ROLE;
 
 -- ----------------------------------------------------------------------------
--- 2) OWNER on PGTAP Org (Narrow plan: todos only)
+-- 2) OWNER on PGTAP Org (Narrow plan: invites only)
 -- ----------------------------------------------------------------------------
-SELECT set_config('request.jwt.claims',
-  '{"sub":"a1a1a1a1-1111-4111-8111-a1a1a1a1a1a1","role":"authenticated"}', false);
+SELECT set_config('request.jwt.claim.sub',
+  'a1a1a1a1-1111-4111-8111-a1a1a1a1a1a1', false);
 SET ROLE authenticated;
 
 SELECT is(
-  can_perform('todos:create', 'b1b1b1b1-1111-4111-8111-b1b1b1b1b1b1'),
+  can_perform('invites:create', 'b1b1b1b1-1111-4111-8111-b1b1b1b1b1b1'),
   true,
-  'owner todos:create allowed — plan declares todos and org has it'
+  'owner invites:create allowed — plan declares invites and org has it'
 );
 
 SELECT is(
@@ -114,9 +114,9 @@ SELECT is(
 );
 
 SELECT is(
-  can_perform('invites:create', 'b1b1b1b1-1111-4111-8111-b1b1b1b1b1b1'),
+  can_perform('campaigns:read', 'b1b1b1b1-1111-4111-8111-b1b1b1b1b1b1'),
   false,
-  'owner invites:create denied — invites are plan-managed and Narrow lacks them'
+  'owner campaigns:read denied — feature gate applies even to owners'
 );
 
 SELECT is(
@@ -132,7 +132,7 @@ SELECT is(
 );
 
 SELECT is(
-  can_perform('todos:create', '00000000-0000-4000-8000-000000000000'),
+  can_perform('invites:create', '00000000-0000-4000-8000-000000000000'),
   false,
   'unknown org denies a non-admin even when permission is otherwise fine'
 );
@@ -154,9 +154,9 @@ SELECT is(
 );
 
 SELECT is(
-  can_perform('todos:create', 'b1b1b1b1-1111-4111-8111-b1b1b1b1b1b1'),
+  can_perform('invites:create', 'b1b1b1b1-1111-4111-8111-b1b1b1b1b1b1'),
   false,
-  'suspended: owner denied todos:create despite plan + role'
+  'suspended: owner denied invites:create despite plan + role'
 );
 
 SELECT is(
@@ -171,12 +171,12 @@ WHERE id = 'b1b1b1b1-1111-4111-8111-b1b1b1b1b1b1';
 RESET ROLE;
 
 -- sysadmin still transcends suspension
-SELECT set_config('request.jwt.claims',
-  '{"sub":"a3a3a3a3-3333-4333-8333-a3a3a3a3a3a3","role":"authenticated"}', false);
+SELECT set_config('request.jwt.claim.sub',
+  'a3a3a3a3-3333-4333-8333-a3a3a3a3a3a3', false);
 SET ROLE authenticated;
 
 SELECT is(
-  can_perform('todos:create', 'b1b1b1b1-1111-4111-8111-b1b1b1b1b1b1'),
+  can_perform('invites:create', 'b1b1b1b1-1111-4111-8111-b1b1b1b1b1b1'),
   true,
   'system_admin transcends suspension'
 );
@@ -184,16 +184,16 @@ SELECT is(
 RESET ROLE;
 
 -- ----------------------------------------------------------------------------
--- 3) MEMBER with seeded 'member' role (has todos:create etc.)
+-- 3) MEMBER with seeded 'member' role (has invites:read etc.)
 -- ----------------------------------------------------------------------------
-SELECT set_config('request.jwt.claims',
-  '{"sub":"a2a2a2a2-2222-4222-8222-a2a2a2a2a2a2","role":"authenticated"}', false);
+SELECT set_config('request.jwt.claim.sub',
+  'a2a2a2a2-2222-4222-8222-a2a2a2a2a2a2', false);
 SET ROLE authenticated;
 
 SELECT is(
-  can_perform('todos:create', 'b1b1b1b1-1111-4111-8111-b1b1b1b1b1b1'),
+  can_perform('invites:read', 'b1b1b1b1-1111-4111-8111-b1b1b1b1b1b1'),
   true,
-  'member todos:create via role_permissions + plan feature'
+  'member invites:read via role_permissions + plan feature'
 );
 
 SELECT is(
@@ -207,8 +207,8 @@ RESET ROLE;
 -- ----------------------------------------------------------------------------
 -- 4) OWNER of second org proves gating flips with the plan (Full plan)
 -- ----------------------------------------------------------------------------
-SELECT set_config('request.jwt.claims',
-  '{"sub":"a4a4a4a4-4444-4444-8444-a4a4a4a4a4a4","role":"authenticated"}', false);
+SELECT set_config('request.jwt.claim.sub',
+  'a4a4a4a4-4444-4444-8444-a4a4a4a4a4a4', false);
 SET ROLE authenticated;
 
 SELECT is(
@@ -228,18 +228,18 @@ RESET ROLE;
 -- ----------------------------------------------------------------------------
 -- 5) OUTSIDER has no path in
 -- ----------------------------------------------------------------------------
-SELECT set_config('request.jwt.claims',
-  '{"sub":"a4a4a4a4-4444-4444-8444-a4a4a4a4a4a4","role":"authenticated"}', false);
+SELECT set_config('request.jwt.claim.sub',
+  'a4a4a4a4-4444-4444-8444-a4a4a4a4a4a4', false);
 SET ROLE authenticated;
 
 SELECT is(
-  can_perform('todos:read', 'b1b1b1b1-1111-4111-8111-b1b1b1b1b1b1'),
+  can_perform('invites:read', 'b1b1b1b1-1111-4111-8111-b1b1b1b1b1b1'),
   false,
   'outsider denied — not a member, regardless of permission shape'
 );
 
 RESET ROLE;
 
-SELECT set_config('request.jwt.claims', '', false);
+SELECT set_config('request.jwt.claim.sub', '', false);
 SELECT * FROM finish();
 ROLLBACK;

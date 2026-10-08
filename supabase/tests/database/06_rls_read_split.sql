@@ -13,9 +13,9 @@
 -- ============================================================================
 
 BEGIN;
-SELECT plan(16);
+SELECT plan(15);
 
-INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at) VALUES
+INSERT INTO auth.users (id, email, encrypted_password, confirmed_at) VALUES
   ('c1c1c1c1-1111-4111-8111-c1c1c1c1c1c1', 'rls-owner@test.local',    '', now()),
   ('c2c2c2c2-2222-4222-8222-c2c2c2c2c2c2', 'rls-member@test.local',  '', now()),
   ('c3c3c3c3-3333-4333-8333-c3c3c3c3c3c3', 'rls-sysadmin@test.local','', now()),
@@ -35,10 +35,6 @@ INSERT INTO organization_members (organization_id, user_id, role, status, is_own
   ('d1d1d1d1-1111-4111-8111-d1d1d1d1d1d1', 'c2c2c2c2-2222-4222-8222-c2c2c2c2c2c2', 'member', 'active', false)
 ON CONFLICT DO NOTHING;
 
-INSERT INTO todos (organization_id, title, created_by)
-VALUES ('d1d1d1d1-1111-4111-8111-d1d1d1d1d1d1', 'RLS probe todo',
-        'c1c1c1c1-1111-4111-8111-c1c1c1c1c1c1');
-
 INSERT INTO campaigns (org_id, title, slug, status)
 VALUES ('d1d1d1d1-1111-4111-8111-d1d1d1d1d1d1', 'RLS probe campaign', 'rls-probe-campaign', 'live');
 
@@ -52,15 +48,9 @@ VALUES ('d1d1d1d1-1111-4111-8111-d1d1d1d1d1d1', 'invitee@test.local', 'rls-probe
 -- ----------------------------------------------------------------------------
 -- MEMBER sees own org's data through the helper-backed policies
 -- ----------------------------------------------------------------------------
-SELECT set_config('request.jwt.claims',
-  '{"sub":"c2c2c2c2-2222-4222-8222-c2c2c2c2c2c2","role":"authenticated"}', false);
+SELECT set_config('request.jwt.claim.sub',
+  'c2c2c2c2-2222-4222-8222-c2c2c2c2c2c2', false);
 SET ROLE authenticated;
-
-SELECT is(
-  (SELECT count(*) FROM todos WHERE organization_id = 'd1d1d1d1-1111-4111-8111-d1d1d1d1d1d1'),
-  1::bigint,
-  'member reads org todos'
-);
 
 SELECT is(
   (SELECT count(*) FROM campaigns WHERE slug = 'rls-probe-campaign'),
@@ -111,15 +101,15 @@ RESET ROLE;
 -- ----------------------------------------------------------------------------
 -- OUTSIDER (authenticated, no membership of this org) is blind
 -- ----------------------------------------------------------------------------
-SELECT set_config('request.jwt.claims',
-  '{"sub":"c4c4c4c4-4444-4444-8444-c4c4c4c4c4c4","role":"authenticated"}', false);
+SELECT set_config('request.jwt.claim.sub',
+  'c4c4c4c4-4444-4444-8444-c4c4c4c4c4c4', false);
 SET ROLE authenticated;
 
 SELECT is(
-  (SELECT count(*) FROM todos
+  (SELECT count(*) FROM invites
     WHERE organization_id = 'd1d1d1d1-1111-4111-8111-d1d1d1d1d1d1'),
   0::bigint,
-  'outsider sees no todos'
+  'outsider sees no invites'
 );
 
 SELECT is(
@@ -135,13 +125,13 @@ RESET ROLE;
 -- (claims GUC must be cleared first — auth.uid() decodes it regardless of
 --  current_role, and a stale sub would expose the caller's own rows)
 -- ----------------------------------------------------------------------------
-SELECT set_config('request.jwt.claims', '', false);
+SELECT set_config('request.jwt.claim.sub', '', false);
 SET ROLE anon;
 
 SELECT is(
-  (SELECT count(*) FROM todos),
+  (SELECT count(*) FROM invites),
   0::bigint,
-  'anon sees no todos at all'
+  'anon sees no invites at all'
 );
 
 SELECT is(
@@ -150,10 +140,11 @@ SELECT is(
   'anon does not see member-gated orgs'
 );
 
-SELECT is(
-  (SELECT count(*) FROM profiles),
-  0::bigint,
-  'anon sees no profiles'
+SELECT throws_ok(
+  'SELECT count(*) FROM profiles',
+  '42501',
+  NULL,
+  'anon is denied shared.profiles outright (deny-all, no grants)'
 );
 
 RESET ROLE;
@@ -161,14 +152,14 @@ RESET ROLE;
 -- ----------------------------------------------------------------------------
 -- SYSTEM ADMIN sees everything
 -- ----------------------------------------------------------------------------
-SELECT set_config('request.jwt.claims',
-  '{"sub":"c3c3c3c3-3333-4333-8333-c3c3c3c3c3c3","role":"authenticated"}', false);
+SELECT set_config('request.jwt.claim.sub',
+  'c3c3c3c3-3333-4333-8333-c3c3c3c3c3c3', false);
 SET ROLE authenticated;
 
 SELECT is(
-  (SELECT count(*) FROM todos WHERE organization_id = 'd1d1d1d1-1111-4111-8111-d1d1d1d1d1d1'),
+  (SELECT count(*) FROM invites WHERE organization_id = 'd1d1d1d1-1111-4111-8111-d1d1d1d1d1d1'),
   1::bigint,
-  'sysadmin reads org todos'
+  'sysadmin reads org invites'
 );
 
 SELECT is(
@@ -189,8 +180,8 @@ RESET ROLE;
 -- ----------------------------------------------------------------------------
 -- CREATOR visibility on organizations (inline policy branch)
 -- ----------------------------------------------------------------------------
-SELECT set_config('request.jwt.claims',
-  '{"sub":"c1c1c1c1-1111-4111-8111-c1c1c1c1c1c1","role":"authenticated"}', false);
+SELECT set_config('request.jwt.claim.sub',
+  'c1c1c1c1-1111-4111-8111-c1c1c1c1c1c1', false);
 SET ROLE authenticated;
 
 SELECT is(
@@ -201,6 +192,6 @@ SELECT is(
 
 RESET ROLE;
 
-SELECT set_config('request.jwt.claims', '', false);
+SELECT set_config('request.jwt.claim.sub', '', false);
 SELECT * FROM finish();
 ROLLBACK;

@@ -51,12 +51,6 @@ export const Rpc = {
     Get: 'get_org_meta' satisfies DbFunction,
     Update: 'update_org_meta' satisfies DbFunction,
   },
-  Todo: {
-    Create: 'create_todo' satisfies DbFunction,
-    GetMany: 'get_todos' satisfies DbFunction,
-    Update: 'update_todo' satisfies DbFunction,
-    Delete: 'delete_todo' satisfies DbFunction,
-  },
   Invite: {
     Create: 'create_invite' satisfies DbFunction,
     GetMany: 'get_invites' satisfies DbFunction,
@@ -102,6 +96,8 @@ export const Rpc = {
     Delete: 'delete_campaign' satisfies DbFunction,
     Submit: 'submit_campaign_for_review' satisfies DbFunction,
     GetTagIds: 'get_campaign_tag_ids' satisfies DbFunction,
+    SetBeneficiary: 'set_campaign_beneficiary' satisfies DbFunction,
+    GetBeneficiary: 'get_campaign_beneficiary' satisfies DbFunction,
   },
   SystemAdminCampaign: {
     Verify: 'verify_campaign' satisfies DbFunction,
@@ -128,7 +124,6 @@ export type RpcFunction =
   | (typeof Rpc.Member)[keyof typeof Rpc.Member]
   | (typeof Rpc.OrgRequest)[keyof typeof Rpc.OrgRequest]
   | (typeof Rpc.OrgMeta)[keyof typeof Rpc.OrgMeta]
-  | (typeof Rpc.Todo)[keyof typeof Rpc.Todo]
   | (typeof Rpc.Invite)[keyof typeof Rpc.Invite]
   | (typeof Rpc.SystemAdmin)[keyof typeof Rpc.SystemAdmin]
   | (typeof Rpc.Subscription)[keyof typeof Rpc.Subscription]

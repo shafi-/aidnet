@@ -1,6 +1,6 @@
 -- ====================================================================
 -- pgTAP: RLS access-level tests for organization_members, organizations,
---        todos, invites — proves each policy grants exactly the right
+--        invites — proves each policy grants exactly the right
 --        level of access (no over-exposure, no under-exposure).
 -- ====================================================================
 
@@ -16,7 +16,7 @@ SELECT plan(22);
 -- Profiles are auto-created by the trigger, so profile inserts are no-ops.
 
 -- Test users (ON CONFLICT DO NOTHING for idempotency)
-INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at) VALUES
+INSERT INTO auth.users (id, email, encrypted_password, confirmed_at) VALUES
   ('11111111-1111-1111-1111-111111111111', 'creator@test.com', '', now()),
   ('22222222-2222-2222-2222-222222222222', 'admin2@test.com', '', now()),
   ('33333333-3333-3333-3333-333333333333', 'member@test.com', '', now()),
@@ -45,11 +45,6 @@ INSERT INTO organization_members (organization_id, user_id, role, status, is_own
   ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '44444444-4444-4444-4444-444444444444', 'viewer', 'active', false)
 ON CONFLICT (organization_id, user_id) DO UPDATE SET role = EXCLUDED.role, status = EXCLUDED.status, is_owner = EXCLUDED.is_owner;
 
--- Test todos
-INSERT INTO todos (id, organization_id, title, created_by) VALUES
-  ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Test todo', '11111111-1111-1111-1111-111111111111')
-ON CONFLICT (id) DO NOTHING;
-
 -- Test invites
 INSERT INTO invites (id, organization_id, email, invited_by) VALUES
   ('cccccccc-cccc-cccc-cccc-cccccccccccc', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'newuser@test.com', '11111111-1111-1111-1111-111111111111')
@@ -59,7 +54,7 @@ ON CONFLICT (id) DO NOTHING;
 -- TEST 1-3: Non-member sees NOTHING (outsider)
 -- ====================================================================
 
-SELECT set_config('request.jwt.claims', '{"sub":"55555555-5555-5555-5555-555555555555","role":"authenticated"}', true);
+SELECT set_config('request.jwt.claim.sub', '55555555-5555-5555-5555-555555555555', true);
 SET ROLE authenticated;
 
 SELECT is(
@@ -75,9 +70,9 @@ SELECT is(
 );
 
 SELECT is(
-  (SELECT count(*) FROM todos WHERE organization_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+  (SELECT count(*) FROM invites WHERE organization_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
   0::bigint,
-  'Outsider sees 0 todos (RLS blocks)'
+  'Outsider sees 0 invites (RLS blocks)'
 );
 
 RESET ROLE;
@@ -86,7 +81,7 @@ RESET ROLE;
 -- TEST 4-6: Member sees full member list (has members:read)
 -- ====================================================================
 
-SELECT set_config('request.jwt.claims', '{"sub":"33333333-3333-3333-3333-333333333333","role":"authenticated"}', true);
+SELECT set_config('request.jwt.claim.sub', '33333333-3333-3333-3333-333333333333', true);
 SET ROLE authenticated;
 
 SELECT lives_ok(
@@ -101,9 +96,9 @@ SELECT is(
 );
 
 SELECT is(
-  (SELECT count(*) FROM todos WHERE organization_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+  (SELECT count(*) FROM invites WHERE organization_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
   1::bigint,
-  'Member sees todos (has todos:read permission)'
+  'Member sees invites (has invites:read permission)'
 );
 
 RESET ROLE;
@@ -112,7 +107,7 @@ RESET ROLE;
 -- TEST 7-9: Viewer sees read-only data
 -- ====================================================================
 
-SELECT set_config('request.jwt.claims', '{"sub":"44444444-4444-4444-4444-444444444444","role":"authenticated"}', true);
+SELECT set_config('request.jwt.claim.sub', '44444444-4444-4444-4444-444444444444', true);
 SET ROLE authenticated;
 
 SELECT is(
@@ -122,9 +117,9 @@ SELECT is(
 );
 
 SELECT is(
-  (SELECT count(*) FROM todos WHERE organization_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+  (SELECT count(*) FROM organizations WHERE id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
   1::bigint,
-  'Viewer sees todos (has todos:read permission)'
+  'Viewer sees the organization (has org:read permission)'
 );
 
 SELECT is(
@@ -139,7 +134,7 @@ RESET ROLE;
 -- TEST 10-14: Admin (not owner) has admin perms, NOT owner perms
 -- ====================================================================
 
-SELECT set_config('request.jwt.claims', '{"sub":"22222222-2222-2222-2222-222222222222","role":"authenticated"}', true);
+SELECT set_config('request.jwt.claim.sub', '22222222-2222-2222-2222-222222222222', true);
 SET ROLE authenticated;
 
 SELECT is(
@@ -178,7 +173,7 @@ RESET ROLE;
 -- TEST 15-18: Owner (admin+is_owner) has ALL perms including subscription
 -- ====================================================================
 
-SELECT set_config('request.jwt.claims', '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}', true);
+SELECT set_config('request.jwt.claim.sub', '11111111-1111-1111-1111-111111111111', true);
 SET ROLE authenticated;
 
 SELECT is(
@@ -200,9 +195,9 @@ SELECT is(
 );
 
 SELECT is(
-  can_perform('todos:delete', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+  can_perform('campaigns:create', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
   true,
-  'Owner can delete todos (admin has todos:delete permission)'
+  'Owner can create campaigns (is_owner short-circuit)'
 );
 
 RESET ROLE;
@@ -211,7 +206,7 @@ RESET ROLE;
 -- TEST 19-20: Member CANNOT do admin actions
 -- ====================================================================
 
-SELECT set_config('request.jwt.claims', '{"sub":"33333333-3333-3333-3333-333333333333","role":"authenticated"}', true);
+SELECT set_config('request.jwt.claim.sub', '33333333-3333-3333-3333-333333333333', true);
 SET ROLE authenticated;
 
 SELECT is(
@@ -232,7 +227,7 @@ RESET ROLE;
 -- TEST 21-22: Outsider can_perform returns false for everything
 -- ====================================================================
 
-SELECT set_config('request.jwt.claims', '{"sub":"55555555-5555-5555-5555-555555555555","role":"authenticated"}', true);
+SELECT set_config('request.jwt.claim.sub', '55555555-5555-5555-5555-555555555555', true);
 SET ROLE authenticated;
 
 SELECT is(
@@ -242,9 +237,9 @@ SELECT is(
 );
 
 SELECT is(
-  can_perform('todos:read', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+  can_perform('campaigns:read', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
   false,
-  'Outsider can_perform todos:read returns false (not a member)'
+  'Outsider can_perform campaigns:read returns false (not a member)'
 );
 
 RESET ROLE;

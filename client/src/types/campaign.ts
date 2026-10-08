@@ -39,6 +39,7 @@ export type Campaign = {
   start_date: string | null
   end_date: string | null
   is_zakat_eligible: boolean | null
+  address: string | null
   status: CampaignStatus | null
   created_by: string | null
   verified_by: string | null
@@ -99,10 +100,34 @@ export type PublicCampaign = {
   start_date: string | null
   end_date: string | null
   is_zakat_eligible: boolean | null
+  address: string | null
   created_at: string | null
   updated_at: string | null
   donation_methods: DonationMethod[]
   tags: CampaignTag[]
+}
+
+/**
+ * Person-beneficiary verification data for a campaign (1:1). PII: never
+ * part of public reads — reachable only via get_campaign_beneficiary,
+ * gated to the owning org and system admins.
+ */
+export type CampaignBeneficiary = {
+  full_name: string
+  relationship: string | null
+  phone: string | null
+  national_id: string | null
+  document_url: string | null
+  notes: string | null
+}
+
+export type CampaignBeneficiaryDto = {
+  fullName: string
+  relationship?: string | null
+  phone?: string | null
+  nationalId?: string | null
+  documentUrl?: string | null
+  notes?: string | null
 }
 
 // DTOs used by services
@@ -118,6 +143,7 @@ export type CreateCampaignDto = {
   startDate?: string | null
   endDate?: string | null
   isZakatEligible?: boolean
+  address?: string | null
 }
 
 export type UpdateCampaignDto = {
@@ -131,6 +157,7 @@ export type UpdateCampaignDto = {
   endDate?: string | null
   isZakatEligible?: boolean
   status?: CampaignStatus
+  address?: string | null
 }
 
 export type DonationMethodDto = {

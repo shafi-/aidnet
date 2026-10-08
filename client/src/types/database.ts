@@ -77,6 +77,53 @@ export type Database = {
           },
         ]
       }
+      campaign_beneficiary: {
+        Row: {
+          campaign_id: string
+          created_at: string | null
+          document_url: string | null
+          full_name: string
+          id: string
+          national_id: string | null
+          notes: string | null
+          phone: string | null
+          relationship: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string | null
+          document_url?: string | null
+          full_name: string
+          id?: string
+          national_id?: string | null
+          notes?: string | null
+          phone?: string | null
+          relationship?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string | null
+          document_url?: string | null
+          full_name?: string
+          id?: string
+          national_id?: string | null
+          notes?: string | null
+          phone?: string | null
+          relationship?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'campaign_beneficiary_campaign_id_fkey'
+            columns: ['campaign_id']
+            isOneToOne: true
+            referencedRelation: 'campaigns'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       campaign_tag_map: {
         Row: {
           campaign_id: string
@@ -133,6 +180,7 @@ export type Database = {
       }
       campaigns: {
         Row: {
+          address: string | null
           cover_image_url: string | null
           created_at: string | null
           created_by: string | null
@@ -155,6 +203,7 @@ export type Database = {
           verified_by: string | null
         }
         Insert: {
+          address?: string | null
           cover_image_url?: string | null
           created_at?: string | null
           created_by?: string | null
@@ -177,6 +226,7 @@ export type Database = {
           verified_by?: string | null
         }
         Update: {
+          address?: string | null
           cover_image_url?: string | null
           created_at?: string | null
           created_by?: string | null
@@ -320,6 +370,99 @@ export type Database = {
             columns: ['organization_id']
             isOneToOne: false
             referencedRelation: 'organizations'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      donation_reports: {
+        Row: {
+          amount: number
+          campaign_id: string
+          created_at: string | null
+          currency: string
+          donor_name: string | null
+          id: string
+          message: string | null
+          method: string
+          org_id: string
+          reference: string | null
+          reporter_ip_hash: string | null
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          campaign_id: string
+          created_at?: string | null
+          currency: string
+          donor_name?: string | null
+          id?: string
+          message?: string | null
+          method?: string
+          org_id: string
+          reference?: string | null
+          reporter_ip_hash?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          campaign_id?: string
+          created_at?: string | null
+          currency?: string
+          donor_name?: string | null
+          id?: string
+          message?: string | null
+          method?: string
+          org_id?: string
+          reference?: string | null
+          reporter_ip_hash?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'donation_reports_campaign_id_fkey'
+            columns: ['campaign_id']
+            isOneToOne: false
+            referencedRelation: 'campaigns'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'donation_reports_org_id_fkey'
+            columns: ['org_id']
+            isOneToOne: false
+            referencedRelation: 'organization_detail_view'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'donation_reports_org_id_fkey'
+            columns: ['org_id']
+            isOneToOne: false
+            referencedRelation: 'organization_view'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'donation_reports_org_id_fkey'
+            columns: ['org_id']
+            isOneToOne: false
+            referencedRelation: 'organizations'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'donation_reports_reviewed_by_fkey'
+            columns: ['reviewed_by']
+            isOneToOne: false
+            referencedRelation: 'profile_view'
             referencedColumns: ['id']
           },
         ]
@@ -889,68 +1032,6 @@ export type Database = {
         }
         Relationships: []
       }
-      todos: {
-        Row: {
-          completed: boolean | null
-          created_at: string | null
-          created_by: string | null
-          description: string | null
-          id: string
-          organization_id: string
-          title: string
-          updated_at: string | null
-        }
-        Insert: {
-          completed?: boolean | null
-          created_at?: string | null
-          created_by?: string | null
-          description?: string | null
-          id?: string
-          organization_id: string
-          title: string
-          updated_at?: string | null
-        }
-        Update: {
-          completed?: boolean | null
-          created_at?: string | null
-          created_by?: string | null
-          description?: string | null
-          id?: string
-          organization_id?: string
-          title?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'todos_created_by_fkey'
-            columns: ['created_by']
-            isOneToOne: false
-            referencedRelation: 'profile_view'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'todos_organization_id_fkey'
-            columns: ['organization_id']
-            isOneToOne: false
-            referencedRelation: 'organization_detail_view'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'todos_organization_id_fkey'
-            columns: ['organization_id']
-            isOneToOne: false
-            referencedRelation: 'organization_view'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'todos_organization_id_fkey'
-            columns: ['organization_id']
-            isOneToOne: false
-            referencedRelation: 'organizations'
-            referencedColumns: ['id']
-          },
-        ]
-      }
     }
     Views: {
       member_view: {
@@ -1092,55 +1173,6 @@ export type Database = {
       }
     }
     Functions: {
-      confirm_donation_report: {
-        Args: { p_report_id: string }
-        Returns: boolean
-      }
-      get_public_donation_reports: {
-        Args: { p_campaign_id: string; p_limit?: number }
-        Returns: {
-          amount: number
-          created_at: string
-          currency: string
-          donor_name: string | null
-          id: string
-          method: string
-        }[]
-      }
-      list_donation_reports: {
-        Args: { p_campaign_id: string; p_status?: string }
-        Returns: {
-          amount: number
-          created_at: string
-          currency: string
-          donor_name: string | null
-          id: string
-          message: string | null
-          method: string
-          reference: string | null
-          status: string
-        }[]
-      }
-      propose_donation: {
-        Args: {
-          p_amount: number
-          p_campaign_id: string
-          p_donor_name?: string | null
-          p_message?: string | null
-          p_method?: string
-          p_reference?: string | null
-          p_turnstile_token?: string | null
-        }
-        Returns: {
-          created_at: string
-          id: string
-          status: string
-        }[]
-      }
-      reject_donation_report: {
-        Args: { p_note?: string | null; p_report_id: string }
-        Returns: boolean
-      }
       accept_invite: { Args: { p_token: string }; Returns: boolean }
       add_organization_member: {
         Args: {
@@ -1209,8 +1241,13 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      confirm_donation_report: {
+        Args: { p_report_id: string }
+        Returns: boolean
+      }
       create_campaign: {
         Args: {
+          p_address?: string
           p_cover_image_url?: string
           p_currency?: string
           p_description?: string
@@ -1223,6 +1260,7 @@ export type Database = {
           p_title: string
         }
         Returns: {
+          address: string | null
           cover_image_url: string | null
           created_at: string | null
           created_by: string | null
@@ -1325,32 +1363,8 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      create_todo: {
-        Args: {
-          p_description?: string
-          p_organization_id: string
-          p_title: string
-        }
-        Returns: {
-          completed: boolean | null
-          created_at: string | null
-          created_by: string | null
-          description: string | null
-          id: string
-          organization_id: string
-          title: string
-          updated_at: string | null
-        }[]
-        SetofOptions: {
-          from: '*'
-          to: 'todos'
-          isOneToOne: false
-          isSetofReturn: true
-        }
-      }
       delete_campaign: { Args: { p_campaign_id: string }; Returns: boolean }
       delete_organization: { Args: { target_org_id: string }; Returns: boolean }
-      delete_todo: { Args: { p_todo_id: string }; Returns: boolean }
       get_all_org_requests: {
         Args: never
         Returns: {
@@ -1393,6 +1407,7 @@ export type Database = {
       get_campaign: {
         Args: { p_campaign_id: string }
         Returns: {
+          address: string | null
           cover_image_url: string | null
           created_at: string | null
           created_by: string | null
@@ -1421,9 +1436,21 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_campaign_beneficiary: {
+        Args: { p_campaign_id: string }
+        Returns: {
+          document_url: string
+          full_name: string
+          national_id: string
+          notes: string
+          phone: string
+          relationship: string
+        }[]
+      }
       get_campaign_by_slug: {
         Args: { p_slug: string }
         Returns: {
+          address: string | null
           cover_image_url: string | null
           created_at: string | null
           created_by: string | null
@@ -1474,6 +1501,7 @@ export type Database = {
       get_campaigns: {
         Args: { p_org_id: string }
         Returns: {
+          address: string | null
           cover_image_url: string | null
           created_at: string | null
           created_by: string | null
@@ -1601,7 +1629,7 @@ export type Database = {
       }
       get_my_profile: {
         Args: never
-        Returns: Database['shared']['Tables']['profiles']['Row'][]
+        Returns: unknown[]
         SetofOptions: {
           from: '*'
           to: 'profiles'
@@ -1709,6 +1737,7 @@ export type Database = {
       get_pending_campaigns: {
         Args: never
         Returns: {
+          address: string | null
           cover_image_url: string | null
           created_at: string | null
           created_by: string | null
@@ -1740,6 +1769,7 @@ export type Database = {
       get_public_campaign_by_slug: {
         Args: { p_slug: string }
         Returns: {
+          address: string
           cover_image_url: string
           currency: string
           description: string
@@ -1760,31 +1790,73 @@ export type Database = {
           title: string
         }[]
       }
-      get_public_campaigns: {
-        Args: {
-          org_filter?: string
-          result_limit?: number
-          zakat_filter?: boolean
-        }
+      get_public_campaigns:
+        | {
+            Args: {
+              org_filter?: string
+              result_limit?: number
+              zakat_filter?: boolean
+            }
+            Returns: {
+              cover_image_url: string
+              currency: string
+              description: string
+              donation_methods: Json
+              end_date: string
+              goal_amount: number
+              id: string
+              is_zakat_eligible: boolean
+              org_description: string
+              org_id: string
+              org_logo_url: string
+              org_name: string
+              org_slug: string
+              raised_amount: number
+              slug: string
+              start_date: string
+              tags: Json
+              title: string
+            }[]
+          }
+        | {
+            Args: {
+              org_filter?: string
+              result_limit?: number
+              zakat_filter?: boolean
+            }
+            Returns: {
+              address: string
+              cover_image_url: string
+              created_at: string
+              currency: string
+              description: string
+              donation_methods: Json
+              end_date: string
+              goal_amount: number
+              id: string
+              is_zakat_eligible: boolean
+              org_description: string
+              org_id: string
+              org_logo_url: string
+              org_name: string
+              org_slug: string
+              raised_amount: number
+              slug: string
+              start_date: string
+              tags: Json
+              title: string
+              updated_at: string
+            }[]
+          }
+      get_public_donation_reports: {
+        Args: { p_campaign_id: string; p_limit?: number }
         Returns: {
-          cover_image_url: string
+          amount: number
+          created_at: string
           currency: string
-          description: string
-          donation_methods: Json
-          end_date: string
-          goal_amount: number
+          donor_name: string
           id: string
-          is_zakat_eligible: boolean
-          org_description: string
-          org_id: string
-          org_logo_url: string
-          org_name: string
-          org_slug: string
-          raised_amount: number
-          slug: string
-          start_date: string
-          tags: Json
-          title: string
+          method: string
         }[]
       }
       get_public_org_by_slug: {
@@ -1859,25 +1931,6 @@ export type Database = {
           total_users: number
         }[]
       }
-      get_todos: {
-        Args: { p_organization_id: string }
-        Returns: {
-          completed: boolean | null
-          created_at: string | null
-          created_by: string | null
-          description: string | null
-          id: string
-          organization_id: string
-          title: string
-          updated_at: string | null
-        }[]
-        SetofOptions: {
-          from: '*'
-          to: 'todos'
-          isOneToOne: false
-          isSetofReturn: true
-        }
-      }
       get_user_profile: {
         Args: { target_user_id: string }
         Returns: {
@@ -1902,10 +1955,41 @@ export type Database = {
         Returns: boolean
       }
       is_system_admin: { Args: never; Returns: boolean }
+      list_donation_reports: {
+        Args: { p_campaign_id: string; p_status?: string }
+        Returns: {
+          amount: number
+          created_at: string
+          currency: string
+          donor_name: string
+          id: string
+          message: string
+          method: string
+          reference: string
+          status: string
+        }[]
+      }
       pause_subscription: { Args: { p_org_id: string }; Returns: boolean }
+      propose_donation: {
+        Args: {
+          p_amount: number
+          p_campaign_id: string
+          p_donor_name?: string
+          p_message?: string
+          p_method?: string
+          p_reference?: string
+          p_turnstile_token?: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          status: string
+        }[]
+      }
       reject_campaign: {
         Args: { p_campaign_id: string; p_notes?: string }
         Returns: {
+          address: string | null
           cover_image_url: string | null
           created_at: string | null
           created_by: string | null
@@ -1934,6 +2018,10 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      reject_donation_report: {
+        Args: { p_note?: string; p_report_id: string }
+        Returns: boolean
+      }
       reject_org_request: {
         Args: { p_rejection_reason?: string; p_request_id: string }
         Returns: boolean
@@ -1947,6 +2035,18 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: boolean
       }
+      set_campaign_beneficiary: {
+        Args: {
+          p_campaign_id: string
+          p_document_url?: string
+          p_full_name: string
+          p_national_id?: string
+          p_notes?: string
+          p_phone?: string
+          p_relationship?: string
+        }
+        Returns: undefined
+      }
       set_campaign_tags: {
         Args: { p_campaign_id: string; p_tag_ids: string[] }
         Returns: boolean
@@ -1959,6 +2059,7 @@ export type Database = {
       submit_campaign_for_review: {
         Args: { p_campaign_id: string }
         Returns: {
+          address: string | null
           cover_image_url: string | null
           created_at: string | null
           created_by: string | null
@@ -2015,9 +2116,14 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      sync_campaign_raised: {
+        Args: { p_campaign_id: string }
+        Returns: undefined
+      }
       unpause_subscription: { Args: { p_org_id: string }; Returns: boolean }
       update_campaign: {
         Args: {
+          p_address?: string
           p_campaign_id: string
           p_cover_image_url?: string
           p_currency?: string
@@ -2031,6 +2137,7 @@ export type Database = {
           p_title?: string
         }
         Returns: {
+          address: string | null
           cover_image_url: string | null
           created_at: string | null
           created_by: string | null
@@ -2178,30 +2285,6 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      update_todo: {
-        Args: {
-          p_completed?: boolean
-          p_description?: string
-          p_title?: string
-          p_todo_id: string
-        }
-        Returns: {
-          completed: boolean | null
-          created_at: string | null
-          created_by: string | null
-          description: string | null
-          id: string
-          organization_id: string
-          title: string
-          updated_at: string | null
-        }[]
-        SetofOptions: {
-          from: '*'
-          to: 'todos'
-          isOneToOne: false
-          isSetofReturn: true
-        }
-      }
       upsert_donation_methods: {
         Args: {
           p_bank_account_name?: string
@@ -2256,6 +2339,7 @@ export type Database = {
       verify_campaign: {
         Args: { p_campaign_id: string; p_notes?: string }
         Returns: {
+          address: string | null
           cover_image_url: string | null
           created_at: string | null
           created_by: string | null
@@ -2284,59 +2368,14 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      verify_turnstile: {
+        Args: { p_remoteip?: string; p_token: string }
+        Returns: boolean
+      }
     }
     Enums: {
       campaign_status:
         'draft' | 'pending_review' | 'live' | 'rejected' | 'closed'
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-  shared: {
-    Tables: {
-      profiles: {
-        Row: {
-          avatar_url: string | null
-          created_at: string | null
-          email: string
-          full_name: string | null
-          id: string
-          is_system_admin: boolean | null
-          metadata: Json | null
-          updated_at: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          created_at?: string | null
-          email: string
-          full_name?: string | null
-          id: string
-          is_system_admin?: boolean | null
-          metadata?: Json | null
-          updated_at?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          created_at?: string | null
-          email?: string
-          full_name?: string | null
-          id?: string
-          is_system_admin?: boolean | null
-          metadata?: Json | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      [_ in never]: never
-    }
-    Enums: {
-      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2469,8 +2508,5 @@ export const Constants = {
         'closed',
       ],
     },
-  },
-  shared: {
-    Enums: {},
   },
 } as const

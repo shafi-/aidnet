@@ -160,8 +160,7 @@ done
 
 echo "== positive controls (must SUCCEED — a failure means a broken harness) =="
 probe_rpc "owner: get_campaigns(own org)"           '"title"'  get_campaigns "$OWNER" "{\"p_org_id\":\"$ORGA\"}"
-probe_rpc "member: create_todo(own org)"            '"id"'     create_todo "$MEMBER" "{\"p_organization_id\":\"$ORGA\",\"p_title\":\"authz-probe\"}"
-probe_rpc "member: has_feature(own org)"            'true'     has_feature "$MEMBER" "{\"p_org_id\":\"$ORGA\",\"p_feature\":\"todos\"}"
+probe_rpc "member: has_feature(own org)"            'true'     has_feature "$MEMBER" "{\"p_org_id\":\"$ORGA\",\"p_feature\":\"members\"}"
 probe_rpc "owner: get_org_meta(own org)"            '^200'     get_org_meta "$OWNER" "{\"p_org_id\":\"$ORGA\"}"
 probe_rpc "owner: update_org_meta(own org)"         'true'     update_org_meta "$OWNER" "{\"p_org_id\":\"$ORGA\",\"p_name\":\"Demo Organization\"}"
 
@@ -174,9 +173,8 @@ probe_rpc "get_subscription_history(orgA)"          '\|\[\]$'   get_subscription
 probe_rpc "get_organization(orgA)"                  '\|\[\]$'   get_organization "$ATK" "{\"target_org_id\":\"$ORGA\"}"
 probe_rpc "get_membership(orgA)"                    '\|\[\]$|^null$' get_membership "$ATK" "{\"p_org_id\":\"$ORGA\"}"
 probe_rpc "get_invites(orgA)"                       '\|\[\]$'   get_invites "$ATK" "{\"p_organization_id\":\"$ORGA\"}"
-probe_rpc "get_todos(orgA)"                         '\|\[\]$'   get_todos "$ATK" "{\"p_organization_id\":\"$ORGA\"}"
 probe_rpc "get_campaign_tag_ids(orgA campaign)"     '\|\[\]$'   get_campaign_tag_ids "$ATK" "{\"p_campaign_id\":\"$CAMPAIGN\"}"
-probe_rpc "has_feature(orgA) [regression: leak]"    'false'    has_feature "$ATK" "{\"p_org_id\":\"$ORGA\",\"p_feature\":\"todos\"}"
+probe_rpc "has_feature(orgA) [regression: leak]"    'false'    has_feature "$ATK" "{\"p_org_id\":\"$ORGA\",\"p_feature\":\"members\"}"
 probe_rpc "get_user_profile(orgA member)"           '\|\[\]$'   get_user_profile "$ATK" "{\"target_user_id\":\"$MEMBER_ID\"}"
 
 echo "== attacker (org B) mutating org A =="
@@ -188,7 +186,6 @@ probe_rpc "set_org_status(orgA,suspended)"          'not authorized' set_org_sta
 probe_rpc "add_organization_member(orgA)"           'not authorized' add_organization_member "$ATK" "{\"target_org_id\":\"$ORGA\",\"target_user_email\":\"$MEMBER_EMAIL\"}"
 probe_rpc "update_member_role(orgA)"                'not authorized' update_member_role "$ATK" "{\"target_org_id\":\"$ORGA\",\"target_user_id\":\"$MEMBER_ID\",\"new_role\":\"admin\"}"
 probe_rpc "remove_organization_member(orgA)"        'not authorized' remove_organization_member "$ATK" "{\"target_org_id\":\"$ORGA\",\"target_user_id\":\"$MEMBER_ID\"}"
-probe_rpc "create_todo(orgA)"                       'not authorized' create_todo "$ATK" "{\"p_organization_id\":\"$ORGA\",\"p_title\":\"hack\"}"
 probe_rpc "create_invite(orgA)"                     'not authorized' create_invite "$ATK" "{\"p_organization_id\":\"$ORGA\",\"p_email\":\"x@x.test\"}"
 probe_rpc "create_campaign(orgA)"                   'not authorized' create_campaign "$ATK" "{\"p_org_id\":\"$ORGA\",\"p_title\":\"hack\",\"p_slug\":\"pentest-hack-$SUFFIX\"}"
 probe_rpc "submit_campaign_for_review(orgA camp)"   'not authorized|not found' submit_campaign_for_review "$ATK" "{\"p_campaign_id\":\"$CAMPAIGN\"}"

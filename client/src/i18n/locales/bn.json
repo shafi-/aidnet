@@ -271,7 +271,6 @@
     "noDescription": "কোনো বিবরণ নেই"
   },
   "orgTabs": {
-    "todos": "টুডু",
     "members": "সদস্য",
     "settings": "সেটিংস",
     "billing": "বিলিং",
@@ -318,17 +317,14 @@
     "revoke": "প্রত্যাহার করুন",
     "inviteMeta": "ভূমিকা: {{role}} · মেয়াদ শেষ: {{date}}",
     "noMembers": "এখনো কোনো সদস্য নেই।",
-    "noInvites": "কোনো অপেক্ষমাণ আমন্ত্রণ নেই।"
+    "noInvites": "কোনো অপেক্ষমাণ আমন্ত্রণ নেই।",
+    "loadError": "সদস্যদের লোড করা যায়নি: {{message}}"
   },
   "orgSettings": {
     "orgName": "সংগঠনের নাম",
     "slug": "ওয়েব ঠিকানা",
     "slugHelp": "শুধু ছোট হাতের অক্ষর, সংখ্যা ও হাইফেন (-) ব্যবহার করা যাবে।",
     "noPermission": "সেটিংস সম্পাদনার অনুমতি আপনার নেই।"
-  },
-  "todos": {
-    "newPlaceholder": "নতুন টুডু...",
-    "noTodos": "এখনো কোনো টুডু নেই।"
   },
   "orgRequest": {
     "title": "সংগঠনের আবেদন করুন",
@@ -397,7 +393,6 @@
     "viewer": "দর্শক"
   },
   "features": {
-    "todos": "টুডু",
     "members": "সদস্য",
     "invites": "আমন্ত্রণ",
     "campaigns": "ক্যাম্পেইন",
@@ -420,7 +415,30 @@
     "zakatEligible": "যাকাতযোগ্য",
     "tags": "ট্যাগ",
     "loadingTags": "ট্যাগ লোড হচ্ছে...",
-    "create": "ক্যাম্পেইন তৈরি করুন"
+    "create": "ক্যাম্পেইন তৈরি করুন",
+    "addressLabel": "কাজ কোথায় হবে",
+    "addressHint": "পাবলিক ক্যাম্পেইন পেজে দেখানো হয়।",
+    "addressPlaceholder": "যেমন: রংপুর, বাংলাদেশ",
+    "payTitle": "পেমেন্ট তথ্য",
+    "payHint": "ক্যাম্পেইন পেজে দাতাদের জন্য দেখানো হয়। সংগঠনের সংরক্ষিত পদ্ধতি থেকে আগেই পূরণ হয়ে থাকে।",
+    "bkashNumber": "বিকাশ নম্বর",
+    "nagadNumber": "নগদ নম্বর",
+    "rocketNumber": "রকেট নম্বর",
+    "bankName": "ব্যাংকের নাম",
+    "bankAccountNumber": "ব্যাংক অ্যাকাউন্ট নম্বর",
+    "donationUrl": "বাহ্যিক অনুদান লিংক",
+    "instructions": "পেমেন্ট নির্দেশনা",
+    "forLabel": "এই ক্যাম্পেইনের তহবিল সংগ্রহ করা হচ্ছে",
+    "forOrg": "আমাদের সংগঠন",
+    "forPerson": "একজন ব্যক্তির জন্য",
+    "benTitle": "ব্যক্তির যাচাইকরণ",
+    "benFullName": "ব্যক্তির পুরো নাম",
+    "benRelationship": "আপনার সংগঠনের সাথে সম্পর্ক",
+    "benPhone": "ব্যক্তির ফোন",
+    "benNationalId": "জাতীয় পরিচয়পত্র নম্বর",
+    "benDocumentUrl": "পরিচয়পত্র ডকুমেন্ট লিংক (URL)",
+    "benDocumentHint": "যাচাইয়ের জন্য স্ক্যান করা পরিচয়পত্রের লিংক।",
+    "benPrivacy": "যাচাইকরণ তথ্য শুধু AidNet পর্যালোচক ও আপনার সংগঠন দেখতে পাবে — জনসাধারণ কখনো নয়।"
   },
   "campaignCard": {
     "view": "ক্যাম্পেইন দেখুন →",
@@ -444,7 +462,8 @@
     "noMethods": "এখনো কোনো অনুদানের পদ্ধতি যোগ করা হয়নি।",
     "preferred": "প্রধান",
     "donateVia": "{{host}}-এর মাধ্যমে অনুদান দিন",
-    "qrAlt": "অনুদানের কিউআর কোড"
+    "qrAlt": "অনুদানের কিউআর কোড",
+    "address": "যেখানে কাজ হবে"
   },
   "campaignNew": {
     "title": "নতুন ক্যাম্পেইন",
@@ -533,7 +552,7 @@
     "priceMonthly": "মাসিক মূল্য ($)",
     "priceYearly": "বার্ষিক মূল্য ($)",
     "featuresComma": "ফিচার (কমা দিয়ে আলাদা করুন)",
-    "featuresPlaceholder": "todos, members, invites, settings, analytics",
+    "featuresPlaceholder": "members, invites, campaigns, settings, analytics",
     "update": "হালনাগাদ",
     "create": "তৈরি করুন",
     "queueTitle": "ক্যাম্পেইন পর্যালোচনা সারি",
@@ -571,6 +590,8 @@
     "approvedMsg": "সংগঠন সফলভাবে অনুমোদিত ও তৈরি হয়েছে!",
     "reasonRequired": "অনুগ্রহ করে প্রত্যাখ্যানের কারণ লিখুন",
     "rejectFailed": "আবেদন প্রত্যাখ্যান করা যায়নি",
-    "requestRejectedMsg": "সংগঠনের আবেদন প্রত্যাখ্যাত হয়েছে।"
+    "requestRejectedMsg": "সংগঠনের আবেদন প্রত্যাখ্যাত হয়েছে।",
+    "beneficiaryTitle": "ব্যক্তির যাচাইকরণ",
+    "beneficiaryNone": "এই ক্যাম্পেইনের জন্য কোনো ব্যক্তি-যাচাইকরণ তথ্য দেওয়া হয়নি।"
   }
 }

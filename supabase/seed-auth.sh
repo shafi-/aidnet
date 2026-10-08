@@ -131,7 +131,7 @@ BEGIN
   VALUES (v_org_id, v_owner_id, 'admin', 'active', true)
   ON CONFLICT (organization_id, user_id) DO NOTHING;
 
-  -- Give the demo org an active Pro subscription (todos, members, invites, settings).
+  -- Give the demo org an active Pro subscription (members, invites, settings).
   -- The org-create trigger may already have attached the baseline Free plan;
   -- upgrade (replace it) rather than skip, so demo always exercises Pro features.
   DELETE FROM organization_subscriptions s

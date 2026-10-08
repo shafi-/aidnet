@@ -1,5 +1,4 @@
 import type {
-  Todo,
   Campaign,
   PublicCampaign,
   CampaignTag,
@@ -20,18 +19,6 @@ import type {
 import type { PublicOrg } from '@/repositories/PublicOrgRepository'
 
 const TS = '2026-01-01T00:00:00Z'
-
-export const aTodo = (over: Partial<Todo> = {}): Todo => ({
-  id: 'todo-1',
-  organization_id: 'org-1',
-  title: 'Write tests',
-  description: null,
-  completed: false,
-  created_by: 'user-1',
-  created_at: TS,
-  updated_at: TS,
-  ...over,
-})
 
 export const aCampaignTag = (over: Partial<CampaignTag> = {}): CampaignTag => ({
   id: 'tag-1',
@@ -67,6 +54,7 @@ export const aDonationMethod = (
 })
 
 export const aCampaign = (over: Partial<Campaign> = {}): Campaign => ({
+  address: null,
   id: 'camp-1',
   org_id: 'org-1',
   title: 'Build a school',
@@ -94,6 +82,7 @@ export const aCampaign = (over: Partial<Campaign> = {}): Campaign => ({
 export const aPublicCampaign = (
   over: Partial<PublicCampaign> = {}
 ): PublicCampaign => ({
+  address: null,
   id: 'camp-1',
   org_id: 'org-1',
   org_name: 'Demo Org',

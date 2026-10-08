@@ -271,7 +271,6 @@
     "noDescription": "No description"
   },
   "orgTabs": {
-    "todos": "Todos",
     "members": "Members",
     "settings": "Settings",
     "billing": "Billing",
@@ -318,17 +317,14 @@
     "revoke": "Revoke",
     "inviteMeta": "Role: {{role}} · Expires: {{date}}",
     "noMembers": "No members yet.",
-    "noInvites": "No pending invites."
+    "noInvites": "No pending invites.",
+    "loadError": "Could not load members: {{message}}"
   },
   "orgSettings": {
     "orgName": "Organization Name",
     "slug": "Web address",
     "slugHelp": "Lowercase letters, numbers, and hyphens only.",
     "noPermission": "You don't have permission to edit settings."
-  },
-  "todos": {
-    "newPlaceholder": "New todo...",
-    "noTodos": "No todos yet."
   },
   "orgRequest": {
     "title": "Request an organization",
@@ -397,7 +393,6 @@
     "viewer": "Viewer"
   },
   "features": {
-    "todos": "Todos",
     "members": "Members",
     "invites": "Invites",
     "campaigns": "Campaigns",
@@ -420,7 +415,30 @@
     "zakatEligible": "Zakat eligible",
     "tags": "Tags",
     "loadingTags": "Loading tags...",
-    "create": "Create Campaign"
+    "create": "Create Campaign",
+    "addressLabel": "Where the work will happen",
+    "addressHint": "Shown on the public campaign page.",
+    "addressPlaceholder": "e.g. Rangpur, Bangladesh",
+    "payTitle": "Payment details",
+    "payHint": "Donation channels shown to donors on the campaign page. Prefilled from your organization's saved methods.",
+    "bkashNumber": "bKash number",
+    "nagadNumber": "Nagad number",
+    "rocketNumber": "Rocket number",
+    "bankName": "Bank name",
+    "bankAccountNumber": "Bank account number",
+    "donationUrl": "External donation link",
+    "instructions": "Payment instructions",
+    "forLabel": "This campaign raises funds for",
+    "forOrg": "Our organization",
+    "forPerson": "A person",
+    "benTitle": "Person verification",
+    "benFullName": "Person's full name",
+    "benRelationship": "Relationship to your organization",
+    "benPhone": "Person's phone",
+    "benNationalId": "National ID number",
+    "benDocumentUrl": "ID document link (URL)",
+    "benDocumentHint": "Link to a scanned ID for verification.",
+    "benPrivacy": "Verification details are visible only to AidNet reviewers and your organization — never to the public."
   },
   "campaignCard": {
     "view": "View campaign →",
@@ -444,7 +462,8 @@
     "noMethods": "No donation methods listed yet.",
     "preferred": "Preferred",
     "donateVia": "Donate via {{host}}",
-    "qrAlt": "Donation QR code"
+    "qrAlt": "Donation QR code",
+    "address": "Where the work happens"
   },
   "campaignNew": {
     "title": "New Campaign",
@@ -533,7 +552,7 @@
     "priceMonthly": "Price Monthly ($)",
     "priceYearly": "Price Yearly ($)",
     "featuresComma": "Features (comma-separated)",
-    "featuresPlaceholder": "todos, members, invites, settings, analytics",
+    "featuresPlaceholder": "members, invites, campaigns, settings, analytics",
     "update": "Update",
     "create": "Create",
     "queueTitle": "Campaign Review Queue",
@@ -571,6 +590,8 @@
     "approvedMsg": "Organization approved and created successfully!",
     "reasonRequired": "Please provide a reason for rejection",
     "rejectFailed": "Failed to reject request",
-    "requestRejectedMsg": "Organization request rejected."
+    "requestRejectedMsg": "Organization request rejected.",
+    "beneficiaryTitle": "Person verification",
+    "beneficiaryNone": "No person-beneficiary details were provided for this campaign."
   }
 }

@@ -12,9 +12,9 @@
 -- ============================================================================
 
 BEGIN;
-SELECT plan(32);
+SELECT plan(30);
 
-INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at) VALUES
+INSERT INTO auth.users (id, email, encrypted_password, confirmed_at) VALUES
   ('9a1a1a1a-1111-4111-8111-a1a1a1a1a1a1', 'sweep-owner@test.local',    '', now()),
   ('9a2a2a2a-2222-4222-8222-a2a2a2a2a2a2', 'sweep-outsider@test.local','' , now())
 ON CONFLICT (id) DO NOTHING;
@@ -29,7 +29,7 @@ INSERT INTO organization_members (organization_id, user_id, role, status, is_own
    'admin', 'active', true)
 ON CONFLICT DO NOTHING;
 
-INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at)
+INSERT INTO auth.users (id, email, encrypted_password, confirmed_at)
 VALUES ('9b9b9b9b-9999-4999-8999-b9b9b9b9b9b9', 'orphan-profile@test.local', '', now())
 ON CONFLICT (id) DO NOTHING;
 
@@ -84,11 +84,8 @@ CROSS JOIN LATERAL (
 ) p
 WHERE o.slug = 'sweep-org';
 
-INSERT INTO todos (organization_id, title)
-VALUES ('9b1b1b1b-1111-4111-8111-b1b1b1b1b1b1', 'Sweep todo');
-
 INSERT INTO roles (name) VALUES ('sweep_role');
-INSERT INTO role_permissions (role, permission) VALUES ('sweep_role', 'todos:create');
+INSERT INTO role_permissions (role, permission) VALUES ('sweep_role', 'invites:create');
 
 -- ============================================================================
 -- ANONYMOUS surface — everything hidden except live campaigns
@@ -107,13 +104,13 @@ SELECT is((SELECT count(*) FROM organization_subscriptions), 0::bigint,
   'anon: organization_subscriptions hidden');
 SELECT is((SELECT count(*) FROM organizations WHERE slug = 'sweep-org'), 0::bigint,
   'anon: member-gated organizations hidden');
-SELECT is((SELECT count(*) FROM profiles),            0::bigint, 'anon: profiles hidden');
+SELECT throws_ok('SELECT count(*) FROM profiles', '42501', NULL,
+  'anon: profiles denied outright (deny-all, no grants)');
 SELECT is((SELECT count(*) FROM roles),               0::bigint, 'anon: roles hidden');
 SELECT is((SELECT count(*) FROM role_permissions),    0::bigint, 'anon: role_permissions hidden');
 SELECT is((SELECT count(*) FROM subscription_history),0::bigint, 'anon: subscription_history hidden');
 SELECT is((SELECT count(*) FROM subscription_plans WHERE name = 'Sweep Plan'), 0::bigint,
   'anon: subscription_plans hidden');
-SELECT is((SELECT count(*) FROM todos),               0::bigint, 'anon: todos hidden');
 
 -- The ONE deliberate public surface: live campaigns only.
 SELECT is(
@@ -135,8 +132,8 @@ RESET ROLE;
 -- foreign data hidden; deliberate surfaces (role catalog, campaign_tags,
 -- own audit trail, own org's subscription) remain visible.
 -- ============================================================================
-SELECT set_config('request.jwt.claims',
-  '{"sub":"9a2a2a2a-2222-4222-8222-a2a2a2a2a2a2","role":"authenticated"}', false);
+SELECT set_config('request.jwt.claim.sub',
+  '9a2a2a2a-2222-4222-8222-a2a2a2a2a2a2', false);
 SET ROLE authenticated;
 
 SELECT is((SELECT count(*) FROM audit_logs
@@ -167,10 +164,9 @@ SELECT is((SELECT count(*) FROM organizations WHERE slug = 'sweep-org'), 0::bigi
 SELECT is((SELECT count(*) FROM profiles WHERE id <> auth.uid()), 0::bigint,
   'auth-outsider: other users profiles hidden');
 SELECT is((SELECT count(*) FROM subscription_history),0::bigint, 'auth-outsider: subscription_history hidden');
-SELECT is((SELECT count(*) FROM todos),               0::bigint, 'auth-outsider: todos hidden');
 SELECT is((SELECT count(*) FROM campaigns WHERE slug = 'sweep-draft'),
   0::bigint, 'auth-outsider: drafts hidden even when live ones exist');
 
-SELECT set_config('request.jwt.claims', '', false);
+SELECT set_config('request.jwt.claim.sub', '', false);
 SELECT * FROM finish();
 ROLLBACK;

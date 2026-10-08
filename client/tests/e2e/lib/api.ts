@@ -189,7 +189,7 @@ export async function expectOrgProvisioned(
     }
   )
   const sub = Array.isArray(subRaw) ? subRaw[0] : subRaw
-  const BASE_FEATURES = ['todos', 'members', 'settings']
+  const BASE_FEATURES = ['members', 'settings']
   const expected = opts.features ?? BASE_FEATURES
   expect(sub, 'active subscription for new org').toBeTruthy()
   expect(sub!.status).toBe('active')

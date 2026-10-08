@@ -16,7 +16,6 @@ export type {
   OrgStatus,
 } from './org'
 export type { Member, MemberView, Membership } from './member'
-export type { Todo, CreateTodoDto, UpdateTodoDto } from './todo'
 export type { Invite, CreateInviteDto } from './invite'
 export type { SystemStats } from './system'
 export type {
@@ -35,6 +34,8 @@ export type {
   Campaign,
   CampaignStatus,
   CampaignTag,
+  CampaignBeneficiary,
+  CampaignBeneficiaryDto,
   CreateCampaignDto,
   DonationMethod,
   DonationMethodDto,

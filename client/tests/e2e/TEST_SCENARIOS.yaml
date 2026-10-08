@@ -185,9 +185,6 @@ scenarios:
     notes: tab visibility depends on active subscription features fetched in beforeAll
     scenarios:
       - { title: When owner opens dashboard, org name and Billing tab show, actor: orgOwner, type: ui, setup: seeded }
-      - { title: When todos feature active, owner can add a todo,          actor: orgOwner, type: ui, setup: seeded, notes: skips if feature absent, denial is the assertion }
-      - { title: When todos feature active, owner can toggle todo completion, actor: orgOwner, type: ui, setup: seeded, notes: feature-gated }
-      - { title: When todos feature active, owner can delete a todo,       actor: orgOwner, type: ui, setup: seeded, notes: feature-gated }
       - { title: When members feature active, Members tab shows member list, actor: orgOwner, type: ui, setup: seeded, notes: feature-gated }
       - { title: When members feature active, add-member form shows,       actor: orgOwner, type: ui, setup: seeded, notes: feature-gated }
       - { title: When settings feature active, Settings tab shows org form, actor: orgOwner, type: ui, setup: seeded, notes: feature-gated }
