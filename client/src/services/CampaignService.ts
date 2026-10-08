@@ -1,9 +1,11 @@
 import type {
   CampaignBeneficiary,
   CampaignBeneficiaryDto,
+  CampaignPaymentMethods,
   Campaign,
   CampaignTag,
   CreateCampaignDto,
+  DonationMethodDto,
   ServiceData,
   UpdateCampaignDto,
 } from '@/types'
@@ -35,6 +37,24 @@ export class CampaignService {
 
   async getBeneficiary(campaignId: string): ServiceData<CampaignBeneficiary[]> {
     return this.campaignRepo.getBeneficiary(campaignId)
+  }
+
+  async getPaymentMethods(
+    campaignId: string
+  ): ServiceData<CampaignPaymentMethods | null> {
+    // RETURNS TABLE → PostgREST wraps rows; a campaign without saved
+    // payment details yields an empty array.
+    const { data, error } =
+      await this.campaignRepo.getPaymentMethods(campaignId)
+    if (error) return { data: null, error }
+    return { data: data?.[0] ?? null, error: null }
+  }
+
+  async setPaymentMethods(
+    campaignId: string,
+    dto: DonationMethodDto
+  ): ServiceData<null> {
+    return this.campaignRepo.setPaymentMethods(campaignId, dto)
   }
 
   async getCampaigns(orgId: string): ServiceData<CampaignRow[]> {

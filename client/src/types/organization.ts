@@ -7,11 +7,16 @@ export interface Organization {
   updated_at: string
 }
 
+// 'personal' orgs are lazy per-user tenancy containers for individual
+// fundraisers (see ensure_my_personal_org); regular orgs are 'organization'.
+export type OrgKind = 'organization' | 'personal'
+
 export interface OrganizationView extends Organization {
   user_id: string
   user_role: string
   membership_status: string
   joined_at: string
+  kind: OrgKind
   // Combined with org_meta data for display
   name: string
   description: string | null

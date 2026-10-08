@@ -15,6 +15,7 @@ vi.mock('@/hooks/useCampaigns', () => ({
 }))
 
 const mockSetBeneficiary = vi.hoisted(() => vi.fn())
+const mockSetPaymentMethods = vi.hoisted(() => vi.fn())
 
 vi.mock('@/services/CampaignService', () => ({
   campaignService: {
@@ -23,6 +24,8 @@ vi.mock('@/services/CampaignService', () => ({
     setCampaignTags: vi.fn().mockResolvedValue({ data: null, error: null }),
     setBeneficiary: mockSetBeneficiary,
     getBeneficiary: vi.fn().mockResolvedValue({ data: [], error: null }),
+    getPaymentMethods: vi.fn().mockResolvedValue({ data: null, error: null }),
+    setPaymentMethods: mockSetPaymentMethods,
   },
 }))
 
@@ -62,6 +65,7 @@ describe('useCampaignForm slug auto-generation', () => {
     vi.clearAllMocks()
     mockCreate.mockResolvedValue({ data: { id: 'c1' }, error: null })
     mockSetBeneficiary.mockResolvedValue({ data: null, error: null })
+    mockSetPaymentMethods.mockResolvedValue({ data: null, error: null })
   })
 
   it('When the title is typed, the slug auto-generates in create mode', () => {
@@ -131,5 +135,26 @@ describe('useCampaignForm slug auto-generation', () => {
     await act(async () => result.current.submit())
     expect(result.current.error).toMatch(/full name/i)
     expect(mockCreate).not.toHaveBeenCalled()
+  })
+
+  it('When payment details are filled in, they are saved to the campaign, not the org', async () => {
+    const { result } = setupCreate()
+    act(() => {
+      result.current.set('title', 'Winter Relief')
+      result.current.setPayment({ bkashNumber: '01712345678' })
+    })
+    await act(async () => result.current.submit())
+    expect(mockSetPaymentMethods).toHaveBeenCalledTimes(1)
+    expect(mockSetPaymentMethods).toHaveBeenCalledWith(
+      'c1',
+      expect.objectContaining({ bkashNumber: '01712345678' })
+    )
+  })
+
+  it('When no payment details are entered, no payment write is attempted', async () => {
+    const { result } = setupCreate()
+    act(() => result.current.set('title', 'No Payment Campaign'))
+    await act(async () => result.current.submit())
+    expect(mockSetPaymentMethods).not.toHaveBeenCalled()
   })
 })

@@ -137,4 +137,65 @@ describe('CampaignRepository', () => {
       p_campaign_id: 'camp-1',
     })
   })
+
+  it('getPaymentMethods passes p_campaign_id and returns raw rows', async () => {
+    const rows = [
+      {
+        campaign_id: 'camp-1',
+        bkash_number: '01712345678',
+        bkash_account_name: null,
+        nagad_number: null,
+        nagad_account_name: null,
+        rocket_number: null,
+        rocket_account_name: null,
+        bank_name: null,
+        bank_account_number: null,
+        bank_account_name: null,
+        bank_routing_number: null,
+        bank_branch: null,
+        donation_url: null,
+        qr_image_url: null,
+        instructions: null,
+        is_preferred: false,
+      },
+    ]
+    const gw = createMockRpcGateway({
+      get_campaign_payment_methods: { data: rows },
+    })
+    const res = await new CampaignRepository(gw).getPaymentMethods('camp-1')
+
+    expect(res.data).toEqual(rows)
+    expect(gw.callsTo('get_campaign_payment_methods')[0].params).toEqual({
+      p_campaign_id: 'camp-1',
+    })
+  })
+
+  it('setPaymentMethods maps the form DTO onto the full RPC column set', async () => {
+    const gw = createMockRpcGateway({
+      set_campaign_payment_methods: { data: null },
+    })
+    await new CampaignRepository(gw).setPaymentMethods('camp-1', {
+      bkashNumber: '01712345678',
+      instructions: 'Send to personal bkash',
+    })
+
+    expect(gw.callsTo('set_campaign_payment_methods')[0].params).toEqual({
+      p_campaign_id: 'camp-1',
+      p_bkash_number: '01712345678',
+      p_bkash_account_name: null,
+      p_nagad_number: null,
+      p_nagad_account_name: null,
+      p_rocket_number: null,
+      p_rocket_account_name: null,
+      p_bank_name: null,
+      p_bank_account_number: null,
+      p_bank_account_name: null,
+      p_bank_routing_number: null,
+      p_bank_branch: null,
+      p_donation_url: null,
+      p_qr_image_url: null,
+      p_instructions: 'Send to personal bkash',
+      p_is_preferred: false,
+    })
+  })
 })

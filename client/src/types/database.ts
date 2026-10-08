@@ -124,6 +124,80 @@ export type Database = {
           },
         ]
       }
+      campaign_payment_methods: {
+        Row: {
+          bank_account_name: string | null
+          bank_account_number: string | null
+          bank_branch: string | null
+          bank_name: string | null
+          bank_routing_number: string | null
+          bkash_account_name: string | null
+          bkash_number: string | null
+          campaign_id: string
+          created_at: string | null
+          donation_url: string | null
+          id: string
+          instructions: string | null
+          is_preferred: boolean | null
+          nagad_account_name: string | null
+          nagad_number: string | null
+          qr_image_url: string | null
+          rocket_account_name: string | null
+          rocket_number: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_branch?: string | null
+          bank_name?: string | null
+          bank_routing_number?: string | null
+          bkash_account_name?: string | null
+          bkash_number?: string | null
+          campaign_id: string
+          created_at?: string | null
+          donation_url?: string | null
+          id?: string
+          instructions?: string | null
+          is_preferred?: boolean | null
+          nagad_account_name?: string | null
+          nagad_number?: string | null
+          qr_image_url?: string | null
+          rocket_account_name?: string | null
+          rocket_number?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_branch?: string | null
+          bank_name?: string | null
+          bank_routing_number?: string | null
+          bkash_account_name?: string | null
+          bkash_number?: string | null
+          campaign_id?: string
+          created_at?: string | null
+          donation_url?: string | null
+          id?: string
+          instructions?: string | null
+          is_preferred?: boolean | null
+          nagad_account_name?: string | null
+          nagad_number?: string | null
+          qr_image_url?: string | null
+          rocket_account_name?: string | null
+          rocket_number?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'campaign_payment_methods_campaign_id_fkey'
+            columns: ['campaign_id']
+            isOneToOne: true
+            referencedRelation: 'campaigns'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       campaign_tag_map: {
         Row: {
           campaign_id: string
@@ -830,6 +904,7 @@ export type Database = {
           created_by: string | null
           description: string | null
           id: string
+          kind: string
           logo_url: string | null
           name: string
           settings: Json | null
@@ -842,6 +917,7 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           id?: string
+          kind?: string
           logo_url?: string | null
           name: string
           settings?: Json | null
@@ -854,6 +930,7 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           id?: string
+          kind?: string
           logo_url?: string | null
           name?: string
           settings?: Json | null
@@ -1365,6 +1442,7 @@ export type Database = {
       }
       delete_campaign: { Args: { p_campaign_id: string }; Returns: boolean }
       delete_organization: { Args: { target_org_id: string }; Returns: boolean }
+      ensure_my_personal_org: { Args: never; Returns: string }
       get_all_org_requests: {
         Args: never
         Returns: {
@@ -1478,6 +1556,27 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      get_campaign_payment_methods: {
+        Args: { p_campaign_id: string }
+        Returns: {
+          bank_account_name: string
+          bank_account_number: string
+          bank_branch: string
+          bank_name: string
+          bank_routing_number: string
+          bkash_account_name: string
+          bkash_number: string
+          campaign_id: string
+          donation_url: string
+          instructions: string
+          is_preferred: boolean
+          nagad_account_name: string
+          nagad_number: string
+          qr_image_url: string
+          rocket_account_name: string
+          rocket_number: string
+        }[]
       }
       get_campaign_tag_ids: {
         Args: { p_campaign_id: string }
@@ -1614,6 +1713,7 @@ export type Database = {
           description: string
           id: string
           joined_at: string
+          kind: string
           logo_url: string
           membership_status: string
           name: string
@@ -2044,6 +2144,27 @@ export type Database = {
           p_notes?: string
           p_phone?: string
           p_relationship?: string
+        }
+        Returns: undefined
+      }
+      set_campaign_payment_methods: {
+        Args: {
+          p_bank_account_name?: string
+          p_bank_account_number?: string
+          p_bank_branch?: string
+          p_bank_name?: string
+          p_bank_routing_number?: string
+          p_bkash_account_name?: string
+          p_bkash_number?: string
+          p_campaign_id: string
+          p_donation_url?: string
+          p_instructions?: string
+          p_is_preferred?: boolean
+          p_nagad_account_name?: string
+          p_nagad_number?: string
+          p_qr_image_url?: string
+          p_rocket_account_name?: string
+          p_rocket_number?: string
         }
         Returns: undefined
       }

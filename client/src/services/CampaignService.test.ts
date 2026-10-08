@@ -126,4 +126,55 @@ describe('CampaignService', () => {
     expect(getCampaignTagIds).toHaveBeenCalledWith('camp-9')
     expect(res).toEqual(ok(['tag-2']))
   })
+
+  it('getPaymentMethods unwraps the single row, or null when none saved', async () => {
+    const methods = {
+      campaign_id: 'camp-1',
+      bkash_number: '01712345678',
+      bkash_account_name: null,
+      nagad_number: null,
+      nagad_account_name: null,
+      rocket_number: null,
+      rocket_account_name: null,
+      bank_name: null,
+      bank_account_number: null,
+      bank_account_name: null,
+      bank_routing_number: null,
+      bank_branch: null,
+      donation_url: null,
+      qr_image_url: null,
+      instructions: null,
+      is_preferred: false,
+    }
+    const getPaymentMethods = vi
+      .fn()
+      .mockResolvedValueOnce(ok([methods]))
+      .mockResolvedValueOnce(ok([]))
+    const svc = new CampaignService(
+      mockRepository<CampaignRepository>({ getPaymentMethods })
+    )
+
+    const found = await svc.getPaymentMethods('camp-1')
+    const missing = await svc.getPaymentMethods('camp-1')
+
+    expect(getPaymentMethods).toHaveBeenCalledWith('camp-1')
+    expect(found).toEqual(ok(methods))
+    expect(missing).toEqual({ data: null, error: null })
+  })
+
+  it('setPaymentMethods delegates the campaign id and DTO', async () => {
+    const setPaymentMethods = vi.fn().mockResolvedValue(ok(null))
+    const svc = new CampaignService(
+      mockRepository<CampaignRepository>({ setPaymentMethods })
+    )
+
+    const res = await svc.setPaymentMethods('camp-1', {
+      bkashNumber: '01712345678',
+    })
+
+    expect(setPaymentMethods).toHaveBeenCalledWith('camp-1', {
+      bkashNumber: '01712345678',
+    })
+    expect(res).toEqual(ok(null))
+  })
 })

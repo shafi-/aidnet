@@ -2,6 +2,7 @@ export type { Database } from './database'
 export type { User, UserProfile, UpdateProfileDto } from './user'
 export type {
   Organization,
+  OrgKind,
   OrganizationView,
   OrganizationDetailView,
   CreateOrganizationDto,
@@ -36,6 +37,7 @@ export type {
   CampaignTag,
   CampaignBeneficiary,
   CampaignBeneficiaryDto,
+  CampaignPaymentMethods,
   CreateCampaignDto,
   DonationMethod,
   DonationMethodDto,

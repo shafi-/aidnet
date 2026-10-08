@@ -2,9 +2,11 @@ import { BaseRepository } from './BaseRepository'
 import type {
   Campaign,
   CampaignBeneficiary,
+  CampaignPaymentMethods,
   CampaignTag,
   CampaignBeneficiaryDto,
   CreateCampaignDto,
+  DonationMethodDto,
   ServiceData,
   UpdateCampaignDto,
 } from '@/types'
@@ -54,6 +56,41 @@ export class CampaignRepository extends BaseRepository {
   async getBeneficiary(campaignId: string): ServiceData<CampaignBeneficiary[]> {
     return this.callRpc<CampaignBeneficiary[]>(Rpc.Campaign.GetBeneficiary, {
       p_campaign_id: campaignId,
+    })
+  }
+
+  async getPaymentMethods(
+    campaignId: string
+  ): ServiceData<CampaignPaymentMethods[]> {
+    return this.callRpc<CampaignPaymentMethods[]>(
+      Rpc.Campaign.GetPaymentMethods,
+      { p_campaign_id: campaignId }
+    )
+  }
+
+  // The form collects the seven channels donors actually use; the RPC
+  // accepts the full column set, so untouched fields go out as null.
+  async setPaymentMethods(
+    campaignId: string,
+    dto: DonationMethodDto
+  ): ServiceData<null> {
+    return this.callRpc<null>(Rpc.Campaign.SetPaymentMethods, {
+      p_campaign_id: campaignId,
+      p_bkash_number: dto.bkashNumber ?? null,
+      p_bkash_account_name: dto.bkashAccountName ?? null,
+      p_nagad_number: dto.nagadNumber ?? null,
+      p_nagad_account_name: dto.nagadAccountName ?? null,
+      p_rocket_number: dto.rocketNumber ?? null,
+      p_rocket_account_name: dto.rocketAccountName ?? null,
+      p_bank_name: dto.bankName ?? null,
+      p_bank_account_number: dto.bankAccountNumber ?? null,
+      p_bank_account_name: dto.bankAccountName ?? null,
+      p_bank_routing_number: dto.bankRoutingNumber ?? null,
+      p_bank_branch: dto.bankBranch ?? null,
+      p_donation_url: dto.donationUrl ?? null,
+      p_qr_image_url: dto.qrImageUrl ?? null,
+      p_instructions: dto.instructions ?? null,
+      p_is_preferred: dto.isPreferred ?? false,
     })
   }
 

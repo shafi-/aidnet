@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { campaignService } from '@/services/CampaignService'
-import { donationMethodService } from '@/services/DonationMethodService'
 import { useCampaignTags } from '@/hooks/useCampaigns'
 import { useDonationMethods } from '@/hooks/useDonationMethods'
 import type {
@@ -40,8 +39,9 @@ const empty: CampaignFormState = {
   address: '',
 }
 
-// Payment channels shown to donors on the public campaign page. These map
-// onto the org-level donation_methods the detail page already renders.
+// Payment channels shown to donors on the public campaign page. They are
+// saved per campaign (campaign_payment_methods) — each campaign declares
+// the account donors actually pay into.
 export interface CampaignPaymentState {
   bkashNumber: string
   nagadNumber: string
@@ -97,7 +97,9 @@ export function useCampaignForm({
 }) {
   const router = useRouter()
   const { tags, loading: tagsLoading } = useCampaignTags()
-  const { methods } = useDonationMethods(orgId)
+  // Create mode prefills from the org's saved channels; edit mode ignores
+  // the template and reads the campaign's own payment details instead.
+  const { methods } = useDonationMethods(mode === 'create' ? orgId : null)
   const [form, setForm] = useState<CampaignFormState>(
     initial
       ? {
@@ -125,11 +127,12 @@ export function useCampaignForm({
     useState<CampaignBeneficiaryDto>(emptyBeneficiary)
   const [paymentTouched, setPaymentTouched] = useState(false)
 
-  // Prefill payment channels from the org's existing donation methods so
-  // the campaign form shows what donors will actually see. Manual edits
-  // always win — the prefill runs once, before any user edit.
+  // Create mode: prefill payment channels from the org's existing donation
+  // methods so the form shows what donors will actually see. Edit mode
+  // reads the campaign's own saved channels instead. Manual edits always
+  // win — prefill runs once, before any user edit.
   useEffect(() => {
-    if (paymentTouched || methods.length === 0) return
+    if (mode !== 'create' || paymentTouched || methods.length === 0) return
     const m = methods[0]
     setPaymentState({
       bkashNumber: m.bkash_number ?? '',
@@ -140,7 +143,28 @@ export function useCampaignForm({
       donationUrl: m.donation_url ?? '',
       instructions: m.instructions ?? '',
     })
-  }, [methods, paymentTouched])
+  }, [mode, methods, paymentTouched])
+
+  // Edit mode: the campaign's own saved channels outrank any org template.
+  useEffect(() => {
+    if (mode !== 'edit' || !campaignId || paymentTouched) return
+    let cancelled = false
+    void campaignService.getPaymentMethods(campaignId).then(({ data }) => {
+      if (cancelled || paymentTouched || !data) return
+      setPaymentState({
+        bkashNumber: data.bkash_number ?? '',
+        nagadNumber: data.nagad_number ?? '',
+        rocketNumber: data.rocket_number ?? '',
+        bankName: data.bank_name ?? '',
+        bankAccountNumber: data.bank_account_number ?? '',
+        donationUrl: data.donation_url ?? '',
+        instructions: data.instructions ?? '',
+      })
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [mode, campaignId, paymentTouched])
 
   const setPayment = useCallback((patch: Partial<CampaignPaymentState>) => {
     setPaymentTouched(true)
@@ -243,8 +267,10 @@ export function useCampaignForm({
       const created = data
       const savedId = created?.id
       if (savedId && hasPayment) {
-        const { error: payErr } =
-          await donationMethodService.upsertDonationMethods(orgId, paymentDto)
+        const { error: payErr } = await campaignService.setPaymentMethods(
+          savedId,
+          paymentDto
+        )
         if (payErr) {
           setError(
             `Campaign saved, but payment details could not be saved: ${payErr}`
@@ -312,8 +338,10 @@ export function useCampaignForm({
         return
       }
       if (hasPayment) {
-        const { error: payErr } =
-          await donationMethodService.upsertDonationMethods(orgId, paymentDto)
+        const { error: payErr } = await campaignService.setPaymentMethods(
+          campaignId,
+          paymentDto
+        )
         if (payErr) {
           setError(`Saved, but payment details could not be saved: ${payErr}`)
           setSaving(false)

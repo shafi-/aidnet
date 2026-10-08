@@ -30,6 +30,7 @@ export const Rpc = {
   },
   Org: {
     Create: 'create_organization' satisfies DbFunction,
+    EnsurePersonalOrg: 'ensure_my_personal_org' satisfies DbFunction,
     GetMy: 'get_my_organizations' satisfies DbFunction,
     Get: 'get_organization' satisfies DbFunction,
     Update: 'update_organization' satisfies DbFunction,
@@ -98,6 +99,8 @@ export const Rpc = {
     GetTagIds: 'get_campaign_tag_ids' satisfies DbFunction,
     SetBeneficiary: 'set_campaign_beneficiary' satisfies DbFunction,
     GetBeneficiary: 'get_campaign_beneficiary' satisfies DbFunction,
+    GetPaymentMethods: 'get_campaign_payment_methods' satisfies DbFunction,
+    SetPaymentMethods: 'set_campaign_payment_methods' satisfies DbFunction,
   },
   SystemAdminCampaign: {
     Verify: 'verify_campaign' satisfies DbFunction,

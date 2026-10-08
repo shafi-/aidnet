@@ -162,6 +162,7 @@ export const anOrganizationView = (
   name: 'Demo Org',
   slug: 'demo-org',
   status: 'active',
+  kind: 'organization',
   created_by: 'user-1',
   logo_url: null,
   description: null,

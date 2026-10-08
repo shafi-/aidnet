@@ -130,6 +130,31 @@ export type CampaignBeneficiaryDto = {
   notes?: string | null
 }
 
+/**
+ * Per-campaign payment channels (1:1). Donors pay whatever account this
+ * campaign declares — org campaigns and personal fundraisers alike.
+ * Public reads embed it via get_public_campaign_by_slug; direct access goes
+ * through get/set_campaign_payment_methods, gated to the owning org.
+ */
+export type CampaignPaymentMethods = {
+  campaign_id: string
+  bkash_number: string | null
+  bkash_account_name: string | null
+  nagad_number: string | null
+  nagad_account_name: string | null
+  rocket_number: string | null
+  rocket_account_name: string | null
+  bank_name: string | null
+  bank_account_number: string | null
+  bank_account_name: string | null
+  bank_routing_number: string | null
+  bank_branch: string | null
+  donation_url: string | null
+  qr_image_url: string | null
+  instructions: string | null
+  is_preferred: boolean | null
+}
+
 // DTOs used by services
 
 export type CreateCampaignDto = {
