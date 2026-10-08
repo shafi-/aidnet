@@ -104,8 +104,8 @@ SELECT is((SELECT count(*) FROM organization_subscriptions), 0::bigint,
   'anon: organization_subscriptions hidden');
 SELECT is((SELECT count(*) FROM organizations WHERE slug = 'sweep-org'), 0::bigint,
   'anon: member-gated organizations hidden');
-SELECT throws_ok('SELECT count(*) FROM profiles', '42501', NULL,
-  'anon: profiles denied outright (deny-all, no grants)');
+SELECT throws_ok('SELECT count(*) FROM profiles', '42P01', NULL,
+  'anon: profiles schema-invisible (no USAGE on shared)');
 SELECT is((SELECT count(*) FROM roles),               0::bigint, 'anon: roles hidden');
 SELECT is((SELECT count(*) FROM role_permissions),    0::bigint, 'anon: role_permissions hidden');
 SELECT is((SELECT count(*) FROM subscription_history),0::bigint, 'anon: subscription_history hidden');

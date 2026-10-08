@@ -82,9 +82,10 @@ for f in $FILES; do
   # Suites reference product tables unqualified, so pin the session search_path
   # to the same chain the migrations use (the psql default does not include
   # the donate schema); `public` trails it because that's where the pgTAP
-  # extension lives. -c runs before the stdin suite file.
-  OUT="$(psql_db -A -t -q -v ON_ERROR_STOP=1 \
-    -c "SET search_path = donate, shared, extensions, private, public" 2>&1 < "$f")"
+  # extension lives. The SET is piped ahead of the suite file: `-c` would
+  # make psql exit before reading stdin.
+  OUT="$({ echo "SET search_path = donate, shared, extensions, private, public;"
+    cat "$f"; } | psql_db -A -t -q -v ON_ERROR_STOP=1 2>&1)"
   PSQL_RC=$?
 
   OK_COUNT="$(printf '%s\n' "$OUT" | grep -c '^ok' || true)"

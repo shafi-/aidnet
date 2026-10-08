@@ -142,9 +142,9 @@ SELECT is(
 
 SELECT throws_ok(
   'SELECT count(*) FROM profiles',
-  '42501',
+  '42P01',
   NULL,
-  'anon is denied shared.profiles outright (deny-all, no grants)'
+  'anon is denied shared.profiles outright (no USAGE on shared: schema-invisible)'
 );
 
 RESET ROLE;
