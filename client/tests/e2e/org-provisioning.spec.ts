@@ -22,6 +22,10 @@ const PASSWORD = 'Password123!'
 test.describe('Org provisioning contract', () => {
   let requester: Session
   let admin: Session
+  // Orgs provisioned here outlive the spec — tracked for afterAll cleanup,
+  // otherwise the shared member fixture turns multi-org and breaks
+  // auto-select for every later spec in the run.
+  const createdOrgIds: string[] = []
 
   test.beforeAll(async ({ request }) => {
     requester = await signIn(request, 'member@donate.app', PASSWORD)
@@ -77,6 +81,7 @@ test.describe('Org provisioning contract', () => {
       }
     )
     expect(orgId, 'approve returns new org id').toBeTruthy()
+    createdOrgIds.push(orgId!)
 
     await expectOrgProvisioned(request, requester, orgId!, {
       role: 'admin',
@@ -91,5 +96,23 @@ test.describe('Org provisioning contract', () => {
     )
     const row = mine.find(o => o.id === orgId)
     expect(row?.status).toBe('active')
+  })
+
+  test.afterAll(async ({ request }) => {
+    // delete_organization currently fails on the audit-trigger FK (the
+    // organizations audit row references the org it is deleting), so leave
+    // the orphaned org and just restore the shared member fixture to
+    // single-org — the next `supabase db reset` clears the orphan.
+    for (const orgId of createdOrgIds) {
+      const profile = await rpc<Array<{ id: string }>>(
+        request,
+        requester,
+        'get_my_profile'
+      )
+      await rpc(request, requester, 'remove_organization_member', {
+        target_org_id: orgId,
+        target_user_id: profile[0].id,
+      })
+    }
   })
 })

@@ -42,7 +42,11 @@ export async function openNavMenu(page: Page): Promise<void> {
 export async function openSystemMenu(page: Page): Promise<void> {
   if (isMobileViewport(page)) return
   await page.getByRole('button', { name: 'Admin menu' }).click()
-  await expect(page.getByRole('link', { name: 'Admin overview' })).toBeVisible()
+  // Desktop dropdown items are Radix menuitems (the drawer renders links,
+  // but this helper is a no-op on mobile).
+  await expect(
+    page.getByRole('menuitem', { name: 'Admin overview' })
+  ).toBeVisible()
 }
 
 /**
@@ -53,5 +57,7 @@ export async function openSystemMenu(page: Page): Promise<void> {
 export async function openAccountMenu(page: Page): Promise<void> {
   if (isMobileViewport(page)) return
   await page.getByRole('button', { name: 'Account menu' }).click()
-  await expect(page.getByRole('link', { name: 'Profile' })).toBeVisible()
+  // Desktop dropdown items are Radix menuitems (the drawer renders links,
+  // but this helper is a no-op on mobile).
+  await expect(page.getByRole('menuitem', { name: 'Profile' })).toBeVisible()
 }

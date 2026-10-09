@@ -126,7 +126,9 @@ test.describe('Protected Pages', () => {
         await rpc(request, owner, 'revoke_invite', { p_invite_id: inv.id })
       }
 
-      const invite = await rpc<{ token: string }>(
+      // rpc() returns the raw PostgREST payload — SETOF functions arrive
+      // wrapped in an array (AGENTS.md known gotcha).
+      const invite = await rpc<Array<{ token: string }>>(
         request,
         owner,
         'create_invite',
@@ -136,8 +138,8 @@ test.describe('Protected Pages', () => {
           p_role: 'member',
         }
       )
-      expect(invite?.token).toBeTruthy()
-      inviteToken = invite.token
+      inviteToken = invite[0]?.token ?? ''
+      expect(inviteToken).toBeTruthy()
     })
 
     test('When the invited user pastes the invite link, they join the organization', async ({

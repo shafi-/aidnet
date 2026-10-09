@@ -102,10 +102,12 @@ test.describe('Profile Page', () => {
     await page.goto('/campaigns/')
     await openNavMenu(page)
     await openAccountMenu(page)
-    // Desktop: link in the account dropdown; mobile: drawer link "Profile <email>"
+    // Desktop: Radix menuitem in the account dropdown; mobile: drawer
+    // link "Profile <email>".
     await page
       .locator('nav')
-      .getByRole('link', { name: /Profile/ })
+      .getByRole('menuitem', { name: /Profile/ })
+      .or(page.locator('nav').getByRole('link', { name: /Profile/ }))
       .click()
     await expect(page).toHaveURL(/\/profile/)
     await expect(page.getByText('Full Name')).toBeVisible()

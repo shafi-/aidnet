@@ -164,11 +164,14 @@ test.describe('Landing Page', () => {
       await expect(
         page.locator('nav').getByRole('link', { name: 'Dashboard' })
       ).toBeVisible()
-      // Desktop: Profile lives in the account dropdown (openAccountMenu
-      // opens it); mobile: drawer link "Profile <email>".
+      // Desktop: Profile lives in the account dropdown as a Radix menuitem
+      // (openAccountMenu opens it); mobile: drawer link "Profile <email>".
       await openAccountMenu(page)
       await expect(
-        page.locator('nav').getByRole('link', { name: /Profile/ })
+        page
+          .locator('nav')
+          .getByRole('menuitem', { name: /Profile/ })
+          .or(page.locator('nav').getByRole('link', { name: /Profile/ }))
       ).toBeVisible()
     })
   })

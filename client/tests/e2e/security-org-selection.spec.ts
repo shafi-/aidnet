@@ -227,7 +227,11 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     await page.goto('/profile')
     await openNavMenu(page)
     await openAccountMenu(page)
-    await page.getByRole('button', { name: 'Sign out' }).click()
+    // Desktop dropdown renders a Radix menuitem; mobile drawer a button.
+    await page
+      .getByRole('menuitem', { name: 'Sign out' })
+      .or(page.getByRole('button', { name: 'Sign out' }))
+      .click()
 
     // user2 is a different, non-member user -> the org must NOT appear for them
     await registerViaApi(page, user2Email, TEST_PASSWORD, `User2 ${Date.now()}`)

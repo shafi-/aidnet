@@ -92,10 +92,13 @@ test.describe('Dashboard', () => {
     // Dashboard has no nav — use a page with AppLayout nav
     await page.goto('/campaigns/')
     await openNavMenu(page)
-    // Desktop: link labelled "Profile"; mobile: drawer link "Profile <email>"
+    // Desktop: account dropdown renders Profile as a Radix menuitem
+    // (openAccountMenu opens it); mobile: drawer link "Profile <email>".
+    await openAccountMenu(page)
     await page
       .locator('nav')
-      .getByRole('link', { name: /Profile/ })
+      .getByRole('menuitem', { name: /Profile/ })
+      .or(page.locator('nav').getByRole('link', { name: /Profile/ }))
       .click()
     await expect(page).toHaveURL(/\/profile/)
   })
@@ -113,7 +116,11 @@ test.describe('Dashboard', () => {
     await page.goto('/campaigns/')
     await openNavMenu(page)
     await openAccountMenu(page)
-    await page.getByRole('button', { name: 'Sign out' }).click()
+    // Desktop dropdown renders a Radix menuitem; mobile drawer a button.
+    await page
+      .getByRole('menuitem', { name: 'Sign out' })
+      .or(page.getByRole('button', { name: 'Sign out' }))
+      .click()
     await expect(page).toHaveURL(/\/auth\/login\//)
   })
 })

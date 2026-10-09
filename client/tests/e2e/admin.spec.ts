@@ -53,7 +53,12 @@ test.describe.serial('Admin Pages - Org Request Workflow', () => {
     // on mobile: openNavMenu surfaces the drawer, openSystemMenu the dropdown.
     await openNavMenu(page)
     await openSystemMenu(page)
-    await expect(page.getByRole('link', { name: 'Review Orgs' })).toBeVisible()
+    // Desktop dropdown renders Radix menuitems; mobile drawer renders links.
+    await expect(
+      page
+        .getByRole('menuitem', { name: 'Review Orgs' })
+        .or(page.getByRole('link', { name: 'Review Orgs' }))
+    ).toBeVisible()
   })
 
   test('When admin clicks Review Orgs, navigates to /admin/org-requests', async ({
@@ -64,7 +69,10 @@ test.describe.serial('Admin Pages - Org Request Workflow', () => {
     await expect(page.locator('h1')).toContainText('System Admin')
     await openNavMenu(page)
     await openSystemMenu(page)
-    await page.getByRole('link', { name: 'Review Orgs' }).click()
+    await page
+      .getByRole('menuitem', { name: 'Review Orgs' })
+      .or(page.getByRole('link', { name: 'Review Orgs' }))
+      .click()
     await expect(page).toHaveURL(/\/admin\/org-requests/)
   })
 

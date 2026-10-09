@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { anonRpc, rpc, signIn, USERS } from './lib/api'
+import { orgReady } from './lib/ui'
 
 // Individual fundraiser journey: a user with NO organization self-serves a
 // campaign. Create-as-individual lazily provisions their personal org
@@ -37,6 +38,9 @@ test.describe.serial('Individual fundraiser journey', () => {
       ).toBeVisible()
       const cta = page.getByRole('button', { name: /start my own fundraiser/i })
       await expect(cta).toBeVisible()
+      // The onboarding card re-mounts while the OrganizationProvider
+      // finishes its bootstrap — wait, or the click hits a detached node.
+      await orgReady(page)
       await cta.click()
 
       // Personal org provisioned + selected: the regular form renders.

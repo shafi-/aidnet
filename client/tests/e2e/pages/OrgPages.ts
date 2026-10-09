@@ -1,4 +1,5 @@
 import type { Page, Locator } from '@playwright/test'
+import { orgReady } from '../lib/ui'
 
 export class OrgSelectPage {
   readonly page: Page
@@ -31,9 +32,15 @@ export class DashboardPage {
 
   async open() {
     await this.page.goto('/dashboard')
+    // Wait for the OrganizationProvider bootstrap to settle before any
+    // tab interaction — clicking mid-bootstrap races a transient second
+    // render and fails strict mode with two tab bars.
+    await orgReady(this.page)
   }
 
   tab(name: 'Members' | 'Settings' | 'Billing'): Locator {
-    return this.page.getByRole('button', { name, exact: true })
+    // The dashboard can briefly mount a second tab bar during provider
+    // bootstrap; both render identical buttons, so pin to the first.
+    return this.page.getByRole('button', { name, exact: true }).first()
   }
 }
