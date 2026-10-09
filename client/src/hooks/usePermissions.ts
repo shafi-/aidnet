@@ -1,5 +1,6 @@
 'use client'
 
+import { useCallback } from 'react'
 import { useOrganization } from './useOrganization'
 
 const PERMISSIONS = {
@@ -38,14 +39,23 @@ export function usePermissions() {
   const permissions =
     PERMISSIONS[role as keyof typeof PERMISSIONS] ?? PERMISSIONS.viewer
 
-  const hasPermission = (permission: string): boolean => {
-    if (isOwner) return true
-    return permissions.includes(permission as never)
-  }
+  // Stable identities: consumers put these in effect/useCallback deps (e.g.
+  // useOrgMembers reloads when `isOrgAdmin` changes) — a fresh function per
+  // render would turn every render into a refetch.
+  const hasPermission = useCallback(
+    (permission: string): boolean => {
+      if (isOwner) return true
+      return permissions.includes(permission as never)
+    },
+    [isOwner, permissions]
+  )
 
-  const isOrgAdmin = (): boolean => role === 'admin'
-  const isOrgOwner = (): boolean => isOwner
-  const isOrgMember = (): boolean => ['admin', 'member'].includes(role)
+  const isOrgAdmin = useCallback((): boolean => role === 'admin', [role])
+  const isOrgOwner = useCallback((): boolean => isOwner, [isOwner])
+  const isOrgMember = useCallback(
+    (): boolean => ['admin', 'member'].includes(role),
+    [role]
+  )
 
   return {
     role,
