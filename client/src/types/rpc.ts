@@ -19,6 +19,7 @@ export const Rpc = {
   DonationReport: {
     Propose: 'propose_donation' satisfies DbFunction,
     List: 'list_donation_reports' satisfies DbFunction,
+    ListForOrg: 'list_org_donation_reports' satisfies DbFunction,
     PublicForCampaign: 'get_public_donation_reports' satisfies DbFunction,
     Confirm: 'confirm_donation_report' satisfies DbFunction,
     Reject: 'reject_donation_report' satisfies DbFunction,
@@ -33,6 +34,7 @@ export const Rpc = {
     EnsurePersonalOrg: 'ensure_my_personal_org' satisfies DbFunction,
     GetMy: 'get_my_organizations' satisfies DbFunction,
     Get: 'get_organization' satisfies DbFunction,
+    Overview: 'get_org_overview' satisfies DbFunction,
     Update: 'update_organization' satisfies DbFunction,
     Delete: 'delete_organization' satisfies DbFunction,
   },

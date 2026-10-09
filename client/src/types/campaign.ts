@@ -26,6 +26,12 @@ export type PublicDonationReport = {
   created_at: string
 }
 
+/** Org-scoped projection: a report plus which of the org's campaigns it is for. */
+export type OrgDonationReport = DonationReport & {
+  campaign_id: string
+  campaign_title: string
+}
+
 export type Campaign = {
   id: string
   org_id: string

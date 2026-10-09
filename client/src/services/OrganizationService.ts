@@ -2,6 +2,7 @@ import type {
   ServiceData,
   OrganizationView,
   OrganizationDetailView,
+  OrgOverview,
 } from '@/types'
 import type { PaginationParams } from '@/types/pagination'
 import { OrganizationRepository } from '@/repositories/OrganizationRepository'
@@ -37,6 +38,13 @@ export class OrganizationService {
   async getOrganization(orgId: string): ServiceData<OrganizationDetailView> {
     const { data, error } = await this.orgRepo.getOrganization(orgId)
     if (error) return { data: null, error }
+    return { data: data?.[0] ?? null, error: null }
+  }
+
+  async getOverview(orgId: string): ServiceData<OrgOverview> {
+    const { data, error } = await this.orgRepo.getOverview(orgId)
+    if (error) return { data: null, error }
+    // RETURNS TABLE arrives wrapped in an array via PostgREST.
     return { data: data?.[0] ?? null, error: null }
   }
 

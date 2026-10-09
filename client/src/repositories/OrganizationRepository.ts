@@ -3,6 +3,7 @@ import type {
   ServiceData,
   OrganizationView,
   OrganizationDetailView,
+  OrgOverview,
 } from '@/types'
 import { Rpc } from '@/types/rpc'
 
@@ -46,6 +47,13 @@ export class OrganizationRepository extends BaseRepository {
   async getOrganization(orgId: string): ServiceData<OrganizationDetailView[]> {
     return this.callRpc<OrganizationDetailView[]>(Rpc.Org.Get, {
       target_org_id: orgId,
+    })
+  }
+
+  /** Workspace landing summary — attention counts and headline numbers. */
+  async getOverview(orgId: string): ServiceData<OrgOverview[]> {
+    return this.callRpc<OrgOverview[]>(Rpc.Org.Overview, {
+      p_org_id: orgId,
     })
   }
 

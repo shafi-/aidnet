@@ -7,6 +7,7 @@ export type {
   OrganizationDetailView,
   CreateOrganizationDto,
   UpdateOrganizationDto,
+  OrgOverview,
 } from './organization'
 export type {
   OrgRequest,
@@ -42,6 +43,7 @@ export type {
   DonationMethod,
   DonationMethodDto,
   DonationReport,
+  OrgDonationReport,
   PublicCampaign,
   PublicCampaignFilters,
   PublicDonationReport,

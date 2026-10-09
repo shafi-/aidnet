@@ -101,4 +101,42 @@ describe('DonationReportRepository', () => {
       p_note: 'no reference',
     })
   })
+
+  it('listForOrg calls list_org_donation_reports with org, status and limit', async () => {
+    const rows = [
+      {
+        ...aReport(),
+        campaign_id: 'camp-1',
+        campaign_title: 'Demo Campaign 1',
+      },
+    ]
+    const gw = createMockRpcGateway({
+      list_org_donation_reports: { data: rows },
+    })
+    const res = await new DonationReportRepository(gw).listForOrg(
+      'org-1',
+      'confirmed',
+      50
+    )
+
+    expect(res.data).toEqual(rows)
+    expect(gw.callsTo('list_org_donation_reports')[0].params).toEqual({
+      p_org_id: 'org-1',
+      p_status: 'confirmed',
+      p_limit: 50,
+    })
+  })
+
+  it('listForOrg maps the all filter to an empty status so the RPC returns every status', async () => {
+    const gw = createMockRpcGateway({
+      list_org_donation_reports: { data: [] },
+    })
+    await new DonationReportRepository(gw).listForOrg('org-1', 'all')
+
+    expect(gw.callsTo('list_org_donation_reports')[0].params).toEqual({
+      p_org_id: 'org-1',
+      p_status: '',
+      p_limit: 100,
+    })
+  })
 })

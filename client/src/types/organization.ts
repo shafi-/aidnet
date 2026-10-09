@@ -55,3 +55,13 @@ export interface CreateOrganizationDto {
 export interface UpdateOrganizationDto {
   status?: 'active' | 'suspended'
 }
+
+/** Workspace landing summary (get_org_overview) — what needs attention. */
+export interface OrgOverview {
+  pending_donation_reports: number
+  confirmed_donations: number
+  raised_total: number
+  live_campaigns: number
+  pending_review_campaigns: number
+  draft_campaigns: number
+}

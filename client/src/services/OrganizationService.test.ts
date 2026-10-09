@@ -64,6 +64,37 @@ describe('OrganizationService', () => {
     expect(res).toEqual({ data: null, error: 'denied' })
   })
 
+  it('getOverview unwraps the single summary row', async () => {
+    const overview = {
+      pending_donation_reports: 2,
+      confirmed_donations: 7,
+      raised_total: 6500,
+      live_campaigns: 3,
+      pending_review_campaigns: 1,
+      draft_campaigns: 0,
+    }
+    const getOverview = vi.fn().mockResolvedValue(ok([overview]))
+    const svc = new OrganizationService(
+      mockRepository<OrganizationRepository>({ getOverview })
+    )
+
+    const res = await svc.getOverview('org-1')
+
+    expect(getOverview).toHaveBeenCalledWith('org-1')
+    expect(res).toEqual(ok(overview))
+  })
+
+  it('getOverview returns null when rows are empty', async () => {
+    const getOverview = vi.fn().mockResolvedValue(ok([]))
+    const svc = new OrganizationService(
+      mockRepository<OrganizationRepository>({ getOverview })
+    )
+
+    const res = await svc.getOverview('org-1')
+
+    expect(res).toEqual({ data: null, error: null })
+  })
+
   it('update and delete delegate ids', async () => {
     const updateOrganization = vi
       .fn()

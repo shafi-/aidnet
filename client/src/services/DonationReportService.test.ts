@@ -72,4 +72,22 @@ describe('DonationReportService', () => {
     await service.reject('r1', 'duplicate')
     expect(repo.reject).toHaveBeenCalledWith('r1', 'duplicate')
   })
+
+  it('listForOrg delegates org, status and limit untouched', async () => {
+    const rows = [
+      {
+        ...aReport(),
+        campaign_id: 'camp-1',
+        campaign_title: 'Demo Campaign 1',
+      },
+    ]
+    const { service, repo } = serviceWithRepo({
+      listForOrg: vi.fn().mockResolvedValue({ data: rows, error: null }),
+    })
+
+    const res = await service.listForOrg('org-1', 'pending', 50)
+
+    expect(repo.listForOrg).toHaveBeenCalledWith('org-1', 'pending', 50)
+    expect(res).toEqual({ data: rows, error: null })
+  })
 })

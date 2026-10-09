@@ -127,4 +127,22 @@ describe('OrganizationRepository', () => {
     expect(gw.callsTo('ensure_my_personal_org')).toHaveLength(1)
     expect(gw.callsTo('ensure_my_personal_org')[0].params).toBeUndefined()
   })
+
+  it('getOverview calls get_org_overview with the org id', async () => {
+    const overview = {
+      pending_donation_reports: 2,
+      confirmed_donations: 7,
+      raised_total: 6500,
+      live_campaigns: 3,
+      pending_review_campaigns: 1,
+      draft_campaigns: 0,
+    }
+    const gw = createMockRpcGateway({ get_org_overview: { data: [overview] } })
+    const res = await new OrganizationRepository(gw).getOverview('org-1')
+
+    expect(res.data).toEqual([overview])
+    expect(gw.callsTo('get_org_overview')[0].params).toEqual({
+      p_org_id: 'org-1',
+    })
+  })
 })

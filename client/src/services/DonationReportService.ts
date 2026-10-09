@@ -1,4 +1,9 @@
-import type { ServiceData, DonationReport, PublicDonationReport } from '@/types'
+import type {
+  ServiceData,
+  DonationReport,
+  OrgDonationReport,
+  PublicDonationReport,
+} from '@/types'
 import { DonationReportRepository } from '@/repositories/DonationReportRepository'
 
 export class DonationReportService {
@@ -32,6 +37,14 @@ export class DonationReportService {
     limit = 10
   ): Promise<ServiceData<PublicDonationReport[]>> {
     return this.repo.listPublic(campaignId, limit)
+  }
+
+  async listForOrg(
+    orgId: string,
+    status: 'pending' | 'confirmed' | 'rejected' | 'all' = 'pending',
+    limit = 100
+  ): Promise<ServiceData<OrgDonationReport[]>> {
+    return this.repo.listForOrg(orgId, status, limit)
   }
 
   async confirm(reportId: string): Promise<ServiceData<boolean>> {

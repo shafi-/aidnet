@@ -1,5 +1,10 @@
 import { BaseRepository } from './BaseRepository'
-import type { ServiceData, DonationReport, PublicDonationReport } from '@/types'
+import type {
+  ServiceData,
+  DonationReport,
+  OrgDonationReport,
+  PublicDonationReport,
+} from '@/types'
 import { Rpc } from '@/types/rpc'
 
 export class DonationReportRepository extends BaseRepository {
@@ -33,6 +38,19 @@ export class DonationReportRepository extends BaseRepository {
     return this.callRpc<DonationReport[]>(Rpc.DonationReport.List, {
       p_campaign_id: campaignId,
       p_status: status,
+    })
+  }
+
+  /** Cross-campaign review queue/history for the org workspace. */
+  async listForOrg(
+    orgId: string,
+    status: 'pending' | 'confirmed' | 'rejected' | 'all' = 'pending',
+    limit = 100
+  ): Promise<ServiceData<OrgDonationReport[]>> {
+    return this.callRpc<OrgDonationReport[]>(Rpc.DonationReport.ListForOrg, {
+      p_org_id: orgId,
+      p_status: status === 'all' ? '' : status,
+      p_limit: limit,
     })
   }
 
