@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { publicCampaignService } from '@/services/PublicCampaignService'
 import { donationReportService } from '@/services/DonationReportService'
-import { MapPin } from 'lucide-react'
+import { MapPin, Copy, Check } from 'lucide-react'
 import { ReportDonationDialog } from '@/components/campaign/ReportDonationDialog'
 import type { PublicCampaign, PublicDonationReport } from '@/types'
 import { usePageTitle } from '@/hooks/usePageTitle'
@@ -23,6 +23,43 @@ function donationUrlLabel(url: string) {
   } catch {
     return url.replace(/^https?:\/\//, '')
   }
+}
+
+// Donors send money manually, so the number itself — not the display string
+// with account-holder names — is what needs to land on the clipboard.
+function CopyButton({ value }: { value: string }) {
+  const { t } = useTranslation()
+  const [copied, setCopied] = useState(false)
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(value)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Clipboard unavailable (permissions/insecure context) — leave the
+      // number selectable as before.
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      title={copied ? t('campaignDetail.copied') : t('campaignDetail.copy')}
+      aria-label={
+        copied ? t('campaignDetail.copied') : t('campaignDetail.copy')
+      }
+      className="inline-flex items-center gap-1 rounded border border-gray-300 px-1.5 py-0.5 text-xs text-gray-500 hover:bg-gray-50"
+    >
+      {copied ? (
+        <Check size={12} aria-hidden className="text-green-600" />
+      ) : (
+        <Copy size={12} aria-hidden />
+      )}
+      {copied ? t('campaignDetail.copied') : t('campaignDetail.copy')}
+    </button>
+  )
 }
 
 function CampaignDetailContent() {
@@ -213,14 +250,6 @@ function CampaignDetailContent() {
             )}
 
             <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-              {campaign.goal_amount != null && (
-                <span className="rounded-md bg-gray-100 px-3 py-1">
-                  {t('campaignDetail.goal', {
-                    amount: campaign.goal_amount.toLocaleString(),
-                    currency: campaign.currency,
-                  })}
-                </span>
-              )}
               {campaign.start_date && (
                 <span className="rounded-md bg-gray-100 px-3 py-1">
                   {t('campaignDetail.starts', {
@@ -324,30 +353,38 @@ function DonationMethods({
   return (
     <div className="space-y-6">
       {methods.map((m, i) => {
-        const rows: { label: string; value: string | null }[] = [
+        const rows: {
+          label: string
+          value: string | null
+          copyValue: string | null
+        }[] = [
           {
             label: 'bKash',
             value: m.bkash_number
               ? `${m.bkash_number}${m.bkash_account_name ? ` (${m.bkash_account_name})` : ''}`
               : null,
+            copyValue: m.bkash_number,
           },
           {
             label: 'Nagad',
             value: m.nagad_number
               ? `${m.nagad_number}${m.nagad_account_name ? ` (${m.nagad_account_name})` : ''}`
               : null,
+            copyValue: m.nagad_number,
           },
           {
             label: 'Rocket',
             value: m.rocket_number
               ? `${m.rocket_number}${m.rocket_account_name ? ` (${m.rocket_account_name})` : ''}`
               : null,
+            copyValue: m.rocket_number,
           },
           {
             label: 'Bank',
             value: m.bank_name
               ? `${m.bank_name}${m.bank_account_number ? ` — ${m.bank_account_number}` : ''}${m.bank_account_name ? ` (${m.bank_account_name})` : ''}`
               : null,
+            copyValue: m.bank_account_number ?? null,
           },
         ].filter(r => r.value)
 
@@ -371,10 +408,14 @@ function DonationMethods({
               </a>
             )}
             {rows.map(r => (
-              <div key={r.label} className="flex justify-between border-b pb-2">
+              <div
+                key={r.label}
+                className="flex items-center justify-between gap-2 border-b pb-2"
+              >
                 <span className="text-gray-500">{r.label}</span>
-                <span className="text-right font-medium text-gray-900">
-                  {r.value}
+                <span className="flex items-center gap-2 text-right">
+                  <span className="font-medium text-gray-900">{r.value}</span>
+                  {r.copyValue && <CopyButton value={r.copyValue} />}
                 </span>
               </div>
             ))}

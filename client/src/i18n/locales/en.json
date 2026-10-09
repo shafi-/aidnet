@@ -466,7 +466,9 @@
     "preferred": "Preferred",
     "donateVia": "Donate via {{host}}",
     "qrAlt": "Donation QR code",
-    "address": "Where the work happens"
+    "address": "Where the work happens",
+    "copy": "Copy",
+    "copied": "Copied"
   },
   "campaignNew": {
     "title": "New Campaign",
