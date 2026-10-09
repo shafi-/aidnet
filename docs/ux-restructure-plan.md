@@ -160,13 +160,18 @@ Possibly later: `get_org_activity(org_id)` for the activity feed.
   admin stats error + retry.
 - **Phase 1 — primitives** (`components/ui`, per DESIGN.md §4) plus
   console-shell pieces: `ConsoleShell`/Sidebar, `PageHeader`, `StatCard`,
-  `ActivityList`, `SegmentedControl`.
+  `ActivityList`, `SegmentedControl`. Console pieces shipped with 3A
+  (`ConsoleShell`, `PageHeader`, `StatCard`, `OrgSwitcher`,
+  `NoOrgOnboarding`); the remaining `components/ui` primitives stay with
+  3B.
 - **Phase 2 — feedback layer**: Toast provider, content-shaped
   skeletons, ConfirmDialog replacing `window.confirm`.
-- **Phase 3A — IA restructure** (before any restyling): DB groundwork
-  (done) → console shell → route split → members/invites merge → admin
-  shell. One commit per route move; `ROUTE_ACCESS` entries; e2e specs
-  updated in the same commit; all copy in en + bn.
+- **Phase 3A — IA restructure (done)**: DB groundwork (done) → console
+  shell (done) → route split `/dashboard/{donations,members,billing,
+  settings}` (done) → members/invites merge (done) → admin shell with
+  queues-first overview and a single nav Admin link (done). `ROUTE_ACCESS`
+  needed no changes (`/dashboard` + `/admin` prefixes cover the new
+  routes); e2e updated in the same commits; copy in en + bn.
 - **Phase 3B — restyle surfaces** (DESIGN.md §6 order: marketing → auth
   → workspace → admin), now styling the *new* structure.
 - **Phase 4 — polish**: branded 404, OG image, PNG icon set,

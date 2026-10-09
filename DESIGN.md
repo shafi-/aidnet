@@ -156,18 +156,20 @@ not a migration.
 | Button | `ui/button.tsx` | exists | keep cva API; fix `default` to primary token; add `loading` prop (spinner swaps label) |
 | Input | `ui/input.tsx` | exists | drop raw grays → tokens; add `hint`; wrap in new `FormField` (label + control + error/hint + required mark) |
 | Loading spinner | `ui/loading.tsx` | exists | recolor to `border-primary`; add `Skeleton` component for content-shaped loading |
-| Card | new | — | `Card` + `CardHeader/Title/Content`; border + shadow-sm |
-| Badge / StatusBadge | new | — | tinted bg + colored dot + label; maps §2.1 statuses |
+| DropdownMenu | `ui/dropdown-menu.tsx` | exists | done (Radix) — nav Organizations menu, account menu, org switcher |
+| Avatar | `ui/avatar.tsx` | exists | done (initials circle — account menu, console sidebar) |
+| Card | informal (`border bg-card rounded-lg shadow-sm` sections) | convention | formal `Card` primitives in a restyle pass; console pages already follow the shape |
+| Badge / StatusBadge | inline per page | — | tinted bg + colored dot + label; maps §2.1 statuses; extract to `ui/` |
 | Alert | new | — | info/success/warning/destructive variants; **absorbs `EmailVerificationNotice`** styling |
-| DropdownMenu | new | — | floating menu panel (nav Organizations/System/account); keyboard + Escape + outside-click |
-| Avatar | new | — | initials circle (account menu, member lists) |
-| Tabs | new | — | underline tabs for OrgDashboard (Members/Donations/Todos/Settings) |
 | Dialog | new | — | modal shell; `ReportDonationDialog` adopts it |
-| Progress | new | — | campaign goal bar (primary fill on muted track) |
-| EmptyState | new | — | icon + title + body + action; one look everywhere |
-| Table primitives | new | — | `Table`/`TH`/`TD` + toolbar; admin + dashboard lists |
-| PageHeader | new | — | title + description + actions slot; standard page opener |
-| StatCard | new | — | label + value + delta; dashboard/admin stats |
+| Progress | `dashboard/campaigns` rows (inline bar) | — | extract to `ui/` (primary fill on muted track) |
+| EmptyState | `console/NoOrgOnboarding` + page empty states | — | one look everywhere; extract shared component |
+| Table primitives | new | — | `Table`/`TH`/`TD` + toolbar; admin + workspace lists |
+| PageHeader | `console/PageHeader.tsx` | exists | title + description + actions slot; standard console page opener |
+| StatCard | `console/StatCard.tsx` | exists | label + value + optional link; overview/admin stats |
+| ConsoleShell | `layout/ConsoleShell.tsx` | exists | sidebar shell (workspace + admin variants) — see §5.1 |
+| OrgSwitcher | `console/OrgSwitcher.tsx` | exists | org context pinned atop the workspace sidebar |
+| ~~Tabs~~ | — | retired | nested tabs are gone with the IA restructure; sections are routes |
 
 ## 5. Page plan (route → container → components)
 
@@ -180,10 +182,11 @@ specs in the same commit.
 ### 5.1 Shell
 | Piece | Files | Design action |
 |---|---|---|
-| Navbar | `layout/Nav.tsx` | the approved role-first preview: Dashboard/Admin-first for operators, `Discover` demoted, Organizations ▾ (context + request), account ▾ (Avatar + menu) replacing raw email, `whitespace-nowrap`, active underline |
-| Mobile drawer | `layout/MobileDrawer.tsx` | grouped sections (Menu / System administration / Account), slide-in panel, shadow-lg |
+| Navbar | `layout/Nav.tsx` | public shell: discovery-first for anon, workspace links + Organizations ▾ (context + request) for members, single `Admin` link for system admins (destinations live in the console), account ▾ (Avatar + menu), active underline |
+| Mobile drawer | `layout/MobileDrawer.tsx` | grouped sections, slide-in panel, shadow-lg; reused by the console for its own sections |
 | Footer | `layout/Footer.tsx` | 3-column link grid, muted, brand + tagline |
-| App shell | `layout/AppLayout.tsx` | `bg-background` + optional tinted sections; keep max-w-7xl rhythm |
+| App shell | `layout/AppLayout.tsx` | public pages: `bg-background` + optional tinted sections; keep max-w-7xl rhythm |
+| Console shell | `layout/ConsoleShell.tsx` + `layout/consoleNavModel.ts` + `console/OrgSwitcher.tsx` | persistent left sidebar whose sections ARE the routes (one level deep, no nested tabs); workspace variant = org switcher pinned on top + role/feature-gated sections + Discover footer link; admin variant = six admin sections + badge; below `md` it collapses to a top bar (brand, org chip, language, hamburger → drawer) |
 | Auth shell | `layout/AuthLayout.tsx` | split panel: gradient brand side (mark + tagline) / white form side |
 
 ### 5.2 Public / marketing
@@ -203,24 +206,29 @@ specs in the same commit.
 | `/auth/reset-password` | — | check-your-email state via Alert/success |
 | `/invite` | — | accept/decline states, org context card |
 
-### 5.4 Dashboard (member)
+### 5.4 Workspace console (org members/admins/owners)
 | Route | Components | Design action |
 |---|---|---|
-| `/dashboard` | `DashboardCards`, `QuickStats` → `StatCard` | stat cards w/ tokens + chart ramp; activity list |
-| `/dashboard/campaigns` | Table primitives, `EmptyState` | toolbar (search + New campaign), desktop table / mobile cards |
-| `/dashboard/campaigns/new`, `/edit` | `CampaignForm` (restyle), `Turnstile` block | grouped `FormField` sections, sticky save bar |
+| `/dashboard` | `OrgConsolePage`, `StatCard`, `OrgReportSection` | answers "what needs me?": attention queue (pending donation confirmations, inline confirm/reject) above the stat row (raised, live, pending, drafts); no-org state is the contextual onboarding card |
+| `/dashboard/campaigns` | `OrgConsolePage`, rows with raised-vs-goal + progress bar | pipeline actions inline (submit for review); `PageHeader` action = New Campaign |
+| `/dashboard/donations` | `OrgReportSection` ×2, campaign filter chips | answers "who gave?": cross-campaign ledger — pending queue above confirmed history, campaign title on every row |
+| `/dashboard/members` | `MembersPanel` | answers "who's on the team?": one merged list — members + pending invites with status badges and inline actions; add/invite forms above |
+| `/dashboard/billing` | `BillingTab` under `PageHeader` | answers "what do we pay?": current plan, plan grid, history |
+| `/dashboard/settings` | `SettingsTab` under `PageHeader` | org identity fields; account (profile/password) stays on `/profile` |
+| `/dashboard/campaigns/new`, `/edit` | `CampaignForm` (restyle) | grouped `FormField` sections, sticky save bar |
 
-### 5.5 Organization
+### 5.5 Org context pieces
 | Piece | Components | Design action |
 |---|---|---|
-| Selector | `OrganizationSelector` → DropdownMenu + Avatar/org mark | current-org context, suspend event notice via Alert |
-| Gate | `OrgGate` | EmptyState pattern (no org → request CTA) |
-| Tabs | `OrgDashboard`, `MembersTab`, `DonationsTab`, `TodosTab`, `SettingsTab` | underline Tabs; tables on primitives; consistent row actions |
+| Org switcher | `console/OrgSwitcher.tsx` | the single place org context changes: sidebar block (desktop), always-visible chip (mobile); menu lists orgs + browse/request links |
+| Selector | `OrganizationSelector` (via `OrgGate`) | selection blocker for gated pages; suspend event notice via Alert |
+| Gate | `OrgGate` + `console/NoOrgOnboarding` | contextual onboarding when 0 orgs; selector when >1 |
 
-### 5.6 Admin (system) + misc
+### 5.6 Admin console (system admins)
 | Route | Design action |
 |---|---|
-| `/admin`, `/admin/campaigns`, `/admin/org-requests`, `/admin/orgs`, `/admin/plans`, `/admin/subscriptions` | shared admin pattern: PageHeader + StatCards + Table + StatusBadge + row actions; review queues get warning-tinted pending badges |
+| `/admin` | review queues lead (org requests N / campaigns N, each a card into its queue); platform stats demoted below; failed loads show error + retry |
+| `/admin/campaigns`, `/admin/org-requests`, `/admin/orgs`, `/admin/plans`, `/admin/subscriptions` | shared console pattern: `PageHeader` + Table/StatusBadge + row actions; review queues get warning-tinted pending badges; sidebar replaces Admin Home/back-links |
 | `/org/request` | multi-section FormField form, success state |
 | `/profile` | card layout, Avatar, sign-out zone |
 | not-found | simple branded 404 (static-export friendly) |
@@ -237,10 +245,16 @@ specs in the same commit.
 3. **Phase 2 — shell:** Navbar/MobileDrawer/Footer/AuthLayout per §5.1 (the
    approved preview becomes real `Nav.tsx`); e2e `navigation.spec.ts` updated
    in the same commit if link text changes.
-4. **Phase 3 — surfaces:** marketing → auth → dashboard → org → admin, in that
-   order (public trust first, internal density last). One surface group per
-   commit; restyles are behavior-preserving.
-5. **Phase 4 — polish:** skeletons everywhere, 404, OG image, PNG icon set.
+4. **Phase 3A — IA restructure (done, see `docs/ux-restructure-plan.md`):**
+   console shell + workspace route split + members/invites merge + admin
+   console shell; `ROUTE_ACCESS` unchanged (`/dashboard`, `/admin` prefixes
+   already cover the new routes); e2e updated in the same commits.
+5. **Phase 3B — surfaces:** marketing → auth → workspace console → admin
+   console, in that order (public trust first, internal density last). One
+   surface group per commit; restyles are behavior-preserving and now style
+   the *route-split* structure.
+6. **Phase 4 — polish:** skeletons everywhere, 404, OG image, PNG icon set,
+   dead-copy cleanup in both locales.
 
 **DoD per phase** (in addition to AGENTS.md): tsc + lint + prettier + unit
 suite green; `playwright test --list` parses; any touched page's e2e still
