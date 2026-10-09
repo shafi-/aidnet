@@ -81,8 +81,12 @@ test.describe('Profile Page', () => {
     await expect(page.getByText('Profile saved.')).toBeVisible()
 
     // Reload to prove the value was persisted, not just held in the input.
+    // The field refills from the profile RPC after the reload — on slow
+    // engines that lands well past the 5s expect default.
     await page.reload()
-    await expect(page.getByLabel('Full Name')).toHaveValue(updated)
+    await expect(page.getByLabel('Full Name')).toHaveValue(updated, {
+      timeout: 15000,
+    })
 
     // Restore original so the seeded admin profile stays stable across runs.
     await page.getByLabel('Full Name').fill(original)

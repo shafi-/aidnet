@@ -49,11 +49,12 @@ test.describe('Responsive Design', () => {
       page,
     }) => {
       await loginViaUi(page, OWNER.email, OWNER.password)
+      await page.waitForLoadState('networkidle')
 
       const sidebar = page.getByRole('navigation', {
         name: 'Workspace navigation',
       })
-      await expect(sidebar).toBeVisible()
+      await expect(sidebar).toBeVisible({ timeout: 15000 })
       await expect(
         sidebar.getByRole('link', { name: 'Overview' })
       ).toBeVisible()

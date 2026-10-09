@@ -84,7 +84,9 @@ export async function loginViaUi(
   email: string,
   password: string
 ): Promise<void> {
-  await page.goto('/auth/login/')
+  // Even the first goto of a fresh context can race the previous
+  // document (NS_BINDING_ABORTED) — retry through it.
+  await gotoStable(page, '/auth/login/')
   await page.waitForLoadState('networkidle')
   await page.locator('#email').fill(email)
   await page.locator('#password').fill(password)

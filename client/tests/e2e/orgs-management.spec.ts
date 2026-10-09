@@ -65,8 +65,10 @@ test.describe('Orgs Page - Updated for Request Flow', () => {
     const href = await orgLink.getAttribute('href')
     await orgLink.click()
 
-    // Page selects the org then cleans the URL via replaceState
-    await expect(page).toHaveURL(/\/orgs\/?$/)
+    // Selecting via ?id= enters the org's workspace (59a7ed8): the router
+    // lands on /dashboard. It races the ?id cleanup replaceState, so the
+    // dashboard URL is the assertion — not the intermediate /orgs one.
+    await expect(page).toHaveURL(/\/dashboard\/?$/, { timeout: 15000 })
     // Org selection effect persists the id asynchronously
     const expectedId = new URL(href!, 'http://localhost').searchParams.get('id')
     await expect
