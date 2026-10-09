@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildNavModel } from './navModel'
+import { buildNavModel, isNavLinkActive } from './navModel'
 
 const USER = { email: 'owner@donate.app' }
 const ORG = { name: 'Hope Foundation' }
@@ -133,5 +133,62 @@ describe('buildNavModel', () => {
       '/dashboard',
     ])
     expect(model.drawerGroups[1].system).toBe(true)
+  })
+})
+
+describe('isNavLinkActive', () => {
+  const operator = buildNavModel({
+    user: USER,
+    currentOrg: ORG,
+    isSystemAdmin: true,
+  })
+
+  it('When the pathname equals the href, the link is active', () => {
+    expect(isNavLinkActive(operator, '/dashboard', '/dashboard')).toBe(true)
+  })
+
+  it('When the pathname is a child of the href, the link is active', () => {
+    expect(
+      isNavLinkActive(operator, '/dashboard', '/dashboard/campaigns/new/')
+    ).toBe(false)
+    expect(
+      isNavLinkActive(
+        operator,
+        '/dashboard/campaigns',
+        '/dashboard/campaigns/new/'
+      )
+    ).toBe(true)
+  })
+
+  it('When a strictly longer link matches the same pathname, only the longest is active', () => {
+    expect(
+      isNavLinkActive(operator, '/dashboard', '/dashboard/campaigns/')
+    ).toBe(false)
+    expect(
+      isNavLinkActive(operator, '/dashboard/campaigns', '/dashboard/campaigns/')
+    ).toBe(true)
+  })
+
+  it('When the pathname matches admin children, admin overview yields to the specific section', () => {
+    expect(isNavLinkActive(operator, '/admin', '/admin/campaigns/')).toBe(false)
+    expect(
+      isNavLinkActive(operator, '/admin/campaigns', '/admin/campaigns/')
+    ).toBe(true)
+  })
+
+  it('When the pathname is unrelated, nothing is active', () => {
+    expect(isNavLinkActive(operator, '/dashboard', '/profile/')).toBe(false)
+    expect(isNavLinkActive(operator, '/campaigns', '/profile/')).toBe(false)
+  })
+
+  it('When anonymous, Campaigns is active on the directory and its detail pages', () => {
+    const anon = buildNavModel({
+      user: null,
+      currentOrg: null,
+      isSystemAdmin: false,
+    })
+
+    expect(isNavLinkActive(anon, '/campaigns', '/campaigns/')).toBe(true)
+    expect(isNavLinkActive(anon, '/campaigns', '/campaigns/detail/')).toBe(true)
   })
 })

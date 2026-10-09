@@ -20,7 +20,7 @@ import {
 } from 'lucide-react'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { MobileDrawer, type DrawerGroup, type DrawerLink } from './MobileDrawer'
-import { buildNavModel } from './navModel'
+import { buildNavModel, isNavLinkActive } from './navModel'
 import { Avatar } from '@/components/ui/avatar'
 import {
   DropdownMenu,
@@ -91,10 +91,7 @@ export function Nav() {
   const pathname = usePathname()
   const model = buildNavModel({ user, currentOrg, isSystemAdmin })
 
-  const isActive = (href: string) =>
-    href === '/'
-      ? pathname === '/'
-      : pathname === href || pathname.startsWith(`${href}/`)
+  const isActive = (href: string) => isNavLinkActive(model, href, pathname)
 
   const handleSignOut = () => {
     setMobileOpen(false)

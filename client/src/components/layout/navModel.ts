@@ -154,3 +154,40 @@ export function buildNavModel(input: NavModelInput): NavModel {
     ],
   }
 }
+
+/** Every href that appears anywhere in the model (top level, menus, drawer). */
+function navModelHrefs(model: NavModel): string[] {
+  const links: NavLinkItem[] = model.items.filter(
+    (item): item is Extract<NavMenuItem, { kind: 'link' }> =>
+      item.kind === 'link'
+  )
+  links.push(...(model.organizationsMenu?.items ?? []))
+  links.push(...(model.systemMenu?.items ?? []))
+  for (const group of model.drawerGroups) links.push(...group.links)
+  return links.map(link => link.href)
+}
+
+function matchesPath(href: string, pathname: string): boolean {
+  if (href === '/') return pathname === '/'
+  return pathname === href || pathname.startsWith(`${href}/`)
+}
+
+/**
+ * Longest-match wins: on /dashboard/campaigns only "Our campaigns" is
+ * active — "Dashboard" is also a path prefix, but a strictly longer link
+ * matches the same pathname, so it must not light up.
+ */
+export function isNavLinkActive(
+  model: NavModel,
+  href: string,
+  pathname: string
+): boolean {
+  if (!matchesPath(href, pathname)) return false
+  return !navModelHrefs(model).some(
+    other =>
+      other !== href &&
+      other.startsWith(href) &&
+      other.length > href.length &&
+      matchesPath(other, pathname)
+  )
+}
