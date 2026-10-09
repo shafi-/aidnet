@@ -44,7 +44,7 @@ test.describe('Responsive Design', () => {
       await expect(grid.locator(':scope > div')).toHaveCount(3)
     })
 
-    test('When desktop viewport and authed, dashboard renders', async ({
+    test('When desktop viewport and authed, the console sidebar renders', async ({
       page,
     }) => {
       await page.goto('/auth/login/')
@@ -53,10 +53,40 @@ test.describe('Responsive Design', () => {
       await page.getByRole('button', { name: 'Sign In' }).click()
       await expect(page).toHaveURL(/\/dashboard/)
 
-      await expect(page.locator('text=My Organizations')).toBeVisible()
-      await expect(page.locator('text=Profile Settings')).toBeVisible()
+      const sidebar = page.getByRole('navigation', {
+        name: 'Workspace navigation',
+      })
+      await expect(sidebar).toBeVisible()
       await expect(
-        page.getByRole('heading', { name: 'Security' })
+        sidebar.getByRole('link', { name: 'Overview' })
+      ).toBeVisible()
+      await expect(page.locator('[data-org-switcher]')).toBeVisible()
+    })
+  })
+
+  test.describe('Console on Mobile', () => {
+    test.use({ viewport: { width: 375, height: 812 } })
+
+    test('When mobile viewport and authed, the org chip stays visible and the drawer opens', async ({
+      page,
+    }) => {
+      await page.goto('/auth/login/')
+      await page.locator('#email').fill(OWNER.email)
+      await page.locator('#password').fill(OWNER.password)
+      await page.getByRole('button', { name: 'Sign In' }).click()
+      await expect(page).toHaveURL(/\/dashboard/)
+
+      // The org switcher collapses to a chip pinned in the top bar.
+      await expect(page.locator('[data-org-switcher]')).toBeVisible()
+      await expect(
+        page.getByRole('navigation', { name: 'Workspace navigation' })
+      ).toBeHidden()
+
+      await page.getByRole('button', { name: 'Open menu' }).click()
+      const drawer = page.getByRole('dialog', { name: 'Open menu' })
+      await expect(drawer.getByRole('link', { name: 'Overview' })).toBeVisible()
+      await expect(
+        drawer.getByRole('link', { name: 'Campaigns', exact: true })
       ).toBeVisible()
     })
   })

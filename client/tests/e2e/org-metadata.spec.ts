@@ -113,10 +113,10 @@ test.describe.serial('Organization Metadata Management', () => {
       page.getByRole('heading', { name: 'Select an Organization' })
     ).toBeHidden()
 
-    // Org metadata editing lives in the dashboard's Settings tab.
-    // Wait for the provider to finish loading (session + org data) before
-    // checking the overlay — otherwise the assertion races async hydration.
-    await page.goto('/dashboard')
+    // Org metadata editing lives at /dashboard/settings. Wait for the
+    // provider to finish loading (session + org data) before interacting —
+    // otherwise the assertion races async hydration.
+    await page.goto('/dashboard/settings')
     await expect(page.locator('html')).toHaveAttribute(
       'data-org-ready',
       'true',
@@ -127,8 +127,6 @@ test.describe.serial('Organization Metadata Management', () => {
     await expect(
       page.getByRole('heading', { name: 'Select an Organization' })
     ).toBeHidden()
-    await page.getByRole('button', { name: 'Settings' }).waitFor()
-    await page.getByRole('button', { name: 'Settings' }).click()
 
     // Update metadata and save
     const nameInput = page.locator('#org-settings-name')
@@ -150,8 +148,6 @@ test.describe.serial('Organization Metadata Management', () => {
     await expect(
       page.getByRole('heading', { name: 'Select an Organization' })
     ).toBeHidden()
-    await page.getByRole('button', { name: 'Settings' }).waitFor()
-    await page.getByRole('button', { name: 'Settings' }).click()
     await expect(page.locator('#org-settings-name')).toHaveValue(
       orgName + ' Updated'
     )

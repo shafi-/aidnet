@@ -23,24 +23,22 @@ export class OrgSelectPage {
   }
 }
 
-export class DashboardPage {
+/**
+ * Workspace console pages: open a route and wait out the
+ * OrganizationProvider bootstrap before interacting — clicking
+ * mid-bootstrap races a transient second render.
+ */
+export class ConsolePage {
   readonly page: Page
 
   constructor(page: Page) {
     this.page = page
   }
 
-  async open() {
-    await this.page.goto('/dashboard')
-    // Wait for the OrganizationProvider bootstrap to settle before any
-    // tab interaction — clicking mid-bootstrap races a transient second
-    // render and fails strict mode with two tab bars.
+  async open(path = '/dashboard') {
+    await this.page.goto(path)
     await orgReady(this.page)
   }
-
-  tab(name: 'Members' | 'Settings' | 'Billing'): Locator {
-    // The dashboard can briefly mount a second tab bar during provider
-    // bootstrap; both render identical buttons, so pin to the first.
-    return this.page.getByRole('button', { name, exact: true }).first()
-  }
 }
+
+export type { Page }

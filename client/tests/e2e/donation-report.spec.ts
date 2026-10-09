@@ -55,31 +55,35 @@ test.describe.serial('Donation reports', () => {
     page,
   }) => {
     await loginAsOwner(page)
-    await page.goto('/dashboard')
+    await page.goto('/dashboard/donations')
 
-    await page.getByRole('button', { name: 'Donations' }).click()
-    await page.getByLabel('Campaign').selectOption({ label: 'Demo Campaign 1' })
-
-    // Scope to the review queue and target THIS run's report by its
-    // unique reference — stale pendings from crashed runs must not count.
+    // The cross-campaign ledger needs no campaign selection; scope to the
+    // review queue and target THIS run's report by its unique reference —
+    // stale pendings from crashed runs must not count.
     const queueSection = page.locator('section', {
       has: page.getByRole('heading', { name: 'Awaiting confirmation' }),
     })
     const pendingRow = queueSection
-      .locator('div.rounded-lg.border', { hasText: reference })
+      .locator('li', { hasText: reference })
       .first()
     await expect(pendingRow).toBeVisible({ timeout: 15000 })
 
     await page.goto(`/campaigns/detail?slug=${SLUG}`)
     const raisedBefore = await readRaisedAmount(page)
 
-    await page.goto('/dashboard')
-    await page.getByRole('button', { name: 'Donations' }).click()
-    await page.getByLabel('Campaign').selectOption({ label: 'Demo Campaign 1' })
-    await pendingRow.getByRole('button', { name: 'Confirm' }).click()
+    await page.goto('/dashboard/donations')
+    const row = page
+      .locator('section', {
+        has: page.getByRole('heading', { name: 'Awaiting confirmation' }),
+      })
+      .locator('li', { hasText: reference })
+      .first()
+    await row.getByRole('button', { name: 'Confirm' }).click()
 
     // The report leaves the queue…
-    await expect(queueSection.getByText(reference).first()).not.toBeVisible()
+    await expect(
+      queueSection.locator('li', { hasText: reference }).first()
+    ).toHaveCount(0)
 
     // …lands in the confirmed ledger…
     const confirmedSection = page.locator('section', {

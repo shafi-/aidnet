@@ -320,7 +320,9 @@
     "confirmedTitle": "Confirmed",
     "emptyConfirmed": "No confirmed donations yet.",
     "confirm": "Confirm",
-    "reject": "Reject"
+    "reject": "Reject",
+    "allCampaigns": "All campaigns",
+    "filterAria": "Filter by campaign"
   },
   "members": {
     "hint": "“Add” directly adds a member who already has an account; “Invite” creates an invitation they can accept.",
@@ -333,7 +335,9 @@
     "inviteMeta": "Role: {{role}} · Expires: {{date}}",
     "noMembers": "No members yet.",
     "noInvites": "No pending invites.",
-    "loadError": "Could not load members: {{message}}"
+    "loadError": "Could not load members: {{message}}",
+    "inviteRoleAria": "Invite role",
+    "roleAria": "Role for {{name}}"
   },
   "orgSettings": {
     "orgName": "Organization Name",
@@ -509,7 +513,8 @@
     "empty": "No campaigns yet.",
     "createFirst": "Create your first campaign",
     "submitReview": "Submit for Review",
-    "deleteConfirm": "Delete campaign \"{{title}}\"?"
+    "deleteConfirm": "Delete campaign \"{{title}}\"?",
+    "raisedOfGoal": "{{raised}} of {{goal}} raised"
   },
   "profile": {
     "organization": "Organization",
@@ -653,6 +658,7 @@
     },
     "noPermissionTitle": "Not available for your role",
     "noPermissionBody": "This section is limited to organization owners or admins. Ask your organization owner for access.",
-    "backToOverview": "Back to overview"
+    "backToOverview": "Back to overview",
+    "featureBody": "Your organization's current plan does not include this section. Ask the organization owner to change the plan."
   }
 }

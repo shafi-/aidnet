@@ -7,7 +7,7 @@ import { useOrganization } from '@/hooks/useOrganization'
 import { organizationService } from '@/services/OrganizationService'
 import { CampaignForm } from '@/components/campaign/CampaignForm'
 import { useCampaignForm } from '@/hooks/useCampaignForm'
-import { AppLayout } from '@/components/layout/AppLayout'
+import { ConsoleShell } from '@/components/layout/ConsoleShell'
 import { OrgGate } from '@/components/org/OrgGate'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
@@ -44,7 +44,7 @@ function NewCampaignContent() {
       'block w-full rounded-lg border border-gray-200 bg-white p-4 text-left hover:border-indigo-400'
 
     return (
-      <AppLayout>
+      <ConsoleShell variant="workspace">
         <OrgGate>
           <div className="mx-auto max-w-2xl space-y-5 px-4 py-8">
             <div>
@@ -93,12 +93,12 @@ function NewCampaignContent() {
             )}
           </div>
         </OrgGate>
-      </AppLayout>
+      </ConsoleShell>
     )
   }
 
   return (
-    <AppLayout>
+    <ConsoleShell variant="workspace">
       <OrgGate>
         <div className="mx-auto max-w-3xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
@@ -117,7 +117,7 @@ function NewCampaignContent() {
           </div>
         </div>
       </OrgGate>
-    </AppLayout>
+    </ConsoleShell>
   )
 }
 
@@ -131,11 +131,11 @@ export default function NewCampaignPage() {
   return (
     <Suspense
       fallback={
-        <AppLayout>
+        <ConsoleShell variant="workspace">
           <div className="py-12 text-center text-gray-500">
             {t('common.loading')}
           </div>
-        </AppLayout>
+        </ConsoleShell>
       }
     >
       <NewCampaignContent />

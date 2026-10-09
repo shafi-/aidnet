@@ -3,6 +3,9 @@ import type {
   PublicCampaign,
   CampaignTag,
   DonationMethod,
+  DonationReport,
+  OrgDonationReport,
+  OrgOverview,
   Invite,
   MemberView,
   Membership,
@@ -116,6 +119,42 @@ export const anInvite = (over: Partial<Invite> = {}): Invite => ({
   expires_at: '2026-12-31T00:00:00Z',
   accepted_at: null,
   created_at: TS,
+  ...over,
+})
+
+export const aDonationReport = (
+  over: Partial<DonationReport> = {}
+): DonationReport => ({
+  id: 'report-1',
+  amount: 750,
+  currency: 'BDT',
+  method: 'bkash',
+  reference: 'TRX-123',
+  donor_name: 'E2E Donor',
+  message: null,
+  status: 'pending',
+  created_at: TS,
+  ...over,
+})
+
+export const anOrgDonationReport = (
+  over: Partial<OrgDonationReport> = {}
+): OrgDonationReport => ({
+  ...aDonationReport(),
+  campaign_id: 'camp-1',
+  campaign_title: 'Demo Campaign 1',
+  ...over,
+})
+
+export const anOrgOverview = (
+  over: Partial<OrgOverview> = {}
+): OrgOverview => ({
+  pending_donation_reports: 1,
+  confirmed_donations: 4,
+  raised_total: 12500,
+  live_campaigns: 2,
+  pending_review_campaigns: 1,
+  draft_campaigns: 1,
   ...over,
 })
 

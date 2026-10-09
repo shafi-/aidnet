@@ -8,7 +8,7 @@ import { useOrganization } from '@/hooks/useOrganization'
 import { campaignService } from '@/services/CampaignService'
 import { CampaignForm } from '@/components/campaign/CampaignForm'
 import { useCampaignForm } from '@/hooks/useCampaignForm'
-import { AppLayout } from '@/components/layout/AppLayout'
+import { ConsoleShell } from '@/components/layout/ConsoleShell'
 import { OrgGate } from '@/components/org/OrgGate'
 import { isUuid } from '@/hooks/useQueryParam'
 import { usePageTitle } from '@/hooks/usePageTitle'
@@ -52,7 +52,7 @@ function EditCampaignContent() {
   }, [id, t])
 
   return (
-    <AppLayout>
+    <ConsoleShell variant="workspace">
       <OrgGate>
         <div className="mx-auto max-w-3xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
@@ -79,7 +79,7 @@ function EditCampaignContent() {
           )}
         </div>
       </OrgGate>
-    </AppLayout>
+    </ConsoleShell>
   )
 }
 
@@ -104,11 +104,11 @@ export default function EditCampaignPage() {
   return (
     <Suspense
       fallback={
-        <AppLayout>
+        <ConsoleShell variant="workspace">
           <div className="py-12 text-center text-gray-500">
             {t('common.loading')}
           </div>
-        </AppLayout>
+        </ConsoleShell>
       }
     >
       <EditCampaignContent />

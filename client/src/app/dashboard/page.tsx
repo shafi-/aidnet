@@ -1,92 +1,148 @@
 'use client'
 
-import { useRequireAuth, useAuth } from '@/hooks/useAuth'
-import { useOrganization } from '@/hooks/useOrganization'
-import { OrgDashboard } from '@/components/org/OrgDashboard'
-import { DashboardCards } from '@/components/dashboard/DashboardCards'
-import { QuickStats } from '@/components/dashboard/QuickStats'
-import { AppLayout } from '@/components/layout/AppLayout'
-import { OrgGate } from '@/components/org/OrgGate'
-import { useProfile } from '@/hooks/useProfile'
-import { usePageTitle } from '@/hooks/usePageTitle'
-import { useTranslation } from 'react-i18next'
+import { useCallback } from 'react'
 import Link from 'next/link'
+import { useTranslation } from 'react-i18next'
+import { useOrganization } from '@/hooks/useOrganization'
+import { usePermissions } from '@/hooks/usePermissions'
+import { useOrgOverview } from '@/hooks/useOrgOverview'
+import { useOrgDonationReports } from '@/hooks/useOrgDonationReports'
+import { OrgConsolePage } from '@/components/console/OrgConsolePage'
+import { StatCard } from '@/components/console/StatCard'
+import { OrgReportSection } from '@/components/org/OrgReportRow'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
+// Overview (docs/ux-restructure-plan.md §2): answers "what needs me?" —
+// the pending-confirmation queue leads, the org's numbers sit beside it.
+// The old welcome/get-started/quick-stats card stack is gone; onboarding
+// is a contextual empty state (OrgConsolePage) and account cards moved to
+// /profile.
 export default function DashboardPage() {
-  useRequireAuth()
   const { t } = useTranslation()
-  const { user } = useAuth()
-  const { currentOrg, organizations } = useOrganization()
-  const { fullName } = useProfile()
   usePageTitle(t('titles.dashboard'))
 
   return (
-    <AppLayout>
-      <OrgGate>
-        <div className="space-y-6">
-          <div className="rounded-lg bg-white p-6 shadow">
-            <h1 className="text-2xl font-bold">{t('dashboard.title')}</h1>
-            {user && (
-              <p className="text-gray-600">
-                {fullName
-                  ? t('dashboard.welcomeBackName', { name: fullName })
-                  : t('dashboard.welcomeBack')}
-              </p>
-            )}
-          </div>
+    <OrgConsolePage title={t('console.sections.overview')}>
+      <OverviewContent />
+    </OrgConsolePage>
+  )
+}
 
-          {/* No org at all: onboarding, not a warning */}
-          {!currentOrg && organizations.length === 0 && (
-            <div className="rounded-lg border border-indigo-100 bg-white p-6 shadow">
-              <h2 className="mb-2 text-lg font-semibold text-gray-900">
-                {t('dashboard.getStartedTitle')}
-              </h2>
-              <p className="mb-4 text-gray-600">
-                {t('dashboard.getStartedBody')}
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <Link
-                  href="/campaigns"
-                  className="inline-block rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
-                >
-                  {t('dashboard.browseCampaigns')}
-                </Link>
-                <Link
-                  href="/org/request"
-                  className="inline-block rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 hover:border-indigo-400 hover:text-indigo-600"
-                >
-                  {t('dashboard.createOrganization')}
-                </Link>
-                <Link
-                  href="/invite"
-                  className="inline-block rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 hover:border-indigo-400 hover:text-indigo-600"
-                >
-                  {t('dashboard.joinOrganization')}
-                </Link>
-              </div>
-            </div>
-          )}
+function OverviewContent() {
+  const { t } = useTranslation()
+  const { currentOrg } = useOrganization()
+  const { isOrgAdmin } = usePermissions()
+  const orgId = currentOrg?.id ?? null
 
-          {/* Security: Show suspension message if current org is suspended */}
-          {currentOrg && currentOrg.status === 'suspended' && (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-6">
-              <h2 className="mb-2 text-lg font-semibold text-red-900">
-                {t('dashboard.suspendedTitle')}
-              </h2>
-              <p className="mb-4 text-red-800">
-                {t('dashboard.suspendedBody', { name: currentOrg.name })}
-              </p>
-              <p className="text-sm text-red-700">
-                {t('dashboard.suspendedContact')}
-              </p>
-            </div>
-          )}
+  const {
+    overview,
+    loading: statsLoading,
+    error: statsError,
+    reload: reloadStats,
+  } = useOrgOverview(orgId)
+  // Donation RPCs gate on donations:manage, so plain members skip the
+  // queue call entirely instead of collecting a permission error.
+  const {
+    reports: pendingReports,
+    loading: queueLoading,
+    error: queueError,
+    confirm: confirmReport,
+    reject: rejectReport,
+  } = useOrgDonationReports(isOrgAdmin() ? orgId : null, 'pending', 10)
 
-          <QuickStats />
-          <DashboardCards />
-          {currentOrg && currentOrg.status === 'active' && <OrgDashboard />}
+  const onConfirm = useCallback(
+    async (id: string) => {
+      await confirmReport(id)
+      // Confirming moves the public raised total — refresh the stat row.
+      void reloadStats()
+    },
+    [confirmReport, reloadStats]
+  )
+  const onReject = useCallback(
+    async (id: string) => {
+      await rejectReport(id)
+      void reloadStats()
+    },
+    [rejectReport, reloadStats]
+  )
+
+  return (
+    <div className="space-y-6">
+      {statsError && (
+        <div
+          className="rounded-lg border border-destructive/30 bg-destructive/10 p-4"
+          role="alert"
+        >
+          <p className="text-sm text-destructive">
+            {t('dashboard.statsError')}
+          </p>
+          <button
+            type="button"
+            onClick={() => void reloadStats()}
+            className="mt-2 rounded-md border border-destructive/40 bg-card px-3 py-1.5 text-sm font-medium text-destructive hover:bg-destructive/10"
+          >
+            {t('common.tryAgain')}
+          </button>
         </div>
-      </OrgGate>
-    </AppLayout>
+      )}
+
+      {overview && (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <StatCard
+            label={t('dashboard.statRaised')}
+            value={overview.raised_total.toLocaleString()}
+            tone="positive"
+          />
+          <StatCard
+            label={t('dashboard.statLive')}
+            value={overview.live_campaigns}
+            href="/dashboard/campaigns"
+          />
+          {isOrgAdmin() && (
+            <StatCard
+              label={t('dashboard.statPendingConfirmations')}
+              value={overview.pending_donation_reports}
+              href="/dashboard/donations"
+              tone={
+                overview.pending_donation_reports > 0 ? 'attention' : 'default'
+              }
+            />
+          )}
+          <StatCard
+            label={t('dashboard.statDrafts')}
+            value={overview.draft_campaigns}
+            href="/dashboard/campaigns"
+          />
+        </div>
+      )}
+
+      {statsLoading && !overview && !statsError && (
+        <div className="text-sm text-muted-foreground">
+          {t('common.loading')}
+        </div>
+      )}
+
+      {isOrgAdmin() && (
+        <OrgReportSection
+          heading={t('dashboard.attentionTitle')}
+          action={
+            <Link
+              href="/dashboard/donations"
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              {t('dashboard.attentionAll')}
+            </Link>
+          }
+          reports={pendingReports}
+          loading={queueLoading}
+          error={queueError}
+          errorText={t('dashboard.queueError')}
+          emptyText={t('dashboard.attentionEmpty')}
+          reviewable
+          onConfirm={id => void onConfirm(id)}
+          onReject={id => void onReject(id)}
+        />
+      )}
+    </div>
   )
 }
