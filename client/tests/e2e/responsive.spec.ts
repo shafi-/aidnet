@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { gotoStable, loginViaUi } from './lib/ui'
 
 const OWNER = { email: 'owner@donate.app', password: 'Password123!' }
 
@@ -7,7 +8,7 @@ test.describe('Responsive Design', () => {
     test.use({ viewport: { width: 375, height: 812 } })
 
     test('When mobile viewport, landing page renders', async ({ page }) => {
-      await page.goto('/')
+      await gotoStable(page, '/')
       await expect(page.locator('h1')).toContainText('AidNet')
       await expect(
         page.getByRole('heading', { name: 'Welcome to AidNet' })
@@ -15,13 +16,13 @@ test.describe('Responsive Design', () => {
     })
 
     test('When mobile viewport, auth login page renders', async ({ page }) => {
-      await page.goto('/auth/login/')
+      await gotoStable(page, '/auth/login/')
       await expect(page.locator('h1')).toContainText('Sign In')
       await expect(page.locator('#email')).toBeVisible()
     })
 
     test('When mobile viewport, register page renders', async ({ page }) => {
-      await page.goto('/auth/register/')
+      await gotoStable(page, '/auth/register/')
       await expect(page.locator('h1')).toContainText('Create Account')
       await expect(page.locator('#email')).toBeVisible()
     })
@@ -33,7 +34,7 @@ test.describe('Responsive Design', () => {
     test('When desktop viewport, landing shows 3 feature cards', async ({
       page,
     }) => {
-      await page.goto('/')
+      await gotoStable(page, '/')
       await expect(page.locator('h1')).toContainText('AidNet')
       // Scope by content: the "how giving works" grid shares the same
       // md:grid-cols-3 classes, and the latest-campaigns grid is kept
@@ -47,11 +48,7 @@ test.describe('Responsive Design', () => {
     test('When desktop viewport and authed, the console sidebar renders', async ({
       page,
     }) => {
-      await page.goto('/auth/login/')
-      await page.locator('#email').fill(OWNER.email)
-      await page.locator('#password').fill(OWNER.password)
-      await page.getByRole('button', { name: 'Sign In' }).click()
-      await expect(page).toHaveURL(/\/dashboard/)
+      await loginViaUi(page, OWNER.email, OWNER.password)
 
       const sidebar = page.getByRole('navigation', {
         name: 'Workspace navigation',
@@ -60,7 +57,7 @@ test.describe('Responsive Design', () => {
       await expect(
         sidebar.getByRole('link', { name: 'Overview' })
       ).toBeVisible()
-      await expect(page.locator('[data-org-switcher]')).toBeVisible()
+      await expect(page.locator('[data-org-switcher]:visible')).toBeVisible()
     })
   })
 
@@ -70,14 +67,10 @@ test.describe('Responsive Design', () => {
     test('When mobile viewport and authed, the org chip stays visible and the drawer opens', async ({
       page,
     }) => {
-      await page.goto('/auth/login/')
-      await page.locator('#email').fill(OWNER.email)
-      await page.locator('#password').fill(OWNER.password)
-      await page.getByRole('button', { name: 'Sign In' }).click()
-      await expect(page).toHaveURL(/\/dashboard/)
+      await loginViaUi(page, OWNER.email, OWNER.password)
 
       // The org switcher collapses to a chip pinned in the top bar.
-      await expect(page.locator('[data-org-switcher]')).toBeVisible()
+      await expect(page.locator('[data-org-switcher]:visible')).toBeVisible()
       await expect(
         page.getByRole('navigation', { name: 'Workspace navigation' })
       ).toBeHidden()

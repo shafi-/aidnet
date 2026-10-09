@@ -17,8 +17,9 @@ export class SystemAdminRepository extends BaseRepository {
     })
   }
 
-  async getSystemStats(): ServiceData<SystemStats> {
-    return this.callRpc<SystemStats>(Rpc.SystemAdmin.GetStats)
+  // Raw PostgREST shape: RETURNS TABLE wraps the single row in an array.
+  async getSystemStats(): ServiceData<SystemStats[]> {
+    return this.callRpc<SystemStats[]>(Rpc.SystemAdmin.GetStats)
   }
 
   async isSystemAdmin(): Promise<boolean> {

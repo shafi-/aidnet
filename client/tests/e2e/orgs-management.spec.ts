@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { gotoStable } from './lib/ui'
 
 const OWNER_STATE = 'tests/e2e/.auth/orgOwner.json'
 
@@ -8,7 +9,7 @@ test.describe('Orgs Page - Updated for Request Flow', () => {
   test('When owner loads /orgs, shows request CTA instead of an inline Create button', async ({
     page,
   }) => {
-    await page.goto('/orgs')
+    await gotoStable(page, '/orgs')
 
     await expect(
       page.getByRole('link', { name: 'Request an organization' })
@@ -21,7 +22,7 @@ test.describe('Orgs Page - Updated for Request Flow', () => {
   test('When owner has orgs, they are listed as selectable links', async ({
     page,
   }) => {
-    await page.goto('/orgs')
+    await gotoStable(page, '/orgs')
 
     // handle_new_user auto-creates a personal org per user, so the list is
     // never empty; each org renders as a link with its name heading.
@@ -33,7 +34,7 @@ test.describe('Orgs Page - Updated for Request Flow', () => {
   test('When owner clicks Request Organization, navigates to request page', async ({
     page,
   }) => {
-    await page.goto('/orgs')
+    await gotoStable(page, '/orgs')
 
     await page.getByRole('link', { name: 'Request an organization' }).click()
     await expect(page).toHaveURL(/\/org\/request/)
@@ -48,7 +49,7 @@ test.describe('Orgs Page - Updated for Request Flow', () => {
   test('When owner has existing orgs, shows them as clickable links', async ({
     page,
   }) => {
-    await page.goto('/orgs')
+    await gotoStable(page, '/orgs')
 
     const orgLinks = page.locator('a[href^="/orgs/?id="]')
     await expect(orgLinks.first()).toBeVisible()
@@ -58,7 +59,7 @@ test.describe('Orgs Page - Updated for Request Flow', () => {
   test('When owner clicks an org card, that org is selected', async ({
     page,
   }) => {
-    await page.goto('/orgs')
+    await gotoStable(page, '/orgs')
 
     const orgLink = page.locator('a[href^="/orgs/?id="]').first()
     const href = await orgLink.getAttribute('href')

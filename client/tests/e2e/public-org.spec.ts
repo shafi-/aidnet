@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { gotoStable } from './lib/ui'
 
 test.describe.serial('Public Org Page', () => {
   test.beforeAll(async () => {
@@ -14,7 +15,7 @@ test.describe.serial('Public Org Page', () => {
   test('When valid slug opened, public org page shows org info', async ({
     page,
   }) => {
-    await page.goto(`/orgs/public/?slug=${testSlug}`)
+    await gotoStable(page, `/orgs/public/?slug=${testSlug}`)
     await expect(page.locator('h1')).toContainText('Demo Organization')
     await expect(
       page.getByText('Organization for testing and demonstration purposes')
@@ -24,7 +25,7 @@ test.describe.serial('Public Org Page', () => {
   test('When public org page opened, Sign In and Create Account links are shown', async ({
     page,
   }) => {
-    await page.goto(`/orgs/public/?slug=${testSlug}`)
+    await gotoStable(page, `/orgs/public/?slug=${testSlug}`)
     await expect(
       page.locator('main').getByRole('link', { name: 'Sign In' })
     ).toBeVisible()
@@ -36,14 +37,14 @@ test.describe.serial('Public Org Page', () => {
   test('When public org page opened, created date is shown', async ({
     page,
   }) => {
-    await page.goto(`/orgs/public/?slug=${testSlug}`)
+    await gotoStable(page, `/orgs/public/?slug=${testSlug}`)
     await expect(page.getByText('On AidNet since')).toBeVisible()
   })
 
   test('When invalid slug opened, Organization Not Found is shown', async ({
     page,
   }) => {
-    await page.goto('/orgs/public/?slug=nonexistent-slug-12345')
+    await gotoStable(page, '/orgs/public/?slug=nonexistent-slug-12345')
     await expect(
       page.locator('h1:has-text("Organization Not Found")')
     ).toBeVisible()
@@ -52,7 +53,7 @@ test.describe.serial('Public Org Page', () => {
   test('When empty slug opened, Organization Not Found is shown', async ({
     page,
   }) => {
-    await page.goto('/orgs/public/')
+    await gotoStable(page, '/orgs/public/')
     await expect(
       page.locator('h1:has-text("Organization Not Found")')
     ).toBeVisible()

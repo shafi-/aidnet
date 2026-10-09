@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { getPublicCampaigns, SUPABASE_URL } from './lib/api'
+import { gotoStable } from './lib/ui'
 
 // Campaign discovery + management e2e.
 // Anon flows are self-contained. Authenticated flows use storage states
@@ -12,7 +13,7 @@ test.describe('Landing — latest campaigns', () => {
   test('When anon loads landing, Latest Campaigns section and See more show', async ({
     page,
   }) => {
-    await page.goto('/')
+    await gotoStable(page, '/')
     await expect(
       page.getByRole('heading', { name: 'Latest Campaigns' })
     ).toBeVisible()
@@ -22,7 +23,7 @@ test.describe('Landing — latest campaigns', () => {
   test('When anon clicks See more, navigates to public campaign list', async ({
     page,
   }) => {
-    await page.goto('/')
+    await gotoStable(page, '/')
     await page.getByRole('link', { name: 'See more' }).click()
     await expect(page).toHaveURL(/\/campaigns/)
     await expect(
@@ -33,7 +34,7 @@ test.describe('Landing — latest campaigns', () => {
   test('When landing renders, Latest Campaigns shows at most 12 cards', async ({
     page,
   }) => {
-    await page.goto('/')
+    await gotoStable(page, '/')
     await expect(
       page.getByRole('heading', { name: 'Latest Campaigns' })
     ).toBeVisible()
@@ -47,7 +48,7 @@ test.describe('Public discovery + filters', () => {
     page,
     request,
   }) => {
-    await page.goto('/campaigns')
+    await gotoStable(page, '/campaigns')
     await expect(
       page.getByRole('heading', { name: 'Discover Campaigns' })
     ).toBeVisible()
@@ -81,7 +82,7 @@ test.describe('Public discovery + filters', () => {
   test('When anon clicks Zakat Eligible, URL gets zakat=true and filter stays active', async ({
     page,
   }) => {
-    await page.goto('/campaigns')
+    await gotoStable(page, '/campaigns')
     await page.getByRole('link', { name: /Zakat Eligible/ }).click()
     await expect(page).toHaveURL(/zakat=true/)
     await expect(
@@ -92,7 +93,7 @@ test.describe('Public discovery + filters', () => {
   test('When anon opens an unavailable campaign slug, Campaign Not Available is shown', async ({
     page,
   }) => {
-    await page.goto('/campaigns/detail?slug=does-not-exist')
+    await gotoStable(page, '/campaigns/detail?slug=does-not-exist')
     await expect(
       page.getByRole('heading', { name: 'Campaign Not Available' })
     ).toBeVisible()
@@ -101,14 +102,14 @@ test.describe('Public discovery + filters', () => {
   test('When anon clicks Clear filter, zakat param is removed', async ({
     page,
   }) => {
-    await page.goto('/campaigns/?zakat=true')
+    await gotoStable(page, '/campaigns/?zakat=true')
     await expect(page.getByRole('link', { name: 'Clear filter' })).toBeVisible()
     await page.getByRole('link', { name: 'Clear filter' }).click()
     await expect(page).toHaveURL(/\/campaigns\/?$/)
   })
 
   test('When anon clicks Home, navigates to landing', async ({ page }) => {
-    await page.goto('/campaigns/')
+    await gotoStable(page, '/campaigns/')
     await page.getByRole('link', { name: /Home/ }).click()
     await expect(page).toHaveURL('/')
   })
@@ -124,7 +125,7 @@ test.describe.serial('Founder + Admin lifecycle', () => {
       page,
     }) => {
       // Setup preselected demo-org for the owner
-      await page.goto('/dashboard/campaigns')
+      await gotoStable(page, '/dashboard/campaigns')
       await page.getByRole('link', { name: 'New Campaign' }).click()
 
       const title = `E2E Lifecycle ${Date.now()}`
@@ -158,7 +159,7 @@ test.describe.serial('Founder + Admin lifecycle', () => {
         'Founder lifecycle step did not produce a campaign to verify'
       )
 
-      await page.goto(`/admin/campaigns/?slug=${slug}`)
+      await gotoStable(page, `/admin/campaigns/?slug=${slug}`)
       // Review screen shows the submitted campaign inline
       await expect(
         page.getByRole('button', { name: 'Verify & Publish' })

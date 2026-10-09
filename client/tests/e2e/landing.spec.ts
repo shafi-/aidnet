@@ -1,11 +1,11 @@
 import { test, expect } from '@playwright/test'
-import { openAccountMenu, openNavMenu } from './lib/ui'
+import { gotoStable, openAccountMenu, openNavMenu } from './lib/ui'
 
 const ADMIN_STATE = 'tests/e2e/.auth/systemAdmin.json'
 
 test.describe('Landing Page', () => {
   test('When anon loads landing, welcome content renders', async ({ page }) => {
-    await page.goto('/')
+    await gotoStable(page, '/')
     await expect(page.locator('h1')).toContainText('AidNet')
     await expect(
       page.getByRole('heading', { name: 'Welcome to AidNet' })
@@ -18,7 +18,7 @@ test.describe('Landing Page', () => {
   })
 
   test('When anon loads landing, feature cards render', async ({ page }) => {
-    await page.goto('/')
+    await gotoStable(page, '/')
     await expect(
       page.getByRole('heading', { name: 'Trusted Organizations' })
     ).toBeVisible()
@@ -33,7 +33,7 @@ test.describe('Landing Page', () => {
   test('When anon clicks See more, navigates to campaigns browse', async ({
     page,
   }) => {
-    await page.goto('/')
+    await gotoStable(page, '/')
     await page.getByRole('link', { name: 'See more →' }).click()
     await expect(page).toHaveURL(/\/campaigns/)
     await expect(
@@ -44,7 +44,7 @@ test.describe('Landing Page', () => {
   test('When campaign cards render, each links to its detail page', async ({
     page,
   }) => {
-    await page.goto('/')
+    await gotoStable(page, '/')
     await expect(
       page.getByRole('heading', { name: 'Latest Campaigns' })
     ).toBeVisible()
@@ -60,7 +60,7 @@ test.describe('Landing Page', () => {
   test('When anon loads landing, Latest Campaigns section is visible', async ({
     page,
   }) => {
-    await page.goto('/')
+    await gotoStable(page, '/')
     await expect(
       page.getByRole('heading', { name: 'Latest Campaigns' })
     ).toBeVisible()
@@ -72,7 +72,7 @@ test.describe('Landing Page', () => {
     // The landing/campaigns empty branch only renders with zero live
     // campaigns; the seeded database always has some. Reach the same
     // GetInvolved component through an org filter that matches nothing.
-    await page.goto(`/campaigns?org=${crypto.randomUUID()}`)
+    await gotoStable(page, `/campaigns?org=${crypto.randomUUID()}`)
     await expect(
       page.getByText('No campaigns found for this organization.')
     ).toBeVisible()
@@ -82,7 +82,7 @@ test.describe('Landing Page', () => {
 
     // Inverse guard: with seeded campaigns present, the landing page shows
     // campaign cards, not the empty-state card.
-    await page.goto('/')
+    await gotoStable(page, '/')
     await expect(
       page.getByRole('heading', { name: 'Get involved' })
     ).toHaveCount(0)
@@ -91,7 +91,7 @@ test.describe('Landing Page', () => {
   test('When anon loads landing, how-giving-works steps render', async ({
     page,
   }) => {
-    await page.goto('/')
+    await gotoStable(page, '/')
     await expect(
       page.getByRole('heading', { name: 'How giving works' })
     ).toBeVisible()
@@ -104,7 +104,7 @@ test.describe('Landing Page', () => {
     test('When anon loads landing, nav shows brand and auth links', async ({
       page,
     }) => {
-      await page.goto('/')
+      await gotoStable(page, '/')
       await openNavMenu(page)
       const nav = page.locator('nav')
       await expect(nav.getByRole('link', { name: 'AidNet' })).toBeVisible()
@@ -115,7 +115,7 @@ test.describe('Landing Page', () => {
     test('When anon clicks the hero primary CTA, navigates to campaigns', async ({
       page,
     }) => {
-      await page.goto('/')
+      await gotoStable(page, '/')
       // The tagline promises discovery: the primary hero action browses
       // campaigns without requiring an account.
       await page
@@ -128,7 +128,7 @@ test.describe('Landing Page', () => {
     test('When anon clicks the hero Sign up, navigates to register', async ({
       page,
     }) => {
-      await page.goto('/')
+      await gotoStable(page, '/')
       await page.getByRole('link', { name: 'Sign up' }).first().click()
       await expect(page).toHaveURL(/\/auth\/register/)
       await expect(page.locator('h1')).toContainText('Create Account')
@@ -137,7 +137,7 @@ test.describe('Landing Page', () => {
     test('When anon clicks nav Sign In, navigates to login', async ({
       page,
     }) => {
-      await page.goto('/')
+      await gotoStable(page, '/')
       await openNavMenu(page)
       await page.locator('nav').getByRole('link', { name: 'Sign In' }).click()
       await expect(page).toHaveURL(/\/auth\/login/)
@@ -146,7 +146,7 @@ test.describe('Landing Page', () => {
     test('When anon clicks nav Campaigns, navigates to browse', async ({
       page,
     }) => {
-      await page.goto('/')
+      await gotoStable(page, '/')
       await openNavMenu(page)
       await page.locator('nav').getByRole('link', { name: 'Campaigns' }).click()
       await expect(page).toHaveURL(/\/campaigns/)
@@ -159,7 +159,7 @@ test.describe('Landing Page', () => {
     test('When authenticated, landing nav shows Dashboard and Profile links', async ({
       page,
     }) => {
-      await page.goto('/')
+      await gotoStable(page, '/')
       await openNavMenu(page)
       await expect(
         page.locator('nav').getByRole('link', { name: 'Dashboard' })

@@ -1,21 +1,24 @@
 import { test, expect } from '@playwright/test'
-import { openAccountMenu, openNavMenu } from './lib/ui'
+import {
+  expectConsoleSection,
+  gotoStable,
+  loginViaUi,
+  openAccountMenu,
+  openConsoleSection,
+  openNavMenu,
+} from './lib/ui'
 
 const OWNER = { email: 'owner@donate.app', password: 'Password123!' }
 
 async function loginAsOwner(page: import('@playwright/test').Page) {
-  await page.goto('/auth/login/')
-  await page.locator('#email').fill(OWNER.email)
-  await page.locator('#password').fill(OWNER.password)
-  await page.getByRole('button', { name: 'Sign In' }).click()
-  await expect(page).toHaveURL(/\/dashboard/)
+  await loginViaUi(page, OWNER.email, OWNER.password)
 }
 
 test.describe('Dashboard', () => {
   test('When not authenticated, /dashboard redirects to login', async ({
     page,
   }) => {
-    await page.goto('/dashboard/')
+    await gotoStable(page, '/dashboard/')
     await expect(page).toHaveURL(/\/auth\/login/)
   })
 
@@ -35,21 +38,18 @@ test.describe('Dashboard', () => {
     ).toBeVisible()
   })
 
-  test('When authenticated, the console sidebar replaces the old card stack', async ({
+  test('When authenticated, the console replaces the old card stack', async ({
     page,
   }) => {
     await loginAsOwner(page)
 
-    const sidebar = page.getByRole('navigation', {
-      name: 'Workspace navigation',
-    })
-    await expect(sidebar.getByRole('link', { name: 'Overview' })).toBeVisible()
-    await expect(
-      sidebar.getByRole('link', { name: 'Campaigns', exact: true })
-    ).toBeVisible()
-    // Owner-only section is present; the org switcher is pinned above it.
-    await expect(sidebar.getByRole('link', { name: 'Billing' })).toBeVisible()
-    await expect(page.locator('[data-org-switcher]')).toBeVisible()
+    // Sections live in the sidebar (desktop) or the drawer (mobile).
+    await expectConsoleSection(page, 'Workspace navigation', 'Overview')
+    await expectConsoleSection(page, 'Workspace navigation', 'Campaigns')
+    // Owner-only section is present; the org switcher is pinned above it
+    // (sidebar block on desktop, top-bar chip on mobile).
+    await expectConsoleSection(page, 'Workspace navigation', 'Billing')
+    await expect(page.locator('[data-org-switcher]:visible')).toBeVisible()
 
     // The old trivia cards are gone for good.
     await expect(page.getByText('Welcome back!')).toHaveCount(0)
@@ -57,14 +57,11 @@ test.describe('Dashboard', () => {
     await expect(page.getByText('Quick Stats')).toHaveCount(0)
   })
 
-  test('When the owner opens Billing from the sidebar, the billing page renders', async ({
+  test('When the owner opens Billing from the console, the billing page renders', async ({
     page,
   }) => {
     await loginAsOwner(page)
-    await page
-      .getByRole('navigation', { name: 'Workspace navigation' })
-      .getByRole('link', { name: 'Billing' })
-      .click()
+    await openConsoleSection(page, 'Workspace navigation', 'Billing')
     await expect(page).toHaveURL(/\/dashboard\/billing\/?$/)
     await expect(
       page.getByRole('heading', { name: 'Billing', exact: true })
@@ -78,7 +75,7 @@ test.describe('Dashboard', () => {
 
     // Console pages carry the sidebar; the account menu lives on the
     // public shell — go there for the account-menu journey.
-    await page.goto('/campaigns/')
+    await gotoStable(page, '/campaigns/')
     await openNavMenu(page)
     // Desktop: account dropdown renders Profile as a Radix menuitem
     // (openAccountMenu opens it); mobile: drawer link "Profile <email>".
@@ -96,7 +93,7 @@ test.describe('Dashboard', () => {
   }) => {
     await loginAsOwner(page)
 
-    await page.goto('/campaigns/')
+    await gotoStable(page, '/campaigns/')
     await openNavMenu(page)
     await openAccountMenu(page)
     // Desktop dropdown renders a Radix menuitem; mobile drawer a button.

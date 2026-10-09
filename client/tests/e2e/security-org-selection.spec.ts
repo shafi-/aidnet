@@ -1,17 +1,13 @@
 import { test, expect } from '@playwright/test'
 import { registerViaApi } from './lib/api'
-import { openAccountMenu, openNavMenu } from './lib/ui'
+import { gotoStable, loginViaUi, openAccountMenu, openNavMenu } from './lib/ui'
 
 const TEST_PASSWORD = 'SecurityTest123!'
 
 const SEEDED_ADMIN = { email: 'admin@donate.app', password: 'Password123!' }
 
 async function loginAsSeededAdmin(page: import('@playwright/test').Page) {
-  await page.goto('/auth/login/')
-  await page.locator('#email').fill(SEEDED_ADMIN.email)
-  await page.locator('#password').fill(SEEDED_ADMIN.password)
-  await page.getByRole('button', { name: 'Sign In' }).click()
-  await expect(page).toHaveURL(/\/dashboard/)
+  await loginViaUi(page, SEEDED_ADMIN.email, SEEDED_ADMIN.password)
 }
 
 async function loginAsUser(
@@ -19,11 +15,7 @@ async function loginAsUser(
   email: string,
   password: string
 ) {
-  await page.goto('/auth/login/')
-  await page.locator('#email').fill(email)
-  await page.locator('#password').fill(password)
-  await page.getByRole('button', { name: 'Sign In' }).click()
-  await expect(page).toHaveURL(/\/dashboard/)
+  await loginViaUi(page, email, password)
 }
 
 async function approveRequest(
@@ -31,7 +23,7 @@ async function approveRequest(
   orgName: string
 ) {
   await loginAsSeededAdmin(page)
-  await page.goto('/admin/org-requests/')
+  await gotoStable(page, '/admin/org-requests/')
   const anyCard = page.locator('div.rounded-lg.bg-white', {
     hasText: orgName,
   })
@@ -61,7 +53,7 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     }, invalidOrgId)
 
     // Navigate to dashboard
-    await page.goto('/dashboard')
+    await gotoStable(page, '/dashboard')
 
     // The tampered id must be gone.  With no personal org (trigger no longer
     // creates one), the user has 0 orgs — the provider clears the invalid
@@ -97,7 +89,7 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     )
     await loginAsUser(page, requesterEmail, TEST_PASSWORD)
 
-    await page.goto('/org/request')
+    await gotoStable(page, '/org/request')
     await page.getByPlaceholder('My Organization').fill(orgName)
     await page.getByPlaceholder('my-organization').fill(orgSlug)
     await page.getByRole('button', { name: 'Submit for Review' }).click()
@@ -110,7 +102,7 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     await loginAsUser(page, requesterEmail, TEST_PASSWORD)
 
     // Fresh load so the list reflects the just-approved org
-    await page.goto('/orgs')
+    await gotoStable(page, '/orgs')
     const href = await page
       .locator(`a[href^="/orgs/?id="]:has-text("${orgName}")`)
       .first()
@@ -120,7 +112,7 @@ test.describe.serial('Security: Organization Selection Protection', () => {
 
     // Admin suspends the active org via the proper org-management page
     await loginAsSeededAdmin(page)
-    await page.goto('/admin/orgs')
+    await gotoStable(page, '/admin/orgs')
     await page
       .locator(`tr:has(td:has-text("${orgName}"))`)
       .getByRole('button', { name: 'Suspend' })
@@ -132,7 +124,7 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     // Requester attempts to open the suspended org directly via ?id=
     await loginAsUser(page, requesterEmail, TEST_PASSWORD)
 
-    await page.goto(`/orgs/?id=${orgId}`)
+    await gotoStable(page, `/orgs/?id=${orgId}`)
 
     // Suspended org cannot become current — the orgs page renders and
     // localStorage must NOT hold the suspended org id.
@@ -163,7 +155,7 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     }, maliciousOrgId)
 
     // Navigate to orgs page
-    await page.goto('/orgs')
+    await gotoStable(page, '/orgs')
 
     // The malicious id must be cleared (and never rendered as HTML). A
     // remaining active org may be auto-selected afterwards.
@@ -189,7 +181,7 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     await registerViaApi(page, user1Email, TEST_PASSWORD, `User1 ${Date.now()}`)
     await loginAsUser(page, user1Email, TEST_PASSWORD)
 
-    await page.goto('/org/request')
+    await gotoStable(page, '/org/request')
     await page.getByPlaceholder('My Organization').fill(orgName)
     await page.getByPlaceholder('my-organization').fill(orgSlug)
     await page.getByRole('button', { name: 'Submit for Review' }).click()
@@ -202,7 +194,7 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     await loginAsUser(page, user1Email, TEST_PASSWORD)
 
     // The dashboard lists org names as plain text — the id link lives on /orgs
-    await page.goto('/orgs')
+    await gotoStable(page, '/orgs')
 
     const href = await page
       .locator(`a[href^="/orgs/?id="]:has-text("${orgName}")`)
@@ -211,7 +203,7 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     const orgId = new URL(href!, 'http://localhost').searchParams.get('id')!
     expect(orgId).toBeTruthy()
 
-    await page.goto(`/orgs/?id=${orgId}`)
+    await gotoStable(page, `/orgs/?id=${orgId}`)
     // selectOrgById persists asynchronously after its fetch — poll, don't race
     await expect
       .poll(async () =>
@@ -224,7 +216,7 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     expect(user1OrgId).toBe(orgId)
 
     // Logout user1
-    await page.goto('/profile')
+    await gotoStable(page, '/profile')
     await openNavMenu(page)
     await openAccountMenu(page)
     // Desktop dropdown renders a Radix menuitem; mobile drawer a button.
@@ -237,7 +229,7 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     await registerViaApi(page, user2Email, TEST_PASSWORD, `User2 ${Date.now()}`)
     await loginAsUser(page, user2Email, TEST_PASSWORD)
 
-    await page.goto('/orgs')
+    await gotoStable(page, '/orgs')
     const orgLinkForUser2 = page.locator(
       `a[href^="/orgs/?id="]:has-text("${orgName}")`
     )

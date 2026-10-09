@@ -29,6 +29,10 @@ export function isMobileViewport(page: Page): boolean {
  */
 export async function openNavMenu(page: Page): Promise<void> {
   if (!isMobileViewport(page)) return
+  // Idempotent: the drawer covers the hamburger once open, so a second
+  // click would stall on actionability (aria-hidden aside drops out of the
+  // a11y tree when closed, so role=dialog only matches while open).
+  if (await page.getByRole('dialog', { name: 'Open menu' }).isVisible()) return
   await page.getByRole('button', { name: 'Open menu' }).click()
   await expect(page.getByRole('button', { name: 'Close menu' })).toBeVisible()
 }
@@ -128,17 +132,20 @@ export async function expectConsoleSection(
 }
 
 /**
- * Navigate to an admin console section: the sidebar link on desktop, the
- * same link inside the drawer below the md breakpoint. Works from any
- * admin page — no back-links or dropdowns involved.
+ * Navigate to a console section: the sidebar link on desktop, the same
+ * link inside the drawer below the md breakpoint. Branching follows the
+ * md breakpoint (same contract as openNavMenu/openAccountMenu) — on
+ * mobile the drawer content does not exist until opened, so DOM sampling
+ * cannot pick the branch.
  */
-export async function openAdminSection(
+export async function openConsoleSection(
   page: Page,
+  navName: string,
   name: string
 ): Promise<void> {
   const { sidebarLink, drawerLink } = consoleSectionLocators(
     page,
-    'Admin navigation',
+    navName,
     name
   )
   if (!isMobileViewport(page)) {
@@ -147,6 +154,17 @@ export async function openAdminSection(
   }
   await openNavMenu(page)
   await drawerLink.click()
+}
+
+/**
+ * Navigate to an admin console section from any admin page — no
+ * back-links or dropdowns involved.
+ */
+export async function openAdminSection(
+  page: Page,
+  name: string
+): Promise<void> {
+  await openConsoleSection(page, 'Admin navigation', name)
 }
 
 /**

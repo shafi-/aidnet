@@ -20,9 +20,9 @@ describe('SystemAdminService', () => {
     expect(res).toEqual(ok(orgs))
   })
 
-  it('getSystemStats delegates without params', async () => {
+  it('getSystemStats unwraps the single RETURNS TABLE row', async () => {
     const stats = systemStats()
-    const getSystemStats = vi.fn().mockResolvedValue(ok(stats))
+    const getSystemStats = vi.fn().mockResolvedValue(ok([stats]))
     const svc = new SystemAdminService(
       mockRepository<SystemAdminRepository>({ getSystemStats })
     )
@@ -31,6 +31,17 @@ describe('SystemAdminService', () => {
 
     expect(getSystemStats).toHaveBeenCalledTimes(1)
     expect(res).toEqual(ok(stats))
+  })
+
+  it('getSystemStats returns null when rows are empty', async () => {
+    const getSystemStats = vi.fn().mockResolvedValue(ok([]))
+    const svc = new SystemAdminService(
+      mockRepository<SystemAdminRepository>({ getSystemStats })
+    )
+
+    const res = await svc.getSystemStats()
+
+    expect(res).toEqual({ data: null, error: null })
   })
 
   it('isSystemAdmin delegates and propagates false on failure', async () => {

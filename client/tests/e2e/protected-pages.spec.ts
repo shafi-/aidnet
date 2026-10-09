@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { rpc, signIn, USERS } from './lib/api'
+import { gotoStable, loginViaUi } from './lib/ui'
 
 const OWNER = { email: 'owner@donate.app', password: 'Password123!' }
 
@@ -8,20 +9,16 @@ test.describe('Protected Pages', () => {
     test('When not authenticated, /profile redirects to login', async ({
       page,
     }) => {
-      await page.goto('/profile/')
+      await gotoStable(page, '/profile/')
       await expect(page).toHaveURL(/\/auth\/login/)
     })
 
     test('When authenticated, profile shows the user email', async ({
       page,
     }) => {
-      await page.goto('/auth/login/')
-      await page.locator('#email').fill(OWNER.email)
-      await page.locator('#password').fill(OWNER.password)
-      await page.getByRole('button', { name: 'Sign In' }).click()
-      await expect(page).toHaveURL(/\/dashboard/)
+      await loginViaUi(page, OWNER.email, OWNER.password)
 
-      await page.goto('/profile/')
+      await gotoStable(page, '/profile/')
       await expect(page.locator('h1')).toContainText('Profile')
       await expect(
         page.getByRole('paragraph').filter({ hasText: OWNER.email })
@@ -33,20 +30,16 @@ test.describe('Protected Pages', () => {
     test('When not authenticated, visiting /orgs redirects to login', async ({
       page,
     }) => {
-      await page.goto('/orgs/')
+      await gotoStable(page, '/orgs/')
       await expect(page).toHaveURL(/\/auth\/login\//)
     })
 
     test('When authenticated, /orgs shows the organization list', async ({
       page,
     }) => {
-      await page.goto('/auth/login/')
-      await page.locator('#email').fill(OWNER.email)
-      await page.locator('#password').fill(OWNER.password)
-      await page.getByRole('button', { name: 'Sign In' }).click()
-      await expect(page).toHaveURL(/\/dashboard/)
+      await loginViaUi(page, OWNER.email, OWNER.password)
 
-      await page.goto('/orgs/')
+      await gotoStable(page, '/orgs/')
       await expect(
         page.getByRole('heading', { name: 'Organizations' })
       ).toBeVisible()
@@ -66,7 +59,7 @@ test.describe('Protected Pages', () => {
     test('When email submitted against unknown token, Invalid Invite is shown', async ({
       page,
     }) => {
-      await page.goto(`/invite/?token=${unknownToken}`)
+      await gotoStable(page, `/invite/?token=${unknownToken}`)
       await page.getByPlaceholder('you@example.com').fill('someone@example.com')
       await page.getByRole('button', { name: 'Check Invite' }).click()
       await expect(
@@ -77,7 +70,7 @@ test.describe('Protected Pages', () => {
     test('When malformed token submitted with email, Invalid Invite is shown', async ({
       page,
     }) => {
-      await page.goto('/invite/?token=invalidtoken')
+      await gotoStable(page, '/invite/?token=invalidtoken')
       await page.getByPlaceholder('you@example.com').fill('someone@example.com')
       await page.getByRole('button', { name: 'Check Invite' }).click()
       await expect(
@@ -86,7 +79,7 @@ test.describe('Protected Pages', () => {
     })
 
     test('When empty token supplied, invite page renders', async ({ page }) => {
-      await page.goto('/invite/')
+      await gotoStable(page, '/invite/')
       await expect(page.locator('body')).toBeVisible()
     })
   })
@@ -149,7 +142,7 @@ test.describe('Protected Pages', () => {
       test.skip(!inviteToken, 'invite was not created')
 
       // No token in the URL: the paste-entry state of the join page.
-      await page.goto('/invite/')
+      await gotoStable(page, '/invite/')
       await expect(
         page.getByRole('heading', {
           name: 'Were you invited to an organization?',

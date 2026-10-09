@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { gotoStable, loginViaUi } from './lib/ui'
 
 const OWNER = { email: 'owner@donate.app', password: 'Password123!' }
 const SLUG = 'demo-campaign-1'
@@ -20,11 +21,7 @@ async function readRaisedAmount(page: import('@playwright/test').Page) {
 }
 
 async function loginAsOwner(page: import('@playwright/test').Page) {
-  await page.goto('/auth/login/')
-  await page.locator('#email').fill(OWNER.email)
-  await page.locator('#password').fill(OWNER.password)
-  await page.getByRole('button', { name: 'Sign In' }).click()
-  await expect(page).toHaveURL(/\/dashboard/)
+  await loginViaUi(page, OWNER.email, OWNER.password)
 }
 
 test.describe.serial('Donation reports', () => {
@@ -32,7 +29,7 @@ test.describe.serial('Donation reports', () => {
     page,
   }) => {
     reference = `E2E-TRX-${Date.now()}-${Math.floor(Math.random() * 1e6)}`
-    await page.goto(`/campaigns/detail?slug=${SLUG}`)
+    await gotoStable(page, `/campaigns/detail?slug=${SLUG}`)
     const raisedBefore = await readRaisedAmount(page)
 
     await page.getByRole('button', { name: 'I donated' }).click()
@@ -47,7 +44,7 @@ test.describe.serial('Donation reports', () => {
     ).toBeVisible()
 
     // Pending reports never move the public total.
-    await page.goto(`/campaigns/detail?slug=${SLUG}`)
+    await gotoStable(page, `/campaigns/detail?slug=${SLUG}`)
     expect(await readRaisedAmount(page)).toBe(raisedBefore)
   })
 
@@ -55,7 +52,7 @@ test.describe.serial('Donation reports', () => {
     page,
   }) => {
     await loginAsOwner(page)
-    await page.goto('/dashboard/donations')
+    await gotoStable(page, '/dashboard/donations')
 
     // The cross-campaign ledger needs no campaign selection; scope to the
     // review queue and target THIS run's report by its unique reference —
@@ -68,10 +65,10 @@ test.describe.serial('Donation reports', () => {
       .first()
     await expect(pendingRow).toBeVisible({ timeout: 15000 })
 
-    await page.goto(`/campaigns/detail?slug=${SLUG}`)
+    await gotoStable(page, `/campaigns/detail?slug=${SLUG}`)
     const raisedBefore = await readRaisedAmount(page)
 
-    await page.goto('/dashboard/donations')
+    await gotoStable(page, '/dashboard/donations')
     const row = page
       .locator('section', {
         has: page.getByRole('heading', { name: 'Awaiting confirmation' }),
@@ -92,7 +89,7 @@ test.describe.serial('Donation reports', () => {
     await expect(confirmedSection.getByText(reference).first()).toBeVisible()
 
     // …and the public total moves only on confirmation.
-    await page.goto(`/campaigns/detail?slug=${SLUG}`)
+    await gotoStable(page, `/campaigns/detail?slug=${SLUG}`)
     expect(await readRaisedAmount(page)).toBe(raisedBefore + 750)
   })
 })

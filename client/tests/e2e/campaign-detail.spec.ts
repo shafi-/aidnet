@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { gotoStable } from './lib/ui'
 
 const OWNER_STATE = 'tests/e2e/.auth/orgOwner.json'
 
@@ -6,14 +7,14 @@ test.describe('Campaign Detail Page - error states', () => {
   test('When unknown slug opened, Campaign Not Available is shown', async ({
     page,
   }) => {
-    await page.goto('/campaigns/detail?slug=nonexistent')
+    await gotoStable(page, '/campaigns/detail?slug=nonexistent')
     await expect(
       page.getByRole('heading', { name: 'Campaign Not Available' })
     ).toBeVisible()
   })
 
   test('When slug missing, not-available error is shown', async ({ page }) => {
-    await page.goto('/campaigns/detail')
+    await gotoStable(page, '/campaigns/detail')
     await expect(
       page.getByRole('heading', { name: 'Campaign Not Available' })
     ).toBeVisible()
@@ -25,7 +26,7 @@ test.describe('Campaign Detail Page - error states', () => {
   test('When user clicks back link, navigates to campaigns list', async ({
     page,
   }) => {
-    await page.goto('/campaigns/detail?slug=anything')
+    await gotoStable(page, '/campaigns/detail?slug=anything')
     await page.getByRole('link', { name: '← Back to campaigns' }).click()
     await expect(page).toHaveURL(/\/campaigns/)
   })
@@ -39,7 +40,7 @@ test.describe.serial('Campaign lifecycle - public visibility rules', () => {
   test('When owner creates and submits a campaign, it enters pending review', async ({
     page,
   }) => {
-    await page.goto('/dashboard/campaigns')
+    await gotoStable(page, '/dashboard/campaigns')
     await page.getByRole('link', { name: 'New Campaign' }).click()
 
     const title = `E2E Detail Campaign ${Date.now()}`
@@ -73,7 +74,7 @@ test.describe.serial('Campaign lifecycle - public visibility rules', () => {
       !slug,
       'Owner lifecycle step did not produce a campaign to assert visibility on'
     )
-    await page.goto(`/campaigns/detail?slug=${slug}`)
+    await gotoStable(page, `/campaigns/detail?slug=${slug}`)
     await expect(
       page.getByRole('heading', { name: 'Campaign Not Available' })
     ).toBeVisible()

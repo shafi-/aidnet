@@ -1,6 +1,12 @@
 import { test, expect } from '@playwright/test'
 import { USERS, signIn, getMyProfile, SUPABASE_URL } from './lib/api'
-import { openAccountMenu, openNavMenu, orgReady } from './lib/ui'
+import {
+  gotoStable,
+  loginViaUi,
+  openAccountMenu,
+  openNavMenu,
+  orgReady,
+} from './lib/ui'
 
 const ADMIN_EMAIL = 'admin@donate.app'
 
@@ -10,11 +16,7 @@ const ADMIN_EMAIL = 'admin@donate.app'
 async function loginAsSeededAdmin(
   page: import('@playwright/test').Page
 ): Promise<void> {
-  await page.goto('/auth/login/')
-  await page.locator('#email').fill(ADMIN_EMAIL)
-  await page.locator('#password').fill('Password123!')
-  await page.getByRole('button', { name: 'Sign In' }).click()
-  await expect(page).toHaveURL(/\/dashboard/)
+  await loginViaUi(page, ADMIN_EMAIL, 'Password123!')
 }
 
 test.describe('Profile Page', () => {
@@ -25,7 +27,7 @@ test.describe('Profile Page', () => {
   test('When admin opens profile, form shows name input and email', async ({
     page,
   }) => {
-    await page.goto('/profile')
+    await gotoStable(page, '/profile')
 
     await expect(page.getByText('Full Name')).toBeVisible()
     await expect(page.locator('input[type="text"]').first()).toBeVisible()
@@ -39,7 +41,7 @@ test.describe('Profile Page', () => {
   test('When admin opens profile, email shown matches the profile API', async ({
     page,
   }) => {
-    await page.goto('/profile')
+    await gotoStable(page, '/profile')
 
     const emailText = page.locator('p').filter({ hasText: ADMIN_EMAIL })
     await expect(emailText).toBeVisible()
@@ -61,7 +63,7 @@ test.describe('Profile Page', () => {
   test('When user edits full name and saves, change persists', async ({
     page,
   }) => {
-    await page.goto('/profile')
+    await gotoStable(page, '/profile')
     // Fill must land after hydration: a pre-hydration fill is wiped when
     // React mounts the controlled input (slowest on WebKit engines).
     await orgReady(page)
@@ -90,7 +92,7 @@ test.describe('Profile Page', () => {
   test('When admin opens profile, organization label is shown', async ({
     page,
   }) => {
-    await page.goto('/profile')
+    await gotoStable(page, '/profile')
 
     await expect(page.getByText('Organization', { exact: true })).toBeVisible()
   })
@@ -99,7 +101,7 @@ test.describe('Profile Page', () => {
     page,
   }) => {
     // Use a page with AppLayout nav — dashboard has no nav
-    await page.goto('/campaigns/')
+    await gotoStable(page, '/campaigns/')
     await openNavMenu(page)
     await openAccountMenu(page)
     // Desktop: Radix menuitem in the account dropdown; mobile: drawer

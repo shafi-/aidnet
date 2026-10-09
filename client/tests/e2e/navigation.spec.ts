@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { gotoStable } from './lib/ui'
 // Clicking a Next Link mid-hydration can swallow the navigation (flaked in
 // WebKit): wait out the initial JS work before clicking footer links.
 async function waitStable(page: import('@playwright/test').Page) {
@@ -16,7 +17,7 @@ test.describe('Navigation', () => {
     test('When anon clicks the footer About link, about page renders', async ({
       page,
     }) => {
-      await page.goto('/')
+      await gotoStable(page, '/')
       await waitStable(page)
       await page
         .getByRole('navigation', { name: 'Footer' })
@@ -29,7 +30,7 @@ test.describe('Navigation', () => {
     test('When anon clicks the footer Privacy link, privacy page renders', async ({
       page,
     }) => {
-      await page.goto('/')
+      await gotoStable(page, '/')
       await waitStable(page)
       await page
         .getByRole('navigation', { name: 'Footer' })
@@ -42,7 +43,7 @@ test.describe('Navigation', () => {
     test('When anon clicks the footer Terms link, terms page renders', async ({
       page,
     }) => {
-      await page.goto('/')
+      await gotoStable(page, '/')
       await waitStable(page)
       await page
         .getByRole('navigation', { name: 'Footer' })
@@ -55,7 +56,7 @@ test.describe('Navigation', () => {
     test('When anon clicks the footer Contact link, contact page renders', async ({
       page,
     }) => {
-      await page.goto('/')
+      await gotoStable(page, '/')
       await waitStable(page)
       await page
         .getByRole('navigation', { name: 'Footer' })
@@ -70,6 +71,8 @@ test.describe('Navigation', () => {
     test('When anon opens nonexistent route, 404 is returned', async ({
       page,
     }) => {
+      // Single attempt: the response object is the point here, and a
+      // 404 document never races another navigation.
       const response = await page.goto('/nonexistent-page/')
       expect(response?.status()).toBe(404)
     })

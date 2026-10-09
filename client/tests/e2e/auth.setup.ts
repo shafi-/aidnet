@@ -1,17 +1,12 @@
 import { test as setup, expect } from '@playwright/test'
 import { USERS } from './lib/api'
+import { loginViaUi } from './lib/ui'
 
 const STATE_DIR = 'tests/e2e/.auth'
 
 for (const [role, creds] of Object.entries(USERS)) {
   setup(`authenticate ${role}`, async ({ page }) => {
-    await page.goto('/auth/login')
-    await page.fill('input[type="email"]', creds.email)
-    await page.fill('input[type="password"]', creds.password)
-    await page.getByRole('button', { name: /sign in/i }).click()
-    await page.waitForURL(url => !url.pathname.includes('/auth/login'), {
-      timeout: 15000,
-    })
+    await loginViaUi(page, creds.email, creds.password)
 
     if (selectOrgFor(role)) {
       await page.goto('/orgs')

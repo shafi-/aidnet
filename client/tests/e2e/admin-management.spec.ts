@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { AdminPlansPage } from './pages/AdminPages'
+import { gotoStable } from './lib/ui'
 
 const OWNER_STATE = 'tests/e2e/.auth/orgOwner.json'
 const ADMIN_STATE = 'tests/e2e/.auth/systemAdmin.json'
@@ -108,7 +109,7 @@ test.describe('System Admin - Plan Management', () => {
     test('When admin opens /admin/campaigns, review queue loads', async ({
       page,
     }) => {
-      await page.goto('/admin/campaigns')
+      await gotoStable(page, '/admin/campaigns')
       await expect(
         page.getByRole('heading', { name: 'Campaign Review Queue' })
       ).toBeVisible()
@@ -117,7 +118,7 @@ test.describe('System Admin - Plan Management', () => {
     test('When admin opens /admin/campaigns, pending campaigns or empty state shows', async ({
       page,
     }) => {
-      await page.goto('/admin/campaigns')
+      await gotoStable(page, '/admin/campaigns')
       const pendingItems = page.locator('a[href^="/admin/campaigns/?slug="]')
       const emptyState = page.getByText('No campaigns pending review')
       await expect(pendingItems.first().or(emptyState)).toBeVisible()
@@ -126,7 +127,7 @@ test.describe('System Admin - Plan Management', () => {
     test('When admin opens /admin/subscriptions, heading and table render', async ({
       page,
     }) => {
-      await page.goto('/admin/subscriptions')
+      await gotoStable(page, '/admin/subscriptions')
       await expect(
         page.getByRole('heading', { name: 'Organization Subscriptions' })
       ).toBeVisible()

@@ -53,8 +53,17 @@ function DonationsContent() {
       ? reports
       : reports.filter(report => report.campaign_id === campaignFilter)
 
-  const onConfirm = (id: string) => void pending.confirm(id)
-  const onReject = (id: string) => void pending.reject(id)
+  // A review action moves a report between the two ledgers: after the
+  // pending list reloads itself, the confirmed list must be refreshed too
+  // or it keeps showing the pre-review state.
+  const onConfirm = async (id: string) => {
+    await pending.confirm(id)
+    void confirmed.reload()
+  }
+  const onReject = async (id: string) => {
+    await pending.reject(id)
+    void confirmed.reload()
+  }
 
   return (
     <div className="space-y-6">

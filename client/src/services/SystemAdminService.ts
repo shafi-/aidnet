@@ -13,8 +13,12 @@ export class SystemAdminService {
     return this.systemAdminRepo.getAllOrgs(params)
   }
 
+  // get_system_stats is RETURNS TABLE: PostgREST wraps the single row in an
+  // array — unwrap it here so consumers read the stats fields directly
+  // (AGENTS.md known gotcha; without this the cards render labels only).
   async getSystemStats(): ServiceData<SystemStats> {
-    return this.systemAdminRepo.getSystemStats()
+    const { data, error } = await this.systemAdminRepo.getSystemStats()
+    return { data: data?.[0] ?? null, error }
   }
 
   async isSystemAdmin(): Promise<boolean> {

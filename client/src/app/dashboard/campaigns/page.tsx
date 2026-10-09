@@ -106,7 +106,10 @@ function CampaignRow({
             </span>
           )}
         </div>
-        <p className="text-sm text-muted-foreground">/{c.slug}</p>
+        {/* Raised-vs-goal leads (the number the operator scans for); the
+            slug is the quiet technical line after it. Keeping the slug away
+            from the amount also keeps row textContent digit-separated for
+            the e2e slug regex. */}
         <p className="mt-1 text-sm text-muted-foreground">
           {c.goal_amount
             ? t('dashboardCampaigns.raisedOfGoal', {
@@ -119,6 +122,7 @@ function CampaignRow({
               })}
           {percent !== null ? ` · ${percent}%` : ''}
         </p>
+        <p className="text-sm text-muted-foreground">/{c.slug}</p>
         <div
           className="mt-2 h-1.5 max-w-64 overflow-hidden rounded-full bg-muted"
           role="presentation"

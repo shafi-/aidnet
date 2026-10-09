@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { SUPABASE_URL, rpc, signIn, USERS } from './lib/api'
+import { gotoStable } from './lib/ui'
 
 const OWNER_STATE = 'tests/e2e/.auth/orgOwner.json'
 
@@ -11,7 +12,7 @@ async function openEditForSlug(
   page: import('@playwright/test').Page,
   slug: string
 ) {
-  await page.goto('/dashboard/campaigns')
+  await gotoStable(page, '/dashboard/campaigns')
   const row = page
     .locator('.divide-y > div')
     .filter({ hasText: new RegExp(`/${slug}(?!\\d)`) })
@@ -27,7 +28,7 @@ test.describe('Dashboard Campaigns', () => {
   test('When owner loads /dashboard/campaigns, list and New Campaign link show', async ({
     page,
   }) => {
-    await page.goto('/dashboard/campaigns')
+    await gotoStable(page, '/dashboard/campaigns')
     await expect(page.getByRole('heading', { name: 'Campaigns' })).toBeVisible()
     await expect(page.getByRole('link', { name: 'New Campaign' })).toBeVisible()
   })
@@ -35,7 +36,7 @@ test.describe('Dashboard Campaigns', () => {
   test('When owner clicks New Campaign, navigates to campaign form', async ({
     page,
   }) => {
-    await page.goto('/dashboard/campaigns')
+    await gotoStable(page, '/dashboard/campaigns')
     await page.getByRole('link', { name: 'New Campaign' }).click()
     await expect(page).toHaveURL(/\/dashboard\/campaigns\/new/)
     await expect(
@@ -46,7 +47,7 @@ test.describe('Dashboard Campaigns', () => {
   test('When owner opens campaign form, all fields are present', async ({
     page,
   }) => {
-    await page.goto('/dashboard/campaigns/new')
+    await gotoStable(page, '/dashboard/campaigns/new')
     await expect(
       page.getByRole('textbox', { name: 'Title', exact: true })
     ).toBeVisible()
@@ -67,7 +68,7 @@ test.describe('Dashboard Campaigns', () => {
   test('When owner submits campaign form, returns to campaigns list', async ({
     page,
   }) => {
-    await page.goto('/dashboard/campaigns/new')
+    await gotoStable(page, '/dashboard/campaigns/new')
     await page
       .getByRole('textbox', { name: 'Title', exact: true })
       .fill(`E2E Campaign ${Date.now()}`)
@@ -78,19 +79,19 @@ test.describe('Dashboard Campaigns', () => {
   test('When owner clicks Cancel on form, returns to campaigns list', async ({
     page,
   }) => {
-    await page.goto('/dashboard/campaigns/new')
+    await gotoStable(page, '/dashboard/campaigns/new')
     await page.getByRole('button', { name: 'Cancel' }).click()
     await expect(page).toHaveURL(/\/dashboard\/campaigns\/?$/)
   })
 
   test('When campaigns exist, each shows an Edit link', async ({ page }) => {
-    await page.goto('/dashboard/campaigns')
+    await gotoStable(page, '/dashboard/campaigns')
     const editLinks = page.locator('a[href*="/dashboard/campaigns/edit"]')
     await expect(editLinks.first()).toBeVisible()
   })
 
   test('When owner clicks Edit, navigates to edit form', async ({ page }) => {
-    await page.goto('/dashboard/campaigns')
+    await gotoStable(page, '/dashboard/campaigns')
     const editLink = page
       .locator('a[href*="/dashboard/campaigns/edit"]')
       .first()
@@ -104,7 +105,7 @@ test.describe('Dashboard Campaigns', () => {
   test('When owner opens edit form, fields are pre-filled with Save Changes', async ({
     page,
   }) => {
-    await page.goto('/dashboard/campaigns')
+    await gotoStable(page, '/dashboard/campaigns')
     const editLink = page
       .locator('a[href*="/dashboard/campaigns/edit"]')
       .first()
@@ -122,7 +123,7 @@ test.describe('Dashboard Campaigns', () => {
   test('When draft campaigns exist, Submit for Review is shown', async ({
     page,
   }) => {
-    await page.goto('/dashboard/campaigns')
+    await gotoStable(page, '/dashboard/campaigns')
     const submitBtn = page.getByRole('button', { name: 'Submit for Review' })
     await expect(submitBtn.first()).toBeVisible()
   })
@@ -130,7 +131,7 @@ test.describe('Dashboard Campaigns', () => {
   test('When owner toggles Zakat eligible, checkbox becomes checked', async ({
     page,
   }) => {
-    await page.goto('/dashboard/campaigns/new')
+    await gotoStable(page, '/dashboard/campaigns/new')
     const zakatRow = page.getByText('Zakat eligible', { exact: true })
     const checkbox = zakatRow.locator('..').locator('input[type="checkbox"]')
     await expect(checkbox).toBeVisible()
@@ -251,7 +252,7 @@ test.describe('Dashboard Campaigns', () => {
     const title = `Tagged E2E ${Date.now()}`
     const expectedSlug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-')
 
-    await page.goto('/dashboard/campaigns/new')
+    await gotoStable(page, '/dashboard/campaigns/new')
     await page.getByRole('textbox', { name: 'Title', exact: true }).fill(title)
     await tagChip(page, 'Education').click()
     await expect(tagChip(page, 'Education')).toHaveAttribute(

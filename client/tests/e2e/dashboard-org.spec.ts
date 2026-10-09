@@ -22,7 +22,7 @@ test.describe('Org workspace routes', () => {
     const workspace = new ConsolePage(page)
     await workspace.open()
 
-    await expect(page.locator('[data-org-switcher]')).toBeVisible()
+    await expect(page.locator('[data-org-switcher]:visible')).toBeVisible()
     await expect(
       page.getByRole('heading', { name: 'Overview', exact: true })
     ).toBeVisible()
