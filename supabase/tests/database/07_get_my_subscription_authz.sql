@@ -5,7 +5,8 @@
 --   * active member of the org        -> sees the org's active subscription
 --   * authenticated NON-member        -> EMPTY result (was: leaked row!)
 --   * system_admin                    -> sees any org's subscription
---   * anonymous                       -> EMPTY result
+--   * anonymous                       -> permission denied (DB-revoked by
+--                                        20261008200032; was: EMPTY result)
 --
 -- NOTE: written BEFORE migration 20260824000005. The non-member and anon
 -- assertions are expected to FAIL until that migration lands.
@@ -96,17 +97,18 @@ SELECT is(
 RESET ROLE;
 
 -- ----------------------------------------------------------------------------
--- ANONYMOUS: empty
+-- ANONYMOUS: DB-revoked outright (20261008200032) — permission denied.
 -- (clear the claims GUC first — auth.uid() decodes it regardless of role,
 --  and a stale admin sub would masquerade through the guard)
 -- ----------------------------------------------------------------------------
 SELECT set_config('request.jwt.claim.sub', '', false);
 SET ROLE anon;
 
-SELECT is(
-  (SELECT count(*) FROM get_my_subscription('f1f1f1f1-1111-4111-8111-f1f1f1f1f1f1')),
-  0::bigint,
-  'anonymous callers get an EMPTY result'
+SELECT throws_ok(
+  'SELECT count(*) FROM get_my_subscription(''f1f1f1f1-1111-4111-8111-f1f1f1f1f1f1'')',
+  '42501',
+  NULL,
+  'anonymous callers are denied get_my_subscription outright'
 );
 
 RESET ROLE;

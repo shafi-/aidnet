@@ -221,8 +221,11 @@ echo "== anon surface =="
 probe_get "anon: GET /rest/v1/member_view"          '^4[0-9][0-9]\|' "/rest/v1/member_view?select=email&limit=2" "$ANON_KEY"
 probe_get "anon: GET /rest/v1/campaigns (RLS gate)" '^200\|'         "/rest/v1/campaigns?select=slug,status&limit=50" "$ANON_KEY"
 probe_absent "anon: campaigns contain no draft rows" '"draft"'       "$(http GET "/rest/v1/campaigns?select=slug,status&limit=50" "$ANON_KEY" '-')"
-probe_rpc "anon: get_subscription_plans (public)"   '^200'     get_subscription_plans "$ANON_KEY" '{}'
+probe_rpc "anon: get_public_campaigns (public)"     '^200'     get_public_campaigns "$ANON_KEY" '{}'
+probe_rpc "anon: get_subscription_plans [DB-revoked]" 'permission denied|^40[34]' get_subscription_plans "$ANON_KEY" '{}'
 probe_rpc "anon: get_my_organizations"              '^40[13]'  get_my_organizations "$ANON_KEY" '{}'
+probe_rpc "anon: get_my_profile [DB-revoked]"       'permission denied|^40[34]' get_my_profile "$ANON_KEY" '{}'
+probe_rpc "anon: accept_invite [DB-revoked]"        'permission denied|^40[34]' accept_invite "$ANON_KEY" '{"p_token":"probe"}'
 
 echo "== summary =="
 echo "   PASS: $PASS   LEAK/FAIL: $FAIL"

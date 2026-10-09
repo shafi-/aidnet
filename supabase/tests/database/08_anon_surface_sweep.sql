@@ -112,9 +112,10 @@ SELECT is((SELECT count(*) FROM subscription_history),0::bigint, 'anon: subscrip
 SELECT is((SELECT count(*) FROM subscription_plans WHERE name = 'Sweep Plan'), 0::bigint,
   'anon: subscription_plans hidden');
 
--- Views run with OWNER privileges (no security_invoker), so any SELECT
--- grant on them bypasses base-table RLS entirely. Direct access is
--- revoked (20261008180847); these stay locked or the suite fails.
+-- The five API views are revoked from client roles (20261008180847) AND
+-- flipped to security_invoker (20261008200031), so they sit inside the
+-- deny-all RLS boundary instead of executing as owner above it. These
+-- stay locked or the suite fails.
 SELECT throws_ok('SELECT count(*) FROM profile_view', '42501', NULL,
   'anon: profile_view revoked (owner-rights view)');
 SELECT throws_ok('SELECT count(*) FROM member_view', '42501', NULL,
