@@ -7,8 +7,10 @@ import { mockRepository } from '@/testing/mockRpcClient'
 const ok = <T>(data: T) => ({ data, error: null })
 
 describe('InviteService', () => {
-  it('generateInvite forwards default role', async () => {
-    const generateInvite = vi.fn().mockResolvedValue(ok(anInvite()))
+  it('generateInvite forwards default role and unwraps the SETOF row', async () => {
+    const invite = anInvite()
+    // Repo returns raw rows (SETOF); the service unwraps to the created invite.
+    const generateInvite = vi.fn().mockResolvedValue(ok([invite]))
     const svc = new InviteService(
       mockRepository<InviteRepository>({ generateInvite })
     )
@@ -20,7 +22,20 @@ describe('InviteService', () => {
       'new@example.com',
       'member'
     )
+    expect(res.data).toEqual(invite)
     expect(res.data?.email).toBe('new@example.com')
+  })
+
+  it('generateInvite maps an empty SETOF to null', async () => {
+    const generateInvite = vi.fn().mockResolvedValue(ok([]))
+    const svc = new InviteService(
+      mockRepository<InviteRepository>({ generateInvite })
+    )
+
+    expect(await svc.generateInvite('org-1', 'new@example.com')).toEqual({
+      data: null,
+      error: null,
+    })
   })
 
   it('getInvites delegates org id', async () => {

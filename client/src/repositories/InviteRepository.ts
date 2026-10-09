@@ -7,8 +7,8 @@ export class InviteRepository extends BaseRepository {
     orgId: string,
     email: string,
     role: string = 'member'
-  ): ServiceData<Invite> {
-    return this.callRpc<Invite>(Rpc.Invite.Create, {
+  ): ServiceData<Invite[]> {
+    return this.callRpc<Invite[]>(Rpc.Invite.Create, {
       p_organization_id: orgId,
       p_email: email,
       p_role: role,

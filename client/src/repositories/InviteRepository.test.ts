@@ -4,15 +4,16 @@ import { createMockRpcGateway } from '@/testing/mockRpcClient'
 import { anInvite } from '@/testing/fixtures'
 
 describe('InviteRepository', () => {
-  it('generateInvite maps args and defaults role to member', async () => {
+  it('generateInvite maps args, defaults role to member, and returns raw SETOF rows', async () => {
     const invite = anInvite()
-    const gw = createMockRpcGateway({ create_invite: { data: invite } })
+    // create_invite RETURNS SETOF invites → PostgREST delivers an array.
+    const gw = createMockRpcGateway({ create_invite: { data: [invite] } })
     const res = await new InviteRepository(gw).generateInvite(
       'org-1',
       'new@example.com'
     )
 
-    expect(res.data).toEqual(invite)
+    expect(res.data).toEqual([invite])
     expect(gw.callsTo('create_invite')[0].params).toEqual({
       p_organization_id: 'org-1',
       p_email: 'new@example.com',
