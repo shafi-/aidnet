@@ -195,7 +195,11 @@
     "profile": "প্রোফাইল",
     "organizations": "সংগঠন",
     "organization": "সংগঠন",
-    "campaign": "ক্যাম্পেইন"
+    "campaign": "ক্যাম্পেইন",
+    "donations": "ডোনেশন",
+    "orgMembers": "সদস্য",
+    "billing": "বিলিং",
+    "orgSettings": "সংস্থার সেটিংস"
   },
   "errors": {
     "somethingWentWrong": "কিছু একটা ভুল হয়েছে",
@@ -267,7 +271,16 @@
     "changePassword": "পাসওয়ার্ড পরিবর্তন করুন",
     "quickStats": "দ্রুত পরিসংখ্যান",
     "organizations": "সংগঠন",
-    "members": "সদস্য"
+    "members": "সদস্য",
+    "statRaised": "মোট সংগ্রহ",
+    "statLive": "চলমান ক্যাম্পেইন",
+    "statPendingConfirmations": "নিশ্চিতকরণ অপেক্ষমাণ",
+    "statDrafts": "খসড়া",
+    "attentionTitle": "আপনার নিশ্চিতকরণ প্রয়োজন",
+    "attentionEmpty": "সব ঠিক আছে — নিশ্চিত করার জন্য কোনো ডোনেশন অপেক্ষমাণ নেই।",
+    "attentionAll": "সব ডোনেশন দেখুন",
+    "queueError": "অপেক্ষমাণ ডোনেশন লোড করা যায়নি।",
+    "statsError": "ওভারভিউ লোড করা যায়নি।"
   },
   "org": {
     "noDescription": "কোনো বিবরণ নেই"
@@ -614,5 +627,32 @@
     "requestRejectedMsg": "সংগঠনের আবেদন প্রত্যাখ্যাত হয়েছে।",
     "beneficiaryTitle": "ব্যক্তির যাচাইকরণ",
     "beneficiaryNone": "এই ক্যাম্পেইনের জন্য কোনো ব্যক্তি-যাচাইকরণ তথ্য দেওয়া হয়নি।"
+  },
+  "console": {
+    "adminBadge": "অ্যাডমিন",
+    "sectionsAria": "ওয়ার্কস্পেস নেভিগেশন",
+    "sections": {
+      "overview": "ওভারভিউ",
+      "campaigns": "ক্যাম্পেইন",
+      "donations": "ডোনেশন",
+      "members": "সদস্য",
+      "billing": "বিলিং",
+      "settings": "সেটিংস"
+    },
+    "adminSections": {
+      "overview": "ওভারভিউ",
+      "campaigns": "ক্যাম্পেইন রিভিউ",
+      "orgRequests": "সংস্থার আবেদন",
+      "orgs": "সংস্থাসমূহ",
+      "plans": "প্ল্যান",
+      "subscriptions": "সাবস্ক্রিপশন"
+    },
+    "orgSwitcher": {
+      "label": "সংস্থা",
+      "noSelection": "কোনো সংস্থা নির্বাচিত নয়"
+    },
+    "noPermissionTitle": "আপনার ভূমিকার জন্য উপলব্ধ নয়",
+    "noPermissionBody": "এই অংশটি সংস্থার মালিক বা অ্যাডমিনদের জন্য। অ্যাক্সেসের জন্য সংস্থার মালিকের সঙ্গে যোগাযোগ করুন।",
+    "backToOverview": "ওভারভিউতে ফিরুন"
   }
 }

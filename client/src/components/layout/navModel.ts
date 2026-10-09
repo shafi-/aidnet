@@ -175,19 +175,28 @@ function matchesPath(href: string, pathname: string): boolean {
 /**
  * Longest-match wins: on /dashboard/campaigns only "Our campaigns" is
  * active — "Dashboard" is also a path prefix, but a strictly longer link
- * matches the same pathname, so it must not light up.
+ * matches the same pathname, so it must not light up. Shared by the top
+ * nav model and the console sidebar model.
  */
-export function isNavLinkActive(
-  model: NavModel,
+export function isHrefActiveAmong(
+  hrefs: string[],
   href: string,
   pathname: string
 ): boolean {
   if (!matchesPath(href, pathname)) return false
-  return !navModelHrefs(model).some(
+  return !hrefs.some(
     other =>
       other !== href &&
       other.startsWith(href) &&
       other.length > href.length &&
       matchesPath(other, pathname)
   )
+}
+
+export function isNavLinkActive(
+  model: NavModel,
+  href: string,
+  pathname: string
+): boolean {
+  return isHrefActiveAmong(navModelHrefs(model), href, pathname)
 }

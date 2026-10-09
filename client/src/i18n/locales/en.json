@@ -195,7 +195,11 @@
     "profile": "Profile",
     "organizations": "Organizations",
     "organization": "Organization",
-    "campaign": "Campaign"
+    "campaign": "Campaign",
+    "donations": "Donations",
+    "orgMembers": "Members",
+    "billing": "Billing",
+    "orgSettings": "Organization Settings"
   },
   "errors": {
     "somethingWentWrong": "Something went wrong",
@@ -267,7 +271,16 @@
     "changePassword": "Change Password",
     "quickStats": "Quick Stats",
     "organizations": "Organizations",
-    "members": "Members"
+    "members": "Members",
+    "statRaised": "Raised total",
+    "statLive": "Live campaigns",
+    "statPendingConfirmations": "Pending confirmations",
+    "statDrafts": "Drafts",
+    "attentionTitle": "Needs your confirmation",
+    "attentionEmpty": "You're all caught up — no donations are waiting for confirmation.",
+    "attentionAll": "Review all donations",
+    "queueError": "Could not load pending donations.",
+    "statsError": "Could not load the overview."
   },
   "org": {
     "noDescription": "No description"
@@ -614,5 +627,32 @@
     "requestRejectedMsg": "Organization request rejected.",
     "beneficiaryTitle": "Person verification",
     "beneficiaryNone": "No person-beneficiary details were provided for this campaign."
+  },
+  "console": {
+    "adminBadge": "Admin",
+    "sectionsAria": "Workspace navigation",
+    "sections": {
+      "overview": "Overview",
+      "campaigns": "Campaigns",
+      "donations": "Donations",
+      "members": "Members",
+      "billing": "Billing",
+      "settings": "Settings"
+    },
+    "adminSections": {
+      "overview": "Overview",
+      "campaigns": "Campaign review",
+      "orgRequests": "Org requests",
+      "orgs": "Organizations",
+      "plans": "Plans",
+      "subscriptions": "Subscriptions"
+    },
+    "orgSwitcher": {
+      "label": "Organization",
+      "noSelection": "No organization selected"
+    },
+    "noPermissionTitle": "Not available for your role",
+    "noPermissionBody": "This section is limited to organization owners or admins. Ask your organization owner for access.",
+    "backToOverview": "Back to overview"
   }
 }
