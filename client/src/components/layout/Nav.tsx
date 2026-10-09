@@ -15,7 +15,6 @@ import {
   LogOut,
   Megaphone,
   Search,
-  ShieldCheck,
   User,
 } from 'lucide-react'
 import { LanguageSwitcher } from './LanguageSwitcher'
@@ -43,14 +42,9 @@ const itemIconClass = 'h-4 w-4 text-muted-foreground'
 function menuItemIcon(href: string) {
   switch (href) {
     case '/orgs':
-    case '/admin/org-requests':
       return <Building2 className={itemIconClass} aria-hidden="true" />
     case '/org/request':
       return <Inbox className={itemIconClass} aria-hidden="true" />
-    case '/admin':
-      return <ShieldCheck className="h-4 w-4 text-warning" aria-hidden="true" />
-    case '/admin/campaigns':
-      return <Megaphone className={itemIconClass} aria-hidden="true" />
     case '/profile':
       return <User className={itemIconClass} aria-hidden="true" />
     default:
@@ -70,12 +64,6 @@ function drawerIcon(href: string) {
       return <Building2 className="h-5 w-5" aria-hidden="true" />
     case '/org/request':
       return <Inbox className="h-5 w-5" aria-hidden="true" />
-    case '/admin':
-      return <ShieldCheck className="h-5 w-5" aria-hidden="true" />
-    case '/admin/campaigns':
-      return <Megaphone className="h-5 w-5" aria-hidden="true" />
-    case '/admin/org-requests':
-      return <Building2 className="h-5 w-5" aria-hidden="true" />
     default:
       return null
   }
@@ -100,7 +88,6 @@ export function Nav() {
 
   const drawerGroups: DrawerGroup[] = model.drawerGroups.map(group => ({
     label: group.label,
-    system: group.system,
     links: group.links.map((link): DrawerLink => ({
       ...link,
       active: isActive(link.href),
@@ -156,33 +143,6 @@ export function Nav() {
                           </>
                         )}
                         {menu.items.map(link => (
-                          <DropdownMenuItem key={link.href} asChild>
-                            <Link href={link.href}>
-                              {menuItemIcon(link.href)}
-                              {t(link.label)}
-                            </Link>
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )
-                }
-
-                if (item.kind === 'system-menu') {
-                  return (
-                    <DropdownMenu key="system">
-                      <DropdownMenuTrigger
-                        className={navTriggerBase}
-                        aria-label={`${t('nav.admin')} menu`}
-                      >
-                        {t('nav.admin')}
-                        <ChevronDown
-                          className="h-3.5 w-3.5"
-                          aria-hidden="true"
-                        />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start">
-                        {model.systemMenu!.items.map(link => (
                           <DropdownMenuItem key={link.href} asChild>
                             <Link href={link.href}>
                               {menuItemIcon(link.href)}

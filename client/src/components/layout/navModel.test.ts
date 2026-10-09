@@ -19,11 +19,9 @@ describe('buildNavModel', () => {
 
     expect(hrefs(model)).toEqual(['/campaigns'])
     expect(model.organizationsMenu).toBeNull()
-    expect(model.systemMenu).toBeNull()
     expect(model.drawerGroups).toEqual([
       {
         label: null,
-        system: false,
         links: [{ href: '/campaigns', label: 'nav.campaigns' }],
       },
     ])
@@ -42,7 +40,6 @@ describe('buildNavModel', () => {
       'organizations-menu',
       '/dashboard',
     ])
-    expect(model.systemMenu).toBeNull()
     expect(model.organizationsMenu).toEqual({
       contextOrgName: null,
       items: [
@@ -90,35 +87,32 @@ describe('buildNavModel', () => {
     ])
   })
 
-  it('When system admin, system menu sits right after Dashboard', () => {
+  it('When system admin, Admin collapses to a single link after the first link', () => {
     const model = buildNavModel({
       user: USER,
       currentOrg: ORG,
       isSystemAdmin: true,
     })
 
+    // The admin destinations themselves live in the console sidebar — the
+    // public nav carries exactly one entry point.
     expect(hrefs(model)).toEqual([
       '/dashboard',
-      'system-menu',
+      '/admin',
       '/dashboard/campaigns',
       'organizations-menu',
       '/campaigns',
     ])
-    expect(model.systemMenu?.items).toEqual([
-      { href: '/admin', label: 'nav.adminOverview' },
-      { href: '/admin/campaigns', label: 'nav.reviewCampaigns' },
-      { href: '/admin/org-requests', label: 'nav.reviewOrgs' },
+    expect(model.drawerGroups[0].links.map(l => l.href)).toEqual([
+      '/dashboard',
+      '/dashboard/campaigns',
+      '/orgs',
+      '/campaigns',
+      '/admin',
     ])
-    // Drawer gets a dedicated labeled system section after the primary group.
-    expect(model.drawerGroups[0].label).toBeNull()
-    expect(model.drawerGroups[1]).toEqual({
-      label: 'nav.systemAdmin',
-      system: true,
-      links: model.systemMenu!.items,
-    })
   })
 
-  it('When system admin without org, system menu still follows the first link', () => {
+  it('When system admin without org, the single Admin link still follows the first link', () => {
     const model = buildNavModel({
       user: USER,
       currentOrg: null,
@@ -127,12 +121,11 @@ describe('buildNavModel', () => {
 
     expect(hrefs(model)).toEqual([
       '/campaigns',
-      'system-menu',
+      '/admin',
       '/dashboard/campaigns/new',
       'organizations-menu',
       '/dashboard',
     ])
-    expect(model.drawerGroups[1].system).toBe(true)
   })
 })
 
@@ -169,11 +162,8 @@ describe('isNavLinkActive', () => {
     ).toBe(true)
   })
 
-  it('When the pathname matches admin children, admin overview yields to the specific section', () => {
-    expect(isNavLinkActive(operator, '/admin', '/admin/campaigns/')).toBe(false)
-    expect(
-      isNavLinkActive(operator, '/admin/campaigns', '/admin/campaigns/')
-    ).toBe(true)
+  it('When the pathname is admin itself, the single Admin link is active', () => {
+    expect(isNavLinkActive(operator, '/admin', '/admin/')).toBe(true)
   })
 
   it('When the pathname is unrelated, nothing is active', () => {

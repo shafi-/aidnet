@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { useSystemAdmin } from '@/hooks/useSystemAdmin'
 import { campaignService } from '@/services/CampaignService'
 import { useCampaignAdmin } from '@/hooks/useCampaignAdmin'
-import { AppLayout } from '@/components/layout/AppLayout'
+import { ConsoleShell } from '@/components/layout/ConsoleShell'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import type { Campaign, CampaignBeneficiary } from '@/types'
 
@@ -25,17 +25,17 @@ function AdminCampaignsContent() {
 
   if (adminLoading) {
     return (
-      <AppLayout>
+      <ConsoleShell variant="admin">
         <div className="py-12 text-center text-gray-500">
           {t('admin.checkingPermissions')}
         </div>
-      </AppLayout>
+      </ConsoleShell>
     )
   }
 
   if (!isSystemAdmin) {
     return (
-      <AppLayout>
+      <ConsoleShell variant="admin">
         <div className="mx-auto max-w-3xl space-y-4 px-4 py-12 text-center">
           <h1 className="text-2xl font-bold text-gray-900">
             {t('errors.accessDenied')}
@@ -45,7 +45,7 @@ function AdminCampaignsContent() {
             {t('common.goHome')}
           </Link>
         </div>
-      </AppLayout>
+      </ConsoleShell>
     )
   }
 
@@ -72,15 +72,12 @@ function AdminCampaignsContent() {
   }
 
   return (
-    <AppLayout>
+    <ConsoleShell variant="admin">
       <div className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-gray-900">
             {t('admin.queueTitle')}
           </h1>
-          <Link href="/admin" className="text-indigo-600 hover:underline">
-            {t('admin.adminHome')}
-          </Link>
         </div>
 
         {loading && (
@@ -190,7 +187,7 @@ function AdminCampaignsContent() {
           </div>
         )}
       </div>
-    </AppLayout>
+    </ConsoleShell>
   )
 }
 
@@ -258,11 +255,11 @@ export default function AdminCampaignsPage() {
   return (
     <Suspense
       fallback={
-        <AppLayout>
+        <ConsoleShell variant="admin">
           <div className="py-12 text-center text-gray-500">
             {t('common.loading')}
           </div>
-        </AppLayout>
+        </ConsoleShell>
       }
     >
       <AdminCampaignsContent />

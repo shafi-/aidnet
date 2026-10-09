@@ -1,6 +1,6 @@
 'use client'
 
-import { AppLayout } from '@/components/layout/AppLayout'
+import { ConsoleShell } from '@/components/layout/ConsoleShell'
 import { systemAdminService } from '@/services/SystemAdminService'
 import { organizationService } from '@/services/OrganizationService'
 import { useSystemAdmin } from '@/hooks/useSystemAdmin'
@@ -69,14 +69,14 @@ export default function AdminOrgsPage() {
 
   if (adminLoading)
     return (
-      <AppLayout>
+      <ConsoleShell variant="admin">
         <div>{t('common.loading')}</div>
-      </AppLayout>
+      </ConsoleShell>
     )
 
   if (!isSystemAdmin) {
     return (
-      <AppLayout>
+      <ConsoleShell variant="admin">
         <div className="py-12 text-center">
           <h1 className="text-2xl font-bold text-gray-900">
             {t('errors.accessDenied')}
@@ -89,12 +89,12 @@ export default function AdminOrgsPage() {
             {t('common.backToHome')}
           </Link>
         </div>
-      </AppLayout>
+      </ConsoleShell>
     )
   }
 
   return (
-    <AppLayout>
+    <ConsoleShell variant="admin">
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">{t('admin.allOrgs')}</h1>
         {feedback && (
@@ -203,6 +203,6 @@ export default function AdminOrgsPage() {
           </div>
         )}
       </div>
-    </AppLayout>
+    </ConsoleShell>
   )
 }

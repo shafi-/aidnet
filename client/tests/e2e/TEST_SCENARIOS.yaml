@@ -461,28 +461,28 @@ scenarios:
 
   # ------------------------------------------------ dashboard-org.spec.ts
   - spec: dashboard-org.spec.ts
-    area: Org dashboard (feature-gated)
+    area: Org workspace routes (feature-gated)
     auth: storageState orgOwner
-    notes: tab visibility depends on active subscription features fetched in beforeAll
+    notes: section visibility depends on role + active subscription features fetched in beforeAll
     scenarios:
       - {
-          title: When owner opens dashboard,
-          org name and Billing tab show,
+          title: When owner opens the workspace,
+          the org switcher and overview render,
           actor: orgOwner,
           type: ui,
           setup: seeded,
         }
       - {
           title: When members feature active,
-          Members tab shows member list,
+          /dashboard/members shows one merged list,
           actor: orgOwner,
           type: ui,
           setup: seeded,
-          notes: feature-gated,
+          notes: feature-gated, members + invites merged, sub-tabs deleted,
         }
       - {
-          title: When members feature active,
-          add-member form shows,
+          title: When settings feature active,
+          /dashboard/settings shows org form,
           actor: orgOwner,
           type: ui,
           setup: seeded,
@@ -490,20 +490,19 @@ scenarios:
         }
       - {
           title: When settings feature active,
-          Settings tab shows org form,
-          actor: orgOwner,
-          type: ui,
-          setup: seeded,
-          notes: feature-gated,
-        }
-      - {
-          title: When settings feature active,
-          owner can save org settings,
+          owner can save org settings on /dashboard/settings,
           actor: orgOwner,
           type: ui,
           setup: seeded,
           notes: feature-gated,
           restores original name,
+        }
+      - {
+          title: When owner opens /dashboard/billing,
+          the current plan section renders,
+          actor: orgOwner,
+          type: ui,
+          setup: seeded,
         }
 
   # ------------------------------------------------ admin.spec.ts

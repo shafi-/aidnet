@@ -177,7 +177,11 @@ export function ConsoleShell({
         )}
 
         <nav
-          aria-label={t('console.sectionsAria')}
+          aria-label={
+            variant === 'admin'
+              ? t('console.adminNavAria')
+              : t('console.sectionsAria')
+          }
           className="flex-1 space-y-1 overflow-y-auto px-3 pb-4"
         >
           {sections.map(section => sidebarLink(section.href, section.label))}

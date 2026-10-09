@@ -1,17 +1,20 @@
 import { test, expect } from '@playwright/test'
 import { registerViaApi } from './lib/api'
-import { openNavMenu, openSystemMenu } from './lib/ui'
+import {
+  expectConsoleSection,
+  gotoStable,
+  loginViaUi,
+  openAdminSection,
+  settleAfterLogin,
+} from './lib/ui'
 
 const ADMIN_PASSWORD = 'Password123!'
 const ADMIN_EMAIL = 'admin@donate.app'
 const TEST_PASSWORD = 'TestPass123!'
 
 async function loginAsAdmin(page: import('@playwright/test').Page) {
-  await page.goto('/auth/login/')
-  await page.locator('#email').fill(ADMIN_EMAIL)
-  await page.locator('#password').fill(ADMIN_PASSWORD)
-  await page.getByRole('button', { name: 'Sign In' }).click()
-  await expect(page).toHaveURL(/\/dashboard/)
+  await loginViaUi(page, ADMIN_EMAIL, ADMIN_PASSWORD)
+  await settleAfterLogin(page)
 }
 
 async function loginAsUser(
@@ -19,11 +22,7 @@ async function loginAsUser(
   email: string,
   password: string
 ) {
-  await page.goto('/auth/login/')
-  await page.locator('#email').fill(email)
-  await page.locator('#password').fill(password)
-  await page.getByRole('button', { name: 'Sign In' }).click()
-  await expect(page).toHaveURL(/\/dashboard/)
+  await loginViaUi(page, email, password)
 }
 
 test.describe.serial('Admin Pages - Org Request Workflow', () => {
@@ -31,7 +30,7 @@ test.describe.serial('Admin Pages - Org Request Workflow', () => {
     page,
   }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/')
+    await gotoStable(page, '/admin/')
 
     // Scope to main: on mobile the nav "Organizations" link is display:none
     // but still first in DOM order, which would win over the stat card.
@@ -43,36 +42,24 @@ test.describe.serial('Admin Pages - Org Request Workflow', () => {
     await expect(main.getByText('Recent Signups')).toBeVisible()
   })
 
-  test('When system admin views /admin, Review Orgs link is shown', async ({
+  test('When system admin views /admin, the console lists the admin sections', async ({
     page,
   }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/')
+    await gotoStable(page, '/admin/')
     await expect(page.locator('h1')).toContainText('System Admin')
-    // Admin links live in the Admin dropdown on desktop, flat in the drawer
-    // on mobile: openNavMenu surfaces the drawer, openSystemMenu the dropdown.
-    await openNavMenu(page)
-    await openSystemMenu(page)
-    // Desktop dropdown renders Radix menuitems; mobile drawer renders links.
-    await expect(
-      page
-        .getByRole('menuitem', { name: 'Review Orgs' })
-        .or(page.getByRole('link', { name: 'Review Orgs' }))
-    ).toBeVisible()
+    // All admin destinations live in one place now: the console sidebar
+    // (desktop) or the drawer (mobile) — same sections, no dropdown.
+    await expectConsoleSection(page, 'Admin navigation', 'Org requests')
   })
 
-  test('When admin clicks Review Orgs, navigates to /admin/org-requests', async ({
+  test('When admin opens the Org requests section, navigates to /admin/org-requests', async ({
     page,
   }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/')
+    await gotoStable(page, '/admin/')
     await expect(page.locator('h1')).toContainText('System Admin')
-    await openNavMenu(page)
-    await openSystemMenu(page)
-    await page
-      .getByRole('menuitem', { name: 'Review Orgs' })
-      .or(page.getByRole('link', { name: 'Review Orgs' }))
-      .click()
+    await openAdminSection(page, 'Org requests')
     await expect(page).toHaveURL(/\/admin\/org-requests/)
   })
 
@@ -80,7 +67,7 @@ test.describe.serial('Admin Pages - Org Request Workflow', () => {
     page,
   }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/org-requests/')
+    await gotoStable(page, '/admin/org-requests/')
     await expect(page.locator('h1')).toContainText('Organization Requests')
     // Status filter renders as toggle buttons: All (n), Pending (n), ...
     await expect(
@@ -107,7 +94,7 @@ test.describe.serial('Admin Pages - Org Request Workflow', () => {
     )
     await loginAsUser(page, requesterEmail, TEST_PASSWORD)
 
-    await page.goto('/org/request')
+    await gotoStable(page, '/org/request')
     await page.getByPlaceholder('My Organization').fill(orgName)
     await page.getByPlaceholder('my-organization').fill(orgSlug)
     await page.getByRole('button', { name: 'Submit for Review' }).click()
@@ -116,7 +103,7 @@ test.describe.serial('Admin Pages - Org Request Workflow', () => {
     // Login as system admin and approve
     await loginAsAdmin(page)
 
-    await page.goto('/admin/org-requests/')
+    await gotoStable(page, '/admin/org-requests/')
     // Target THIS request card (list + modal both render the name)
     const card = page.locator('div.rounded-lg.bg-white', { hasText: orgName })
     await expect(card).toBeVisible()
@@ -155,7 +142,7 @@ test.describe.serial('Admin Pages - Org Request Workflow', () => {
     )
     await loginAsUser(page, requesterEmail, TEST_PASSWORD)
 
-    await page.goto('/org/request')
+    await gotoStable(page, '/org/request')
     await page.getByPlaceholder('My Organization').fill(orgName)
     await page.getByPlaceholder('my-organization').fill(orgSlug)
     await page.getByRole('button', { name: 'Submit for Review' }).click()
@@ -164,7 +151,7 @@ test.describe.serial('Admin Pages - Org Request Workflow', () => {
     // Login as system admin and reject
     await loginAsAdmin(page)
 
-    await page.goto('/admin/org-requests/')
+    await gotoStable(page, '/admin/org-requests/')
     const rejectCard = page.locator('div.rounded-lg.bg-white', {
       hasText: orgName,
     })
@@ -204,7 +191,7 @@ test.describe.serial('Admin Pages - Org Request Workflow', () => {
     )
     await loginAsUser(page, requesterEmail, TEST_PASSWORD)
 
-    await page.goto('/org/request')
+    await gotoStable(page, '/org/request')
     await page.getByPlaceholder('My Organization').fill(orgName)
     await page.getByPlaceholder('my-organization').fill(orgSlug)
     await page.getByRole('button', { name: 'Submit for Review' }).click()
@@ -213,7 +200,7 @@ test.describe.serial('Admin Pages - Org Request Workflow', () => {
     // Login as system admin and approve
     await loginAsAdmin(page)
 
-    await page.goto('/admin/org-requests/')
+    await gotoStable(page, '/admin/org-requests/')
     const approveCard = page.locator('div.rounded-lg.bg-white', {
       hasText: orgName,
     })
@@ -227,7 +214,7 @@ test.describe.serial('Admin Pages - Org Request Workflow', () => {
     ).toBeVisible()
 
     // Suspend and reactivate via the proper org-management page (/admin/orgs)
-    await page.goto('/admin/orgs')
+    await gotoStable(page, '/admin/orgs')
     const orgRow = page.locator(`tr:has(td:has-text("${orgName}"))`)
     const suspendButton = orgRow.getByRole('button', { name: 'Suspend' })
     await expect(suspendButton).toBeVisible()

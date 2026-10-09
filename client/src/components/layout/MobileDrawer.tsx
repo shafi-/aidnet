@@ -15,8 +15,6 @@ export interface DrawerLink {
 export interface DrawerGroup {
   /** i18n key for the section label, or null for the primary group */
   label: string | null
-  /** System-administration group: distinct accent treatment */
-  system?: boolean
   links: DrawerLink[]
 }
 
@@ -137,13 +135,7 @@ export function MobileDrawer({
               {groups.map(group => (
                 <div key={group.label ?? 'primary'}>
                   {group.label && (
-                    <p
-                      className={`${
-                        group.system ? 'text-warning' : ''
-                      } ${groupLabelClass}`}
-                    >
-                      {t(group.label)}
-                    </p>
+                    <p className={groupLabelClass}>{t(group.label)}</p>
                   )}
                   <ul className="space-y-1">
                     {group.links.map(link => (

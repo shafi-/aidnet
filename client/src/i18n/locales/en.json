@@ -631,7 +631,10 @@
     "rejectFailed": "Failed to reject request",
     "requestRejectedMsg": "Organization request rejected.",
     "beneficiaryTitle": "Person verification",
-    "beneficiaryNone": "No person-beneficiary details were provided for this campaign."
+    "beneficiaryNone": "No person-beneficiary details were provided for this campaign.",
+    "pendingOrgRequests": "Org requests to review",
+    "pendingCampaigns": "Campaigns to review",
+    "queuesTitle": "Review queues"
   },
   "console": {
     "adminBadge": "Admin",
@@ -659,6 +662,7 @@
     "noPermissionTitle": "Not available for your role",
     "noPermissionBody": "This section is limited to organization owners or admins. Ask your organization owner for access.",
     "backToOverview": "Back to overview",
-    "featureBody": "Your organization's current plan does not include this section. Ask the organization owner to change the plan."
+    "featureBody": "Your organization's current plan does not include this section. Ask the organization owner to change the plan.",
+    "adminNavAria": "Admin navigation"
   }
 }

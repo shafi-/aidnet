@@ -1,35 +1,37 @@
 import { test, expect } from '@playwright/test'
 import { registerViaApi, signIn } from './lib/api'
+import {
+  expectConsoleSection,
+  gotoStable,
+  loginViaUi,
+  openAdminSection,
+  settleAfterLogin,
+} from './lib/ui'
 
 const SEEDED_ADMIN = { email: 'admin@donate.app', password: 'Password123!' }
 const API_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'http://127.0.0.1:55321'
 const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
 
 async function loginAsAdmin(page: import('@playwright/test').Page) {
-  await page.goto('/auth/login/')
-  await page.locator('#email').fill(SEEDED_ADMIN.email)
-  await page.locator('#password').fill(SEEDED_ADMIN.password)
-  await page.getByRole('button', { name: 'Sign In' }).click()
-  await expect(page).toHaveURL(/\/dashboard/)
+  await loginViaUi(page, SEEDED_ADMIN.email, SEEDED_ADMIN.password)
+  await settleAfterLogin(page)
 }
 
 test.describe.serial('Subscription Management', () => {
-  test('When system admin views /admin, Subscription Plans link is shown', async ({
+  test('When system admin views /admin, the Plans section is in the console', async ({
     page,
   }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/')
-    await expect(
-      page.getByRole('link', { name: 'Subscription Plans' })
-    ).toBeVisible()
+    await gotoStable(page, '/admin/')
+    await expectConsoleSection(page, 'Admin navigation', 'Plans')
   })
 
-  test('When admin clicks Subscription Plans, navigates to /admin/plans', async ({
+  test('When admin opens the Plans section, navigates to /admin/plans', async ({
     page,
   }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/')
-    await page.getByRole('link', { name: 'Subscription Plans' }).click()
+    await gotoStable(page, '/admin/')
+    await openAdminSection(page, 'Plans')
     await expect(page).toHaveURL(/\/admin\/plans/)
   })
 
@@ -37,7 +39,7 @@ test.describe.serial('Subscription Management', () => {
     page,
   }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/plans/')
+    await gotoStable(page, '/admin/plans/')
     await expect(page.locator('h1:has-text("Subscription Plans")')).toBeVisible(
       { timeout: 10000 }
     )
@@ -51,7 +53,7 @@ test.describe.serial('Subscription Management', () => {
     page,
   }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/plans/')
+    await gotoStable(page, '/admin/plans/')
     await expect(page.getByRole('button', { name: 'Create Plan' })).toBeVisible(
       { timeout: 10000 }
     )
@@ -61,7 +63,7 @@ test.describe.serial('Subscription Management', () => {
     page,
   }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/plans/')
+    await gotoStable(page, '/admin/plans/')
     await expect(page.locator('td:has-text("Free")')).toBeVisible()
     await expect(page.locator('td:has-text("Pro")')).toBeVisible()
     await expect(page.locator('td:has-text("Enterprise")')).toBeVisible()
@@ -69,27 +71,25 @@ test.describe.serial('Subscription Management', () => {
 
   test('When admin clicks Create Plan, form opens', async ({ page }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/plans/')
+    await gotoStable(page, '/admin/plans/')
     await page.getByRole('button', { name: 'Create Plan' }).click()
     await expect(page.locator('h2:has-text("Create Plan")')).toBeVisible()
   })
 
-  test('When admin views /admin, Organization Subscriptions link is shown', async ({
+  test('When admin views /admin, Subscriptions is in the console', async ({
     page,
   }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/')
-    await expect(
-      page.getByRole('link', { name: 'Organization Subscriptions' })
-    ).toBeVisible()
+    await gotoStable(page, '/admin/')
+    await expectConsoleSection(page, 'Admin navigation', 'Subscriptions')
   })
 
-  test('When admin clicks Organization Subscriptions, navigates to /admin/subscriptions', async ({
+  test('When admin opens the Subscriptions section, navigates to /admin/subscriptions', async ({
     page,
   }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/')
-    await page.getByRole('link', { name: 'Organization Subscriptions' }).click()
+    await gotoStable(page, '/admin/')
+    await openAdminSection(page, 'Subscriptions')
     await expect(page).toHaveURL(/\/admin\/subscriptions/)
   })
 
@@ -97,7 +97,7 @@ test.describe.serial('Subscription Management', () => {
     page,
   }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/subscriptions/')
+    await gotoStable(page, '/admin/subscriptions/')
     await expect(
       page.locator('h1:has-text("Organization Subscriptions")')
     ).toBeVisible()
@@ -110,7 +110,7 @@ test.describe.serial('Subscription Management', () => {
     page,
   }) => {
     await loginAsAdmin(page)
-    await page.goto('/admin/subscriptions/')
+    await gotoStable(page, '/admin/subscriptions/')
     await expect(
       page
         .locator('table tbody tr')
@@ -161,13 +161,9 @@ test.describe.serial('Subscription Management', () => {
     expect(grantRes.ok()).toBeTruthy()
     expect(await grantRes.json()).toBe(true)
 
-    await page.goto('/auth/login/')
-    await page.locator('#email').fill(email)
-    await page.locator('#password').fill(password)
-    await page.getByRole('button', { name: 'Sign In' }).click()
-    await expect(page).toHaveURL(/\/dashboard/)
+    await loginViaUi(page, email, password)
 
-    await page.goto('/admin/')
+    await gotoStable(page, '/admin/')
     await expect(page.locator('h1')).toContainText('System Admin')
   })
 })

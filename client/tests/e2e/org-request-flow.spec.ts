@@ -1,16 +1,14 @@
 import { test, expect } from '@playwright/test'
 import { expectOrgProvisioned, registerViaApi } from './lib/api'
+import { gotoStable, loginViaUi, settleAfterLogin } from './lib/ui'
 
 const TEST_PASSWORD = 'TestPass123!'
 
 const SEEDED_ADMIN = { email: 'admin@donate.app', password: 'Password123!' }
 
 async function loginAsSeededAdmin(page: import('@playwright/test').Page) {
-  await page.goto('/auth/login/')
-  await page.locator('#email').fill(SEEDED_ADMIN.email)
-  await page.locator('#password').fill(SEEDED_ADMIN.password)
-  await page.getByRole('button', { name: 'Sign In' }).click()
-  await expect(page).toHaveURL(/\/dashboard/)
+  await loginViaUi(page, SEEDED_ADMIN.email, SEEDED_ADMIN.password)
+  await settleAfterLogin(page)
 }
 
 async function loginAsUser(
@@ -18,11 +16,7 @@ async function loginAsUser(
   email: string,
   password: string
 ) {
-  await page.goto('/auth/login/')
-  await page.locator('#email').fill(email)
-  await page.locator('#password').fill(password)
-  await page.getByRole('button', { name: 'Sign In' }).click()
-  await expect(page).toHaveURL(/\/dashboard/)
+  await loginViaUi(page, email, password)
 }
 
 async function submitOrgRequest(
@@ -30,7 +24,7 @@ async function submitOrgRequest(
   name: string,
   slug: string
 ) {
-  await page.goto('/org/request')
+  await gotoStable(page, '/org/request')
   await page.getByPlaceholder('My Organization').fill(name)
   await page.getByPlaceholder('my-organization').fill(slug)
   await page.getByRole('button', { name: 'Submit for Review' }).click()
@@ -44,7 +38,7 @@ async function approveRequestAsAdmin(
 ) {
   await loginAsSeededAdmin(page)
 
-  await page.goto('/admin/org-requests/')
+  await gotoStable(page, '/admin/org-requests/')
   const anyCard = page.locator('div.rounded-lg.bg-white', {
     hasText: orgName,
   })
@@ -88,7 +82,7 @@ test.describe('Organization Request Submission', () => {
     await submitOrgRequest(page, 'First Org', `first-org-${Date.now()}`)
 
     // Returning to the request page should still show pending, not the form
-    await page.goto('/org/request')
+    await gotoStable(page, '/org/request')
     await expect(page.getByText('Request Pending Review')).toBeVisible()
     await expect(
       page.locator('input[placeholder="My Organization"]')
@@ -106,7 +100,7 @@ test.describe('Organizations List reflects Requests', () => {
 
     await submitOrgRequest(page, 'Test Org', `test-org-${Date.now()}`)
 
-    await page.goto('/orgs')
+    await gotoStable(page, '/orgs')
     // With no personal org auto-created, the list shows the request CTA
     await expect(
       page.getByRole('link', { name: 'Request an organization' }).first()
@@ -133,7 +127,7 @@ test.describe('Organizations List reflects Requests', () => {
     // Requester now has an active org
     await loginAsUser(page, email, TEST_PASSWORD)
 
-    await page.goto('/orgs')
+    await gotoStable(page, '/orgs')
     const orgLink = page.locator(`a[href^="/orgs/?id="]:has-text("${orgName}")`)
     await expect(orgLink).toBeVisible()
   })
@@ -172,7 +166,7 @@ test.describe.serial('Suspended Organization Behavior', () => {
     // Requester reads the active org id from the orgs list link
     await loginAsUser(page, requesterEmail, requesterPassword)
 
-    await page.goto('/orgs')
+    await gotoStable(page, '/orgs')
     const href = await page
       .locator(`a[href^="/orgs/?id="]:has-text("${orgName}")`)
       .first()
@@ -185,7 +179,7 @@ test.describe.serial('Suspended Organization Behavior', () => {
     // be suspended, and that control now lives on the orgs admin page.
     await approveRequestAsAdmin(page, orgName) // logs in as the seeded admin
 
-    await page.goto('/admin/orgs')
+    await gotoStable(page, '/admin/orgs')
     const suspendButton = page
       .locator(`tr:has(td:has-text("${orgName}"))`)
       .getByRole('button', { name: 'Suspend' })
@@ -204,7 +198,7 @@ test.describe.serial('Suspended Organization Behavior', () => {
   }) => {
     await loginAsUser(page, requesterEmail, requesterPassword)
 
-    await page.goto('/orgs')
+    await gotoStable(page, '/orgs')
 
     // Suspended orgs render as a plain heading, never as a selectable link
     const suspendedLink = page.locator(
@@ -228,7 +222,7 @@ test.describe.serial('Suspended Organization Behavior', () => {
       id => localStorage.setItem('supanext.currentOrgId', id),
       orgId
     )
-    await page.goto('/dashboard')
+    await gotoStable(page, '/dashboard')
 
     // The suspended id must be gone. Any remaining active org may be
     // auto-selected afterwards. Cleanup is async; poll for it.
@@ -244,7 +238,7 @@ test.describe.serial('Suspended Organization Behavior', () => {
   }) => {
     await loginAsUser(page, requesterEmail, requesterPassword)
 
-    await page.goto(`/orgs/?id=${orgId}`)
+    await gotoStable(page, `/orgs/?id=${orgId}`)
 
     // selectOrgById refuses suspended orgs, so the id is never persisted:
     // the orgs list renders with the org blocked (non-link + badge) instead

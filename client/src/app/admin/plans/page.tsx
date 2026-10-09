@@ -1,6 +1,6 @@
 'use client'
 
-import { AppLayout } from '@/components/layout/AppLayout'
+import { ConsoleShell } from '@/components/layout/ConsoleShell'
 import { systemAdminSubscriptionService } from '@/services/SystemAdminSubscriptionService'
 import { orgSubscriptionService } from '@/services/OrgSubscriptionService'
 import { useSystemAdmin } from '@/hooks/useSystemAdmin'
@@ -124,14 +124,14 @@ export default function AdminPlansPage() {
 
   if (adminLoading)
     return (
-      <AppLayout>
+      <ConsoleShell variant="admin">
         <div>{t('common.loading')}</div>
-      </AppLayout>
+      </ConsoleShell>
     )
 
   if (!isSystemAdmin) {
     return (
-      <AppLayout>
+      <ConsoleShell variant="admin">
         <div className="py-12 text-center">
           <h1 className="text-2xl font-bold text-gray-900">
             {t('errors.accessDenied')}
@@ -144,22 +144,16 @@ export default function AdminPlansPage() {
             {t('common.backToHome')}
           </Link>
         </div>
-      </AppLayout>
+      </ConsoleShell>
     )
   }
 
   return (
-    <AppLayout>
+    <ConsoleShell variant="admin">
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <Link
-              href="/admin"
-              className="text-sm text-gray-500 hover:underline"
-            >
-              {t('common.backToAdmin')}
-            </Link>
-            <h1 className="mt-2 text-2xl font-bold">{t('admin.plansLink')}</h1>
+            <h1 className="text-2xl font-bold">{t('admin.plansLink')}</h1>
           </div>
           <button
             onClick={() => {
@@ -374,6 +368,6 @@ export default function AdminPlansPage() {
           </div>
         )}
       </div>
-    </AppLayout>
+    </ConsoleShell>
   )
 }

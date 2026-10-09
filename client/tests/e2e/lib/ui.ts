@@ -34,25 +34,125 @@ export async function openNavMenu(page: Page): Promise<void> {
 }
 
 /**
- * System-admin links live in the Admin dropdown on desktop and flat inside
- * the drawer's System section on mobile. Opens the desktop dropdown; no-op
- * on mobile where openNavMenu already surfaces the links. Call openNavMenu
- * first on flows that must work in both viewports.
+ * Let the post-login hydration settle before a hard page.goto(): the login
+ * redirect lands as a soft navigation while providers (auth, org, i18n) are
+ * still booting, and a goto racing that work aborts in Firefox
+ * (NS_BINDING_ABORTED). Same idea as navigation.spec's waitStable.
  */
-export async function openSystemMenu(page: Page): Promise<void> {
-  if (isMobileViewport(page)) return
-  await page.getByRole('button', { name: 'Admin menu' }).click()
-  // Desktop dropdown items are Radix menuitems (the drawer renders links,
-  // but this helper is a no-op on mobile).
-  await expect(
-    page.getByRole('menuitem', { name: 'Admin overview' })
-  ).toBeVisible()
+export async function settleAfterLogin(page: Page): Promise<void> {
+  await page.waitForLoadState('networkidle')
+}
+
+/**
+ * Hard navigation that survives a goto racing the previous document's own
+ * navigation: Firefox aborts with NS_BINDING_ABORTED, WebKit reports the
+ * goto "interrupted by another navigation" when the post-login soft
+ * navigation to /dashboard commits late. Either way the retry wins once
+ * the stale navigation settles. Use for goto-after-login flows.
+ */
+export async function gotoStable(
+  page: Page,
+  url: string,
+  attempts = 3
+): Promise<void> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      await page.goto(url)
+      return
+    } catch (error) {
+      const message = String(error)
+      const racing =
+        message.includes('NS_BINDING_ABORTED') ||
+        message.includes('interrupted by another navigation')
+      if (attempt >= attempts || !racing) throw error
+    }
+  }
+}
+
+/**
+ * Sign in through the login form. Fills only after the initial JS work
+ * settles: the form inputs are controlled, so a fill that lands before
+ * hydration is wiped when React attaches (WebKit is the slowest engine —
+ * same race org-metadata.spec documents for the request form).
+ */
+export async function loginViaUi(
+  page: Page,
+  email: string,
+  password: string
+): Promise<void> {
+  await page.goto('/auth/login/')
+  await page.waitForLoadState('networkidle')
+  await page.locator('#email').fill(email)
+  await page.locator('#password').fill(password)
+  await page.getByRole('button', { name: /sign in/i }).click()
+  await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 })
+}
+
+/**
+ * Console-section locators: the sidebar link on desktop, the same link
+ * inside the drawer below the md breakpoint.
+ */
+function consoleSectionLocators(page: Page, navName: string, name: string) {
+  return {
+    sidebarLink: page
+      .getByRole('navigation', { name: navName })
+      .getByRole('link', { name }),
+    drawerLink: page
+      .getByRole('dialog', { name: 'Open menu' })
+      .getByRole('link', { name }),
+  }
+}
+
+/**
+ * Assert a console section is reachable: sidebar on desktop, drawer on
+ * mobile. Branching follows the md breakpoint (same contract as
+ * openNavMenu/openAccountMenu) — on mobile the drawer content does not
+ * exist until opened, so DOM sampling cannot pick the branch.
+ */
+export async function expectConsoleSection(
+  page: Page,
+  navName: string,
+  name: string
+): Promise<void> {
+  const { sidebarLink, drawerLink } = consoleSectionLocators(
+    page,
+    navName,
+    name
+  )
+  if (!isMobileViewport(page)) {
+    await expect(sidebarLink).toBeVisible()
+    return
+  }
+  await openNavMenu(page)
+  await expect(drawerLink).toBeVisible()
+}
+
+/**
+ * Navigate to an admin console section: the sidebar link on desktop, the
+ * same link inside the drawer below the md breakpoint. Works from any
+ * admin page — no back-links or dropdowns involved.
+ */
+export async function openAdminSection(
+  page: Page,
+  name: string
+): Promise<void> {
+  const { sidebarLink, drawerLink } = consoleSectionLocators(
+    page,
+    'Admin navigation',
+    name
+  )
+  if (!isMobileViewport(page)) {
+    await sidebarLink.click()
+    return
+  }
+  await openNavMenu(page)
+  await drawerLink.click()
 }
 
 /**
  * Account controls (Profile / Sign out) live in the account dropdown on
  * desktop and flat inside the drawer on mobile. Same contract as
- * openSystemMenu: call openNavMenu first for mobile flows.
+ * openNavMenu: call openNavMenu first for mobile flows.
  */
 export async function openAccountMenu(page: Page): Promise<void> {
   if (isMobileViewport(page)) return
