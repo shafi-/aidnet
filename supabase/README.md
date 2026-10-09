@@ -218,6 +218,49 @@ class OrganizationService extends BaseRepository {
 - Triggers on table changes for comprehensive tracking
 - IP addresses and user agents captured for security analysis
 
+### RPC EXECUTE surface & accepted lints
+
+`20261008200032` states the whole EXECUTE surface explicitly (never rely on
+Postgres defaults — the Era-1 migrations did, which is why the Supabase
+linter flagged dozens of functions as anon-callable). Three tiers:
+
+| Tier | Functions | Examples |
+| --- | --- | --- |
+| **anon** | exactly 6 intentional public RPCs | `get_public_campaigns`, `get_public_campaign_by_slug`, `get_public_org_by_slug`, `get_public_donation_reports`, `propose_donation` (guest donation + Turnstile), `validate_invite` (pre-login invite check) |
+| **authenticated** | every other client-facing RPC | profile, org/member, org-request, invite, subscription, campaign, donation-report review, system-admin read/write functions |
+| **anon + authenticated (policy machinery)** | RLS-invoked helpers | `can_perform` — policies on `organizations`, `organization_members`, `todos`, `invites` evaluate it as the querying role, so revoking either API role breaks RLS itself; its 0028 finding is accepted |
+| **postgres only** | trigger + internal helpers, no RPC surface | `audit_table_changes`, `update_updated_at_column`, `attach_default_plan`, `audit_action`, `sync_campaign_raised`, `verify_turnstile`; plus `create_organization` (orgs must go through `submit_org_request` → `approve_org_request` or the personal-org path) |
+
+Conventions:
+
+- New functions pair the revoke and the grant in the same migration:
+  `REVOKE EXECUTE ... FROM PUBLIC, anon; GRANT EXECUTE ... TO authenticated;`
+  (`PUBLIC` matters because Postgres grants EXECUTE to PUBLIC by default;
+  use `REVOKE ALL` for postgres-only functions — default privileges from
+  `supabase_admin` re-grant EXECUTE to the API roles otherwise).
+- `accept_invite` is authenticated-only: the invite page requires a session
+  before the accept action renders; only `validate_invite` runs pre-login.
+- The five API-schema views (`profile_view`, `organization_view`,
+  `organization_detail_view`, `member_view`, `role_view`) exist as
+  SECURITY DEFINER return types and are revoked from all API roles
+  (`20261008180847`) **and** flipped to `security_invoker`
+  (`20261008200031`) so they sit inside the deny-all RLS boundary.
+  Never grant roles SELECT on them.
+
+Accepted linter findings (do **not** "fix" these):
+
+- *0028 `anon_security_definer_function_executable`* on the six public
+  functions and on `can_perform` (RLS policy machinery) — working as
+  designed.
+- *0027-family `signed-in users can execute SECURITY DEFINER function`* on
+  every RPC — architecture-inherent: deny-all RLS means every function must
+  be `SECURITY DEFINER` (an INVOKER function reads nothing), and each one
+  enforces its own authorization gate. Revoking `authenticated` would break
+  the app; this finding is noise for a function-first schema.
+- Every function pins `SET search_path = donate, shared, extensions, private`
+  (lint 0011); the pgTAP suite `11_execute_grant_surface.sql` is the
+  privilege-level tripwire for all of the above.
+
 ## Development Workflow
 
 ### Local Development
