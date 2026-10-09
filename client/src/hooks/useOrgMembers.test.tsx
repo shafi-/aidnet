@@ -1,11 +1,12 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 
 import { useOrgMembers } from './useOrgMembers'
-import { aMemberView, aMembership } from '@/testing/fixtures'
+import { aMemberView, aMembership, anInvite } from '@/testing/fixtures'
 
 const mockGetMembers = vi.hoisted(() => vi.fn())
 const mockGetInvites = vi.hoisted(() => vi.fn())
+const mockGenerateInvite = vi.hoisted(() => vi.fn())
 
 vi.mock('@/services/MemberService', () => ({
   memberService: {
@@ -19,7 +20,7 @@ vi.mock('@/services/MemberService', () => ({
 vi.mock('@/services/InviteService', () => ({
   inviteService: {
     getInvites: mockGetInvites,
-    generateInvite: vi.fn(),
+    generateInvite: mockGenerateInvite,
     revokeInvite: vi.fn(),
   },
 }))
@@ -78,5 +79,61 @@ describe('useOrgMembers', () => {
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(result.current.error).toBe('rpc down')
     expect(result.current.members).toEqual([])
+  })
+
+  it('When an invite is created, exposes the created invite with its token for sharing', async () => {
+    const created = anInvite({ token: 'tok-new' })
+    mockGenerateInvite.mockResolvedValue({ data: created, error: null })
+
+    const { result } = setup('org-1')
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await act(() => result.current.invite('new@example.com', 'member'))
+
+    expect(mockGenerateInvite).toHaveBeenCalledWith(
+      'org-1',
+      'new@example.com',
+      'member'
+    )
+    expect(result.current.lastInvite).toEqual(created)
+    expect(result.current.lastInvite?.token).toBe('tok-new')
+  })
+
+  it('When the invite RPC returns no row, no share callout is set', async () => {
+    mockGenerateInvite.mockResolvedValue({ data: null, error: 'denied' })
+
+    const { result } = setup('org-1')
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await act(() => result.current.invite('new@example.com', 'member'))
+
+    expect(result.current.lastInvite).toBeNull()
+  })
+
+  it('When dismissed, the fresh-invite state clears', async () => {
+    mockGenerateInvite.mockResolvedValue({ data: anInvite(), error: null })
+
+    const { result } = setup('org-1')
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    await act(() => result.current.invite('new@example.com', 'member'))
+    expect(result.current.lastInvite).not.toBeNull()
+
+    act(() => result.current.clearLastInvite())
+
+    expect(result.current.lastInvite).toBeNull()
+  })
+
+  it('When the org changes, a callout from the previous org does not survive', async () => {
+    mockGenerateInvite.mockResolvedValue({ data: anInvite(), error: null })
+
+    const { result, rerender } = setup('org-1')
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    await act(() => result.current.invite('new@example.com', 'member'))
+    expect(result.current.lastInvite).not.toBeNull()
+
+    rerender({ id: 'org-2' })
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    expect(result.current.lastInvite).toBeNull()
   })
 })

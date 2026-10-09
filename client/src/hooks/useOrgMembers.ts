@@ -16,6 +16,9 @@ export function useOrgMembers(orgId: string) {
   // same input state — preserved so switching sub-tabs keeps the text.
   const [email, setEmail] = useState('')
   const [inviteRole, setInviteRole] = useState('member')
+  // The inviter is the delivery channel (no invite email is sent): keep the
+  // invite just created so the panel can surface its code/link to share.
+  const [lastInvite, setLastInvite] = useState<Invite | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -36,6 +39,8 @@ export function useOrgMembers(orgId: string) {
   }, [orgId, isOrgAdmin])
 
   useEffect(() => {
+    // A callout about the previous org's invite must not survive the switch.
+    setLastInvite(null)
     load()
   }, [load])
 
@@ -54,9 +59,10 @@ export function useOrgMembers(orgId: string) {
     async (emailValue: string, role: string) => {
       const val = emailValue.trim()
       if (!val) return
-      await inviteService.generateInvite(orgId, val, role)
+      const { data } = await inviteService.generateInvite(orgId, val, role)
       setEmail('')
       await load()
+      if (data) setLastInvite(data)
     },
     [orgId, load]
   )
@@ -85,6 +91,8 @@ export function useOrgMembers(orgId: string) {
     [load]
   )
 
+  const clearLastInvite = useCallback(() => setLastInvite(null), [])
+
   return {
     members,
     invites,
@@ -100,6 +108,8 @@ export function useOrgMembers(orgId: string) {
     updateRole,
     removeMember,
     revokeInvite,
+    lastInvite,
+    clearLastInvite,
   }
 }
 

@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { extractInviteToken } from './inviteToken'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { buildInviteLink, extractInviteToken } from './inviteToken'
 
 const CODE = 'a'.repeat(64)
 
@@ -24,5 +24,37 @@ describe('extractInviteToken', () => {
       extractInviteToken('https://aidnet.shafi.me/invite?token=short')
     ).toBeNull()
     expect(extractInviteToken('')).toBeNull()
+  })
+})
+
+describe('buildInviteLink', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('When served at a root domain, it links the join page with the token', () => {
+    vi.stubGlobal('window', {
+      location: {
+        origin: 'https://aidnet.shafi.me',
+        hostname: 'aidnet.shafi.me',
+        pathname: '/dashboard/members/',
+      },
+    })
+    expect(buildInviteLink(CODE)).toBe(
+      `https://aidnet.shafi.me/invite?token=${CODE}`
+    )
+  })
+
+  it('When served under a GitHub Pages project path, it prefixes the base path', () => {
+    vi.stubGlobal('window', {
+      location: {
+        origin: 'https://shafi-.github.io',
+        hostname: 'shafi-.github.io',
+        pathname: '/aidnet/dashboard/members/',
+      },
+    })
+    expect(buildInviteLink(CODE)).toBe(
+      `https://shafi-.github.io/aidnet/invite?token=${CODE}`
+    )
   })
 })

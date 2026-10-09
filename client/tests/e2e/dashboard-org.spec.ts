@@ -49,6 +49,51 @@ test.describe('Org workspace routes', () => {
     await expect(page.locator('.divide-y > div').first()).toBeVisible()
   })
 
+  test('When owner invites an email, the panel exposes the code and a copyable join link', async ({
+    page,
+    context,
+  }) => {
+    const workspace = new ConsolePage(page)
+
+    test.skip(
+      !features.includes('members'),
+      'seeded plan does not grant members — cannot exercise the members flow'
+    )
+
+    // Invites are delivered by the inviter (no email is sent), so the
+    // shareable artifacts ARE the feature: clipboard permissions let us
+    // assert the copied artifact, not just its button.
+    await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+    await workspace.open('/dashboard/members')
+
+    const email = `invitee+${Date.now()}@donate.app`
+    await page.getByPlaceholder('Invite by email...').fill(email)
+    await page.getByRole('button', { name: 'Invite', exact: true }).click()
+
+    // Fresh-invite callout: the code plus the copy action.
+    const callout = page.getByRole('status')
+    await expect(
+      callout.getByText(`Invite created for ${email}.`)
+    ).toBeVisible()
+    const code = await callout.locator('code').innerText()
+    expect(code).toMatch(/^[0-9a-f]{64}$/)
+
+    await callout.getByRole('button', { name: 'Copy invite link' }).click()
+    const link = await page.evaluate(() => navigator.clipboard.readText())
+    expect(link).toBe(`${new URL(page.url()).origin}/invite?token=${code}`)
+
+    // The pending row keeps the link reachable after the callout is gone.
+    const row = page.locator('.divide-y > div').filter({ hasText: email })
+    await expect(
+      row.getByRole('button', { name: 'Copy invite link' })
+    ).toBeVisible()
+    await expect(
+      page.getByRole('button', { name: 'Copy invite link' })
+    ).toHaveCount(2)
+
+    await row.getByRole('button', { name: 'Revoke' }).click()
+  })
+
   test('When settings feature active, /dashboard/settings shows the org form', async ({
     page,
   }) => {

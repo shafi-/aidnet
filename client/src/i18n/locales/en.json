@@ -337,7 +337,12 @@
     "noInvites": "No pending invites.",
     "loadError": "Could not load members: {{message}}",
     "inviteRoleAria": "Invite role",
-    "roleAria": "Role for {{name}}"
+    "roleAria": "Role for {{name}}",
+    "inviteReady": "Invite created for {{email}}.",
+    "inviteReadyHint": "No email is sent — copy the invite link (or the code) and share it with them yourself.",
+    "copyLink": "Copy invite link",
+    "linkCopied": "Link copied",
+    "dismissInvite": "Dismiss"
   },
   "orgSettings": {
     "orgName": "Organization Name",
@@ -527,7 +532,7 @@
     "pastePlaceholder": "Paste invite link or code",
     "pasteInvalid": "That doesn't look like an invite link or code. Check the email and try again.",
     "joinButton": "Continue",
-    "noInviteHelp": "Don't have an invite? Organizations invite members by email. You can also start your own fundraiser:",
+    "noInviteHelp": "Don't have an invite? Organizations share their invite links directly with members — ask an admin for yours. You can also start your own fundraiser:",
     "invitedTitle": "You've been invited!",
     "enterEmail": "Enter your email to see which organization invited you.",
     "checkInvite": "Check Invite",
