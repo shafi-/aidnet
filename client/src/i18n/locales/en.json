@@ -544,6 +544,7 @@
   },
   "admin": {
     "title": "System Admin",
+    "statsError": "Could not load stats. Check your connection and try again.",
     "statOrgs": "Organizations",
     "statUsers": "Users",
     "statMembers": "Members",

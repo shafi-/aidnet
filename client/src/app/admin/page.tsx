@@ -5,7 +5,7 @@ import { systemAdminService } from '@/services/SystemAdminService'
 import { useSystemAdmin } from '@/hooks/useSystemAdmin'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useTranslation } from 'react-i18next'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import type { SystemStats } from '@/types'
 import Link from 'next/link'
 
@@ -14,19 +14,24 @@ export default function AdminPage() {
   const { isSystemAdmin, loading: adminLoading } = useSystemAdmin()
   const [stats, setStats] = useState<SystemStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   usePageTitle(t('admin.title'))
 
+  const load = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    // Surface failures: silently rendering no cards reads as a broken page.
+    // Show a friendly notice with a retry instead of the raw RPC error.
+    const { data, error: rpcError } = await systemAdminService.getSystemStats()
+    if (data) setStats(data)
+    else setError(rpcError ?? t('admin.statsError'))
+    setLoading(false)
+  }, [t])
+
   useEffect(() => {
-    if (isSystemAdmin) {
-      const load = async () => {
-        const { data } = await systemAdminService.getSystemStats()
-        if (data) setStats(data)
-        setLoading(false)
-      }
-      load()
-    }
-  }, [isSystemAdmin])
+    if (isSystemAdmin) load()
+  }, [isSystemAdmin, load])
 
   if (adminLoading)
     return (
@@ -65,6 +70,21 @@ export default function AdminPage() {
     <AppLayout>
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">{t('admin.title')}</h1>
+        {error && (
+          <div
+            className="rounded-lg border border-red-200 bg-red-50 p-4"
+            role="alert"
+          >
+            <p className="text-sm text-red-700">{t('admin.statsError')}</p>
+            <button
+              type="button"
+              onClick={load}
+              className="mt-2 rounded-md border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50"
+            >
+              {t('common.tryAgain')}
+            </button>
+          </div>
+        )}
         {stats && (
           <div className="grid gap-4 md:grid-cols-4">
             <div className="rounded-lg bg-white p-4 shadow">
