@@ -1954,6 +1954,7 @@ export type Database = {
           created_at: string
           description: string
           id: string
+          logo_url: string | null
           name: string
           slug: string
         }[]
