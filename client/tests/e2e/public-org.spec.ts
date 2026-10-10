@@ -32,16 +32,38 @@ test.describe.serial('Public Org Directory & Landing', () => {
     ).toBeVisible()
   })
 
-  test('When public org page opened, Sign In and Create Account links are shown', async ({
+  test('When public org page opened, campaigns section is shown without auth CTAs', async ({
     page,
   }) => {
     await gotoStable(page, `/orgs/?slug=${testSlug}`)
     await expect(
-      page.locator('main').getByRole('link', { name: 'Sign In' })
+      page.getByRole('heading', { name: 'Campaigns by Demo Organization' })
     ).toBeVisible()
+    // The landing already shows the org's campaigns — no sign-up prompts and
+    // no redundant browse-all button.
+    await expect(
+      page.locator('main').getByRole('link', { name: 'Sign In' })
+    ).toHaveCount(0)
     await expect(
       page.locator('main').getByRole('link', { name: 'Create Account' })
-    ).toBeVisible()
+    ).toHaveCount(0)
+    await expect(
+      page.locator('main').getByRole('link', { name: 'Browse campaigns' })
+    ).toHaveCount(0)
+  })
+
+  test('When See all clicked on the org landing, the campaigns list is filtered by that org', async ({
+    page,
+  }) => {
+    await gotoStable(page, `/orgs/?slug=${testSlug}`)
+    await page.getByRole('link', { name: 'See all' }).click()
+    await expect(page).toHaveURL(/\/campaigns\?org=/)
+    // The filtered state is visible: a named, removable org filter pill.
+    const orgPill = page.getByRole('link', {
+      name: 'Clear organization filter',
+    })
+    await expect(orgPill).toBeVisible()
+    await expect(orgPill).toContainText('Demo Organization')
   })
 
   test('When public org page opened, created date is shown', async ({

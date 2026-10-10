@@ -317,5 +317,6 @@ export const aPublicOrg = (over: Partial<PublicOrg> = {}): PublicOrg => ({
   slug: 'demo-org',
   description: null,
   created_at: TS,
+  logo_url: null,
   ...over,
 })

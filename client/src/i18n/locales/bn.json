@@ -110,6 +110,8 @@
     "title": "ক্যাম্পেইন খুঁজুন",
     "filter": "ফিল্টার:",
     "zakatEligible": "যাকাতযোগ্য",
+    "orgFilter": "{{name}}-এর ক্যাম্পেইন",
+    "clearOrgFilter": "সংগঠন ফিল্টার সরান",
     "clearFilter": "ফিল্টার সরান",
     "clearFilters": "সব ফিল্টার সরান",
     "showingCount_one": "{{count}}টি ক্যাম্পেইন দেখানো হচ্ছে",
@@ -392,10 +394,11 @@
     "loading": "সংগঠন লোড হচ্ছে...",
     "notFoundTitle": "সংগঠন পাওয়া যায়নি",
     "noCampaigns": "এখনো কোনো চলমান ক্যাম্পেইন নেই।",
-    "about": "পরিচিতি",
     "created": "AidNet-এ যোগদান: {{date}}",
-    "browseCampaigns": "ক্যাম্পেইন দেখুন",
-    "goToDashboard": "ড্যাশবোর্ডে যান"
+    "statCampaigns": "চলমান ক্যাম্পেইন",
+    "statMoney": "{{amount}} {{currency}}",
+    "statRaisedLabel": "এ পর্যন্ত সংগ্রহ",
+    "statGoalLabel": "মোট লক্ষ্য"
   },
   "selector": {
     "title": "একটি সংগঠন নির্বাচন করুন",

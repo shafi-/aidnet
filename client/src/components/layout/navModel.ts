@@ -44,16 +44,22 @@ const ADMIN_LINK: NavLinkItem = { href: '/admin', label: 'nav.admin' }
 export function buildNavModel(input: NavModelInput): NavModel {
   const { user, currentOrg, isSystemAdmin } = input
 
-  // Anonymous visitors: discovery is their only job, so Campaigns is the
-  // single primary link (DESIGN.md — Dashboard stays hidden and guarded).
+  // Anonymous visitors: discovery is their only job — Campaigns and the
+  // public org directory (DESIGN.md — Dashboard stays hidden and guarded).
   if (!user) {
     return {
-      items: [{ kind: 'link', href: '/campaigns', label: 'nav.campaigns' }],
+      items: [
+        { kind: 'link', href: '/campaigns', label: 'nav.campaigns' },
+        { kind: 'link', href: '/orgs', label: 'nav.organizations' },
+      ],
       organizationsMenu: null,
       drawerGroups: [
         {
           label: null,
-          links: [{ href: '/campaigns', label: 'nav.campaigns' }],
+          links: [
+            { href: '/campaigns', label: 'nav.campaigns' },
+            { href: '/orgs', label: 'nav.organizations' },
+          ],
         },
       ],
     }

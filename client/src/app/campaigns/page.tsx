@@ -4,7 +4,7 @@ import { Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
-import { Check } from 'lucide-react'
+import { Check, X } from 'lucide-react'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { usePublicCampaigns } from '@/hooks/usePublicCampaigns'
 import { CampaignCard } from '@/components/campaign/CampaignCard'
@@ -23,6 +23,9 @@ function CampaignsContent() {
 
   usePageTitle(t('campaigns.pageTitle'))
   const { campaigns, loading, error } = usePublicCampaigns({ zakat, org })
+  // The org filter arrives as an id with no name attached; the campaign
+  // rows carry their org_name, so the active-filter pill can name it.
+  const orgName = campaigns[0]?.org_name
 
   const buildHref = (nextZakat: boolean) => {
     const params = new URLSearchParams()
@@ -70,6 +73,16 @@ function CampaignsContent() {
               </span>
               {t('campaigns.zakatEligible')}
             </Link>
+            {org && orgName && (
+              <Link
+                href="/campaigns"
+                aria-label={t('campaigns.clearOrgFilter')}
+                className="inline-flex items-center gap-2 rounded-full border border-indigo-600 bg-indigo-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
+              >
+                {t('campaigns.orgFilter', { name: orgName })}
+                <X className="h-3 w-3" strokeWidth={3} aria-hidden="true" />
+              </Link>
+            )}
             {zakat && (
               <Link
                 href="/campaigns"

@@ -110,6 +110,8 @@
     "title": "Discover Campaigns",
     "filter": "Filter:",
     "zakatEligible": "Zakat Eligible",
+    "orgFilter": "Campaigns by {{name}}",
+    "clearOrgFilter": "Clear organization filter",
     "clearFilter": "Clear filter",
     "clearFilters": "Clear filters",
     "showingCount_one": "Showing {{count}} campaign",
@@ -392,10 +394,11 @@
     "loading": "Loading organization...",
     "notFoundTitle": "Organization Not Found",
     "noCampaigns": "No live campaigns yet.",
-    "about": "About",
     "created": "On AidNet since {{date}}",
-    "browseCampaigns": "Browse campaigns",
-    "goToDashboard": "Go to dashboard"
+    "statCampaigns": "Live campaigns",
+    "statMoney": "{{amount}} {{currency}}",
+    "statRaisedLabel": "Raised so far",
+    "statGoalLabel": "Combined goal"
   },
   "selector": {
     "title": "Select an Organization",

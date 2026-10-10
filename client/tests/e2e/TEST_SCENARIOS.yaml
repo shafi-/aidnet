@@ -478,7 +478,9 @@ scenarios:
           actor: orgOwner,
           type: ui,
           setup: seeded,
-          notes: feature-gated, members + invites merged, sub-tabs deleted,
+          notes: feature-gated,
+          members + invites merged,
+          sub-tabs deleted,
         }
       - {
           title: When settings feature active,
@@ -852,6 +854,13 @@ scenarios:
     notes: uses seeded demo-org slug; env-guarded via beforeAll skip
     scenarios:
       - {
+          title: When /orgs is opened without a slug,
+          the public org directory is shown,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
           title: When valid slug opened,
           public org page shows org info,
           actor: anon,
@@ -861,7 +870,14 @@ scenarios:
         }
       - {
           title: When public org page opened,
-          Sign In and Create Account links are shown,
+          campaigns section is shown without auth CTAs,
+          actor: anon,
+          type: ui,
+          setup: seeded,
+        }
+      - {
+          title: When See all clicked on the org landing,
+          the campaigns list is filtered by that org,
           actor: anon,
           type: ui,
           setup: seeded,
@@ -881,8 +897,8 @@ scenarios:
           setup: seeded,
         }
       - {
-          title: When empty slug opened,
-          Organization Not Found is shown,
+          title: When legacy /orgs/public?slug= link is opened,
+          it forwards to the new landing,
           actor: anon,
           type: ui,
           setup: seeded,

@@ -10,19 +10,22 @@ function hrefs(model: ReturnType<typeof buildNavModel>): string[] {
 }
 
 describe('buildNavModel', () => {
-  it('When anonymous, shows only public discovery and no menus', () => {
+  it('When anonymous, shows public discovery links and no menus', () => {
     const model = buildNavModel({
       user: null,
       currentOrg: null,
       isSystemAdmin: false,
     })
 
-    expect(hrefs(model)).toEqual(['/campaigns'])
+    expect(hrefs(model)).toEqual(['/campaigns', '/orgs'])
     expect(model.organizationsMenu).toBeNull()
     expect(model.drawerGroups).toEqual([
       {
         label: null,
-        links: [{ href: '/campaigns', label: 'nav.campaigns' }],
+        links: [
+          { href: '/campaigns', label: 'nav.campaigns' },
+          { href: '/orgs', label: 'nav.organizations' },
+        ],
       },
     ])
   })

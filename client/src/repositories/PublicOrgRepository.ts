@@ -8,6 +8,7 @@ export interface PublicOrg {
   slug: string
   description: string | null
   created_at: string
+  logo_url: string | null
 }
 
 export class PublicOrgRepository extends BaseRepository {
