@@ -8,6 +8,7 @@ describe('routeAccess', () => {
     expect(resolveAccessLevel('/privacy')).toBe('public')
     expect(resolveAccessLevel('/campaigns')).toBe('public')
     expect(resolveAccessLevel('/campaigns/detail')).toBe('public')
+    expect(resolveAccessLevel('/orgs')).toBe('public')
     expect(resolveAccessLevel('/orgs/public')).toBe('public')
     expect(resolveAccessLevel('/invite')).toBe('public')
   })
@@ -19,7 +20,7 @@ describe('routeAccess', () => {
   })
 
   it('requires authentication for the org area', () => {
-    expect(resolveAccessLevel('/orgs')).toBe('authenticated')
+    expect(resolveAccessLevel('/manage/orgs')).toBe('authenticated')
     expect(resolveAccessLevel('/profile')).toBe('authenticated')
     expect(resolveAccessLevel('/dashboard')).toBe('authenticated')
     expect(resolveAccessLevel('/dashboard/campaigns')).toBe('authenticated')

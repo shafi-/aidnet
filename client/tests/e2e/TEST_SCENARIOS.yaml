@@ -909,14 +909,14 @@ scenarios:
         }
       - {
           title: When not authenticated,
-          visiting /orgs redirects to login,
+          visiting /manage/orgs redirects to login,
           actor: anon,
           type: ui,
           setup: seeded,
         }
       - {
           title: When authenticated,
-          /orgs shows the organization list,
+          /manage/orgs shows the organization list,
           actor: orgOwner,
           type: ui,
           setup: seeded,
@@ -1098,7 +1098,7 @@ scenarios:
     area: Orgs page (owner)
     auth: storageState orgOwner
     scenarios:
-      - title: When owner loads /orgs, shows Request Organization button instead of Create
+      - title: When owner loads /manage/orgs, shows Request Organization button instead of Create
         actor: orgOwner
         type: ui
         setup: seeded
@@ -1114,7 +1114,7 @@ scenarios:
         actor: orgOwner
         type: ui
         setup: seeded
-        owner_of: /orgs -> /org/request navigation
+        owner_of: /manage/orgs -> /org/request navigation
       - {
           title: When owner has existing orgs,
           shows them as clickable links,

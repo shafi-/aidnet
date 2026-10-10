@@ -88,7 +88,7 @@ export function buildNavModel(input: NavModelInput): NavModel {
           links: [
             { href: '/campaigns', label: 'nav.campaigns' },
             { href: '/dashboard/campaigns/new', label: 'nav.startCampaign' },
-            { href: '/orgs', label: 'nav.organizations' },
+            { href: '/manage/orgs', label: 'nav.organizations' },
             { href: '/org/request', label: 'nav.requestOrg' },
             { href: '/dashboard', label: 'nav.dashboard' },
             ...(isSystemAdmin ? [ADMIN_LINK] : []),
@@ -119,7 +119,7 @@ export function buildNavModel(input: NavModelInput): NavModel {
         links: [
           { href: '/dashboard', label: 'nav.dashboard' },
           { href: '/dashboard/campaigns', label: 'nav.orgCampaigns' },
-          { href: '/orgs', label: 'nav.organizations' },
+          { href: '/manage/orgs', label: 'nav.organizations' },
           { href: '/campaigns', label: 'nav.discover' },
           ...(isSystemAdmin ? [ADMIN_LINK] : []),
         ],

@@ -102,9 +102,9 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     await loginAsUser(page, requesterEmail, TEST_PASSWORD)
 
     // Fresh load so the list reflects the just-approved org
-    await gotoStable(page, '/orgs')
+    await gotoStable(page, '/manage/orgs')
     const href = await page
-      .locator(`a[href^="/orgs/?id="]:has-text("${orgName}")`)
+      .locator(`a[href^="/manage/orgs/?id="]:has-text("${orgName}")`)
       .first()
       .getAttribute('href')
     const orgId = new URL(href!, 'http://localhost').searchParams.get('id')!
@@ -124,7 +124,7 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     // Requester attempts to open the suspended org directly via ?id=
     await loginAsUser(page, requesterEmail, TEST_PASSWORD)
 
-    await gotoStable(page, `/orgs/?id=${orgId}`)
+    await gotoStable(page, `/manage/orgs/?id=${orgId}`)
 
     // Suspended org cannot become current — the orgs page renders and
     // localStorage must NOT hold the suspended org id.
@@ -155,7 +155,7 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     }, maliciousOrgId)
 
     // Navigate to orgs page
-    await gotoStable(page, '/orgs')
+    await gotoStable(page, '/manage/orgs')
 
     // The malicious id must be cleared (and never rendered as HTML). A
     // remaining active org may be auto-selected afterwards.
@@ -193,17 +193,17 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     // user1 selects the org via ?id=
     await loginAsUser(page, user1Email, TEST_PASSWORD)
 
-    // The dashboard lists org names as plain text — the id link lives on /orgs
-    await gotoStable(page, '/orgs')
+    // The dashboard lists org names as plain text — the id link lives on /manage/orgs
+    await gotoStable(page, '/manage/orgs')
 
     const href = await page
-      .locator(`a[href^="/orgs/?id="]:has-text("${orgName}")`)
+      .locator(`a[href^="/manage/orgs/?id="]:has-text("${orgName}")`)
       .first()
       .getAttribute('href')
     const orgId = new URL(href!, 'http://localhost').searchParams.get('id')!
     expect(orgId).toBeTruthy()
 
-    await gotoStable(page, `/orgs/?id=${orgId}`)
+    await gotoStable(page, `/manage/orgs/?id=${orgId}`)
     // selectOrgById persists asynchronously after its fetch — poll, don't race
     await expect
       .poll(async () =>
@@ -229,9 +229,9 @@ test.describe.serial('Security: Organization Selection Protection', () => {
     await registerViaApi(page, user2Email, TEST_PASSWORD, `User2 ${Date.now()}`)
     await loginAsUser(page, user2Email, TEST_PASSWORD)
 
-    await gotoStable(page, '/orgs')
+    await gotoStable(page, '/manage/orgs')
     const orgLinkForUser2 = page.locator(
-      `a[href^="/orgs/?id="]:has-text("${orgName}")`
+      `a[href^="/manage/orgs/?id="]:has-text("${orgName}")`
     )
     await expect(orgLinkForUser2).toHaveCount(0)
   })

@@ -195,7 +195,7 @@ specs in the same commit.
 | `/` | `app/page.tsx` | new `HeroSection`, `marketing/GetInvolved` (restyle), `CampaignCard` grid | hero w/ display type + gradient headline span + CTA pair; how-it-works (3 icons); featured campaigns |
 | `/campaigns` | `app/campaigns/page.tsx` | `CampaignCard` (restyle), `EmptyState`, filter toolbar | responsive card grid; CampaignCard v2: image, status Badge, goal Progress, org-verified mark |
 | `/campaigns/detail` | `app/campaigns/detail/page.tsx` | `Progress`, `Dialog` (ReportDonation), donate panel | hero image w/ gradient overlay, sticky donate card on desktop, org trust row |
-| `/orgs`, `/orgs/public` | their pages | Table/Card toggle, `StatusBadge` | verified org marks, consistent empty states |
+| `/orgs` (public directory + `?slug=` landing), `/orgs/public` (legacy shim), `/manage/orgs` (authed "my organizations") | their pages | Table/Card toggle, `StatusBadge` | verified org marks, consistent empty states |
 | `/about`, `/privacy`, `/terms`, `/contact` | pages | `PageHeader`, prose styles | typographic prose layout; contact form on `FormField` |
 
 ### 5.3 Auth (AuthLayout split panel)

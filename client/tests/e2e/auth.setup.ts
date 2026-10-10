@@ -9,7 +9,7 @@ for (const [role, creds] of Object.entries(USERS)) {
     await loginViaUi(page, creds.email, creds.password)
 
     if (selectOrgFor(role)) {
-      await page.goto('/orgs')
+      await page.goto('/manage/orgs')
       // Fresh context has no currentOrgId. Single-org accounts are
       // auto-selected by the OrganizationProvider (the select-screen is
       // skipped), so the org card may not be visible. Multi-org accounts

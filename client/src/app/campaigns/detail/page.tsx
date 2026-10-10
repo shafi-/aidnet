@@ -180,7 +180,7 @@ function CampaignDetailContent() {
               <p className="text-gray-500">
                 {t('campaignDetail.by')}{' '}
                 <Link
-                  href={`/orgs/public?slug=${encodeURIComponent(campaign.org_slug)}`}
+                  href={`/orgs?slug=${encodeURIComponent(campaign.org_slug)}`}
                   className="text-indigo-600 hover:underline"
                 >
                   {campaign.org_name}

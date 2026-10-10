@@ -50,7 +50,7 @@ describe('buildNavModel', () => {
     expect(model.drawerGroups[0].links.map(l => l.href)).toEqual([
       '/campaigns',
       '/dashboard/campaigns/new',
-      '/orgs',
+      '/manage/orgs',
       '/org/request',
       '/dashboard',
     ])
@@ -82,7 +82,7 @@ describe('buildNavModel', () => {
     expect(model.drawerGroups[0].links.map(l => l.href)).toEqual([
       '/dashboard',
       '/dashboard/campaigns',
-      '/orgs',
+      '/manage/orgs',
       '/campaigns',
     ])
   })
@@ -106,7 +106,7 @@ describe('buildNavModel', () => {
     expect(model.drawerGroups[0].links.map(l => l.href)).toEqual([
       '/dashboard',
       '/dashboard/campaigns',
-      '/orgs',
+      '/manage/orgs',
       '/campaigns',
       '/admin',
     ])

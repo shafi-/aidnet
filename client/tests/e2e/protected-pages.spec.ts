@@ -27,19 +27,19 @@ test.describe('Protected Pages', () => {
   })
 
   test.describe('Orgs Page', () => {
-    test('When not authenticated, visiting /orgs redirects to login', async ({
+    test('When not authenticated, visiting /manage/orgs redirects to login', async ({
       page,
     }) => {
-      await gotoStable(page, '/orgs/')
+      await gotoStable(page, '/manage/orgs/')
       await expect(page).toHaveURL(/\/auth\/login\//)
     })
 
-    test('When authenticated, /orgs shows the organization list', async ({
+    test('When authenticated, /manage/orgs shows the organization list', async ({
       page,
     }) => {
       await loginViaUi(page, OWNER.email, OWNER.password)
 
-      await gotoStable(page, '/orgs/')
+      await gotoStable(page, '/manage/orgs/')
       await expect(
         page.getByRole('heading', { name: 'Organizations' })
       ).toBeVisible()
@@ -167,7 +167,7 @@ test.describe('Protected Pages', () => {
       await expect(
         page.getByRole('heading', { name: 'Welcome!' })
       ).toBeVisible()
-      await page.waitForURL(/\/orgs/, { timeout: 10000 })
+      await page.waitForURL(/\/manage\/orgs/, { timeout: 10000 })
 
       // Teardown: the shared seeded joiner must end org-less again —
       // personal-campaigns.spec depends on this fixture state.

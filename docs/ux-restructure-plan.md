@@ -57,8 +57,10 @@ Evidence base: the local audit walkthrough (screenshots in
 
 ### Two shells
 
-- **Public** (`/`, `/campaigns`, `/campaigns/detail`, `/orgs/public`,
-  auth pages): keeps the current top navbar + footer.
+- **Public** (`/`, `/campaigns`, `/campaigns/detail`, `/orgs` — directory
+  + `?slug=` landing, auth pages): keeps the current top navbar + footer.
+  (`/manage/orgs` — the authed "my organizations" selector — also uses this
+  top-navbar shell, like the old `/orgs` page did.)
 - **Console** (`/dashboard/*`, `/admin/*`): a persistent left sidebar —
   org switcher pinned on top (workspace) or section nav (admin); top
   navbar collapses to brand + account. Sidebar sections are **routes**,

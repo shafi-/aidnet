@@ -81,7 +81,7 @@ changing anything. Canonical companions:
 
 ### Frontend constraints (static export)
 - No server components, no NextJS API routes, no `[param]` dynamic segments.
-  Use query params: `/orgs?id=xxx`, validated via `useRequiredParam(key)` +
+  Use query params: `/manage/orgs?id=xxx`, validated via `useRequiredParam(key)` +
   `isUuid()` / `isInviteToken()`.
 - Components are stateless: props in, callbacks out. Only containers touch
   services. All state lives in containers/hooks/providers.

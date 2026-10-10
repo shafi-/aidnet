@@ -119,7 +119,7 @@ export default function InvitePage() {
       return
     }
     setStatus('accepted')
-    setTimeout(() => router.push('/orgs'), 2000)
+    setTimeout(() => router.push('/manage/orgs'), 2000)
   }
 
   return (

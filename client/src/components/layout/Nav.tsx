@@ -42,6 +42,7 @@ const itemIconClass = 'h-4 w-4 text-muted-foreground'
 function menuItemIcon(href: string) {
   switch (href) {
     case '/orgs':
+    case '/manage/orgs':
       return <Building2 className={itemIconClass} aria-hidden="true" />
     case '/org/request':
       return <Inbox className={itemIconClass} aria-hidden="true" />
@@ -61,6 +62,7 @@ function drawerIcon(href: string) {
     case '/campaigns':
       return <Search className="h-5 w-5" aria-hidden="true" />
     case '/orgs':
+    case '/manage/orgs':
       return <Building2 className="h-5 w-5" aria-hidden="true" />
     case '/org/request':
       return <Inbox className="h-5 w-5" aria-hidden="true" />

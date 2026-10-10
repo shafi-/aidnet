@@ -35,7 +35,7 @@ architecture:
     enforced fail-closed by RouteAccessGuard in root layout. Unknown
     routes default to 'authenticated'. Admin denials are inline
     (Access Denied), not redirects.
-  pages_query_param_contract: '/orgs?id=, /orgs/public?id=, /campaigns/detail?id=, /invite?token=, /dashboard/campaigns/edit?id='
+  pages_query_param_contract: '/manage/orgs?id=, /orgs?slug=, /campaigns/detail?id=, /invite?token=, /dashboard/campaigns/edit?id='
   test_infra:
     global_setup: tests/e2e/global-setup.mjs (seeds auth users + demo data, idempotent)
     storage_states: tests/e2e/.auth/*.json (per role, regenerated per run, gitignored)
@@ -62,9 +62,9 @@ auth_flow:
   access_levels:
     public: >
       "/", "/about", "/privacy", "/auth/*", "/campaigns",
-      "/campaigns/detail", "/orgs/public", "/invite"
+      "/campaigns/detail", "/orgs", "/orgs/public", "/invite"
     authenticated: >
-      "/orgs", "/org/request", "/profile", "/dashboard/*"
+      "/manage/*", "/org/request", "/profile", "/dashboard/*"
     systemAdmin: '"/admin/*" — inline deny for non-admins'
   fail_closed: unknown/unlisted routes require authentication.
   flows_under_test:
@@ -93,13 +93,14 @@ pages:
       access: public,
       suite: campaign-detail.spec.ts,
     }
-  - { route: '/orgs/public', access: public, suite: public-org.spec.ts }
+  - { route: '/orgs', access: public, suite: 'public-org.spec.ts (directory + ?slug= landing)' }
+  - { route: '/orgs/public', access: public, suite: public-org.spec.ts (legacy shim) }
   - {
       route: '/invite',
       access: public,
       suite: protected-pages.spec.ts (paste-join journey + error states),
     }
-  - { route: '/orgs', access: authenticated, suite: orgs-management.spec.ts }
+  - { route: '/manage/orgs', access: authenticated, suite: orgs-management.spec.ts }
   - {
       route: '/org/request',
       access: authenticated,
@@ -178,7 +179,7 @@ features:
   route_access:
     owns: protected-pages.spec.ts, navigation.spec.ts
     scenarios:
-      - when: anon hits /dashboard, /orgs, /profile
+      - when: anon hits /dashboard, /manage/orgs, /profile
         expect: redirect to /auth/login (fail-closed)
       - when: non-admin (org owner) hits /admin/*
         expect: inline Access Denied, NOT a redirect
@@ -251,18 +252,18 @@ features:
   org_lifecycle_request_to_provisioning:
     owns: org-request-flow.spec.ts, org-provisioning.spec.ts, orgs-management.spec.ts
     scenarios:
-      - when: user without org opens /orgs
+      - when: user without org opens /manage/orgs
         expect: empty state with Request Organization CTA (Create is NOT offered)
       - when: org request submitted
         expect: exactly one pending request created (contract via get_my_org_requests)
       - when: user has pending request
-        expect: cannot submit another; /orgs shows pending state
+        expect: cannot submit another; /manage/orgs shows pending state
       - when: system admin approves a request
         expect: org provisioned + membership + baseline Free plan (provisioning contract via rpc)
       - when: system admin rejects with reason
         expect: rejection visible to requester
       - when: user has active org
-        expect: listed on /orgs as selectable link; selection stored
+        expect: listed on /manage/orgs as selectable link; selection stored
       - when: org suspended by admin
         expect: Suspended badge, card NOT a link; stale selection cleared; ?id= of suspended org blocked in selector
       - when: admin suspends then reactivates org
@@ -296,7 +297,7 @@ features:
       - when: user opens /invite with no token (from "I have an invite")
         expect: paste-entry form; pasted code or full invite link routes into the token flow; help text offers the own-fundraiser path when there is no invite
       - when: invited user pastes a valid invite and accepts
-        expect: membership granted; user redirected to /orgs (shared joiner fixture restored to org-less afterwards)
+        expect: membership granted; user redirected to /manage/orgs (shared joiner fixture restored to org-less afterwards)
       - status: covered
 
   campaigns_owner_workspace:

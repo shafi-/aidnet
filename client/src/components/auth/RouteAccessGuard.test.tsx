@@ -56,7 +56,7 @@ describe('RouteAccessGuard', () => {
   })
 
   it('redirects anon users away from authenticated routes', () => {
-    mockPathname = '/orgs'
+    mockPathname = '/manage/orgs'
     renderGuard()
 
     expect(push).toHaveBeenCalledWith('/auth/login')

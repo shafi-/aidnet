@@ -36,7 +36,8 @@ export const ROUTE_ACCESS: AccessRule[] = [
   // Public campaign & org browsing
   { exact: '/campaigns', level: 'public' },
   { prefix: '/campaigns/detail', level: 'public' },
-  { exact: '/orgs/public', level: 'public' },
+  { exact: '/orgs', level: 'public' },
+  { exact: '/orgs/public', level: 'public' }, // legacy shim → /orgs
 
   // Invite validation is an anonymous flow (accept requires session inside)
   { exact: '/invite', level: 'public' },
@@ -45,7 +46,7 @@ export const ROUTE_ACCESS: AccessRule[] = [
   { prefix: '/admin', level: 'systemAdmin' },
 
   // Authenticated org area
-  { exact: '/orgs', level: 'authenticated' },
+  { prefix: '/manage', level: 'authenticated' },
   { exact: '/org/request', level: 'authenticated' },
   { exact: '/profile', level: 'authenticated' },
   { prefix: '/dashboard', level: 'authenticated' },

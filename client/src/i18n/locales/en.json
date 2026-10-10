@@ -380,6 +380,12 @@
     "yourRole": "Your role: {{role}}",
     "empty": "No organizations yet. Submit an organization request to get started."
   },
+  "orgDirectory": {
+    "title": "Organizations on AidNet",
+    "subtitle": "Discover verified organizations raising funds for causes that matter.",
+    "empty": "No organizations to show yet.",
+    "viewOrg": "View organization →"
+  },
   "orgPublic": {
     "campaignsBy": "Campaigns by {{name}}",
     "seeAll": "See all →",

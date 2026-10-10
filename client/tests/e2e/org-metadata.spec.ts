@@ -59,7 +59,7 @@ test.describe.serial('Organization Metadata Management', () => {
 
     // Login as user and verify org has metadata
     await loginAsUser(page, userEmail, TEST_PASSWORD)
-    await gotoStable(page, '/orgs')
+    await gotoStable(page, '/manage/orgs')
 
     // The org should be visible and accessible
     await expect(page.getByText(orgName).first()).toBeVisible()
@@ -89,7 +89,7 @@ test.describe.serial('Organization Metadata Management', () => {
 
     // Login as user and get org ID
     await loginAsUser(page, userEmail, TEST_PASSWORD)
-    await gotoStable(page, '/orgs')
+    await gotoStable(page, '/manage/orgs')
 
     // Click on the org to select it, and WAIT until the choice is actually
     // persisted: navigating mid-write silently drops the selection.
@@ -181,15 +181,15 @@ test.describe.serial('Organization Metadata Management', () => {
 
     // Login as first user and verify only their org appears
     await loginAsUser(page, user1Email, TEST_PASSWORD)
-    await gotoStable(page, '/orgs')
+    await gotoStable(page, '/manage/orgs')
 
     // Scope to the org-list link: the selection overlay (user1 has 2 orgs)
     // renders the same name as a button, so a global text match is ambiguous.
     await expect(
-      page.locator(`a[href^="/orgs/?id="]:has-text("${org1Name}")`)
+      page.locator(`a[href^="/manage/orgs/?id="]:has-text("${org1Name}")`)
     ).toBeVisible()
     await expect(
-      page.locator(`a[href^="/orgs/?id="]:has-text("${org2Name}")`)
+      page.locator(`a[href^="/manage/orgs/?id="]:has-text("${org2Name}")`)
     ).toHaveCount(0)
   })
 
@@ -226,7 +226,7 @@ test.describe.serial('Organization Metadata Management', () => {
 
     // Login as user and verify suspension status
     await loginAsUser(page, userEmail, TEST_PASSWORD)
-    await gotoStable(page, '/orgs')
+    await gotoStable(page, '/manage/orgs')
 
     // The suspended org should not be selectable or should show suspension status
     await expect(

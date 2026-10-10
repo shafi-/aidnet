@@ -11,7 +11,7 @@ export class OrgSelectPage {
   }
 
   async open() {
-    await this.page.goto('/orgs')
+    await this.page.goto('/manage/orgs')
   }
 
   /** Select by exact org name; org selection UI renders cards as buttons. */

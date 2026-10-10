@@ -91,7 +91,7 @@ test.describe('Organization Request Submission', () => {
 })
 
 test.describe('Organizations List reflects Requests', () => {
-  test('When user has pending request, /orgs shows empty state with request CTA', async ({
+  test('When user has pending request, /manage/orgs shows empty state with request CTA', async ({
     page,
   }) => {
     const email = `requester-${Date.now()}@example.com`
@@ -100,7 +100,7 @@ test.describe('Organizations List reflects Requests', () => {
 
     await submitOrgRequest(page, 'Test Org', `test-org-${Date.now()}`)
 
-    await gotoStable(page, '/orgs')
+    await gotoStable(page, '/manage/orgs')
     // With no personal org auto-created, the list shows the request CTA
     await expect(
       page.getByRole('link', { name: 'Request an organization' }).first()
@@ -127,8 +127,10 @@ test.describe('Organizations List reflects Requests', () => {
     // Requester now has an active org
     await loginAsUser(page, email, TEST_PASSWORD)
 
-    await gotoStable(page, '/orgs')
-    const orgLink = page.locator(`a[href^="/orgs/?id="]:has-text("${orgName}")`)
+    await gotoStable(page, '/manage/orgs')
+    const orgLink = page.locator(
+      `a[href^="/manage/orgs/?id="]:has-text("${orgName}")`
+    )
     await expect(orgLink).toBeVisible()
   })
 })
@@ -166,9 +168,9 @@ test.describe.serial('Suspended Organization Behavior', () => {
     // Requester reads the active org id from the orgs list link
     await loginAsUser(page, requesterEmail, requesterPassword)
 
-    await gotoStable(page, '/orgs')
+    await gotoStable(page, '/manage/orgs')
     const href = await page
-      .locator(`a[href^="/orgs/?id="]:has-text("${orgName}")`)
+      .locator(`a[href^="/manage/orgs/?id="]:has-text("${orgName}")`)
       .first()
       .getAttribute('href')
     orgId = new URL(href!, 'http://localhost').searchParams.get('id')!
@@ -198,11 +200,11 @@ test.describe.serial('Suspended Organization Behavior', () => {
   }) => {
     await loginAsUser(page, requesterEmail, requesterPassword)
 
-    await gotoStable(page, '/orgs')
+    await gotoStable(page, '/manage/orgs')
 
     // Suspended orgs render as a plain heading, never as a selectable link
     const suspendedLink = page.locator(
-      `a[href^="/orgs/?id="]:has-text("Suspended Org")`
+      `a[href^="/manage/orgs/?id="]:has-text("Suspended Org")`
     )
     await expect(suspendedLink).toHaveCount(0)
 
@@ -238,7 +240,7 @@ test.describe.serial('Suspended Organization Behavior', () => {
   }) => {
     await loginAsUser(page, requesterEmail, requesterPassword)
 
-    await gotoStable(page, `/orgs/?id=${orgId}`)
+    await gotoStable(page, `/manage/orgs/?id=${orgId}`)
 
     // selectOrgById refuses suspended orgs, so the id is never persisted:
     // the orgs list renders with the org blocked (non-link + badge) instead
@@ -247,7 +249,7 @@ test.describe.serial('Suspended Organization Behavior', () => {
       page.getByRole('heading', { name: 'Organizations' })
     ).toBeVisible()
     await expect(
-      page.locator(`a[href^="/orgs/?id="]:has-text("Suspended Org")`)
+      page.locator(`a[href^="/manage/orgs/?id="]:has-text("Suspended Org")`)
     ).toHaveCount(0)
     await expect(page.getByText('Suspended', { exact: true })).toBeVisible()
 
