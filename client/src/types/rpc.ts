@@ -89,6 +89,7 @@ export const Rpc = {
   },
   Public: {
     GetOrgBySlug: 'get_public_org_by_slug' satisfies DbFunction,
+    GetMany: 'get_public_orgs' satisfies DbFunction,
   },
   Campaign: {
     Create: 'create_campaign' satisfies DbFunction,

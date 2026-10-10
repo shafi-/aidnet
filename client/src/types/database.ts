@@ -1958,6 +1958,16 @@ export type Database = {
           slug: string
         }[]
       }
+      get_public_orgs: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          created_at: string
+          description: string
+          id: string
+          name: string
+          slug: string
+        }[]
+      }
       get_subscription_history: {
         Args: { p_org_id: string }
         Returns: {

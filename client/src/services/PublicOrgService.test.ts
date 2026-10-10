@@ -33,4 +33,17 @@ describe('PublicOrgService', () => {
       error: 'missing',
     })
   })
+
+  it('getPublicOrgs delegates to the repository', async () => {
+    const rows = [aPublicOrg()]
+    const getPublicOrgs = vi.fn().mockResolvedValue(ok(rows))
+    const svc = new PublicOrgService(
+      mockRepository<PublicOrgRepository>({ getPublicOrgs })
+    )
+
+    const res = await svc.getPublicOrgs()
+
+    expect(getPublicOrgs).toHaveBeenCalledWith()
+    expect(res).toEqual(ok(rows))
+  })
 })

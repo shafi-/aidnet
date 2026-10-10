@@ -16,4 +16,8 @@ export class PublicOrgRepository extends BaseRepository {
       org_slug: slug,
     })
   }
+
+  async getPublicOrgs(): ServiceData<PublicOrg[]> {
+    return this.callRpc<PublicOrg[]>(Rpc.Public.GetMany)
+  }
 }

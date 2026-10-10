@@ -14,6 +14,10 @@ export class PublicOrgService {
   async getPublicOrg(slug: string): ServiceData<PublicOrg[]> {
     return this.publicOrgRepo.getPublicOrg(slug)
   }
+
+  async getPublicOrgs(): ServiceData<PublicOrg[]> {
+    return this.publicOrgRepo.getPublicOrgs()
+  }
 }
 
 export const publicOrgService = new PublicOrgService()

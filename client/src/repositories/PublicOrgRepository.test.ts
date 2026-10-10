@@ -26,4 +26,15 @@ describe('PublicOrgRepository', () => {
 
     expect(res).toEqual({ data: null, error: 'not found' })
   })
+
+  it('getPublicOrgs calls get_public_orgs with no params and returns raw rows', async () => {
+    const rows = [aPublicOrg(), aPublicOrg({ slug: 'another-org' })]
+    const gw = createMockRpcGateway({ get_public_orgs: { data: rows } })
+    const res = await new PublicOrgRepository(gw).getPublicOrgs()
+
+    expect(res.data).toEqual(rows)
+    expect(gw.callsTo('get_public_orgs')).toEqual([
+      { functionName: 'get_public_orgs', params: undefined },
+    ])
+  })
 })
